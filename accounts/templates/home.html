@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SoleVault – Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #1a47e8;
+    --blue-dark: #1338c0;
+    --black: #0a0a0a;
+    --white: #ffffff;
+    --gray-100: #f7f7f7;
+    --gray-200: #eeeeee;
+    --gray-400: #aaaaaa;
+    --gray-600: #666666;
+    --gray-800: #333333;
+    --red: #e8221a;
+    --font: 'Barlow', sans-serif;
+  }
+
+  body { font-family: var(--font); background: var(--white); color: var(--black); font-size: 14px; }
+
+  a { text-decoration: none; color: inherit; }
+
+  /* ── ANNOUNCEMENT BAR ── */
+  .announcement {
+    background: var(--blue);
+    color: var(--white);
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    padding: 7px 16px;
+  }
+
+  /* ── NAVBAR ── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 40px;
+    border-bottom: 1px solid var(--gray-200);
+    background: var(--white);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .logo-text {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--blue);
+    letter-spacing: -0.02em;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 28px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-800);
+    transition: color .2s;
+  }
+
+  .nav-links a:hover { color: var(--blue); }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .nav-actions svg {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    color: var(--gray-800);
+  }
+
+  .cart-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-800);
+  }
+
+  .wishlist-count {
+    background: var(--red);
+    color: var(--white);
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    font-size: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    margin-left: -6px;
+    margin-top: -10px;
+  }
+
+  /* ── HERO ── */
+.hero {
+  margin: 24px 40px;
+  border-radius: 14px;
+
+  background: linear-gradient(
+      rgba(0,0,0,0.5),
+      rgba(0,0,0,0.5)
+    ),
+    url("/static/images/shoe\ banner.png");
+
+  background-size: cover;        /* 🔥 fits perfectly */
+  background-position: center right; /* push shoe to right */
+  background-repeat: no-repeat;
+
+  min-height: 500px;
+
+  display: flex;
+  align-items: center;
+  padding: 40px 44px;
+}
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 340px;
+    height: 340px;
+    background: radial-gradient(ellipse at center, rgba(26,71,232,0.25) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: var(--blue);
+    color: var(--white);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 14px;
+  }
+
+  .hero-title {
+    font-size: 38px;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--white);
+    max-width: 300px;
+  }
+
+  .hero-title span {
+    color: var(--blue);
+    display: block;
+  }
+
+  .hero-desc {
+    font-size: 12px;
+    color: rgba(255,255,255,0.65);
+    margin: 12px 0 20px;
+    max-width: 260px;
+    line-height: 1.5;
+  }
+
+  .hero-btn {
+    display: inline-block;
+    background: var(--blue);
+    color: var(--white);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 10px 22px;
+    border-radius: 6px;
+    letter-spacing: 0.03em;
+    transition: background .2s;
+  }
+
+  .hero-btn:hover { background: var(--blue-dark); }
+
+  .hero-shoe {
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-15deg);
+    width: 300px;
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5));
+    pointer-events: none;
+  }
+
+  /* ── SECTION TITLE ── */
+  .section-head {
+    padding: 0 40px;
+    margin-top: 36px;
+    margin-bottom: 6px;
+  }
+
+  .section-head h2 {
+    font-size: 20px;
+    font-weight: 800;
+  }
+
+  .section-head p {
+    font-size: 12px;
+    color: var(--gray-600);
+    margin-top: 2px;
+  }
+
+  /* ── CATEGORIES ── */
+  .categories {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 0 40px;
+    margin-top: 14px;
+  }
+
+  .cat-card {
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    height: 800px;
+    cursor: pointer;
+  }
+
+  .cat-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .4s ease;
+  }
+
+  .cat-card:hover img { transform: scale(1.04); }
+
+  .cat-card .cat-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%);
+    padding: 18px 16px 14px;
+  }
+
+  .cat-card .cat-name {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--white);
+  }
+
+  .cat-card .cat-sub {
+    font-size: 10px;
+    color: rgba(255,255,255,0.72);
+    margin-top: 1px;
+  }
+
+  /* ── BESTSELLERS ── */
+  .products {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    padding: 0 40px;
+    margin-top: 14px;
+  }
+
+  .product-card {
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--gray-100);
+    cursor: pointer;
+    transition: box-shadow .2s;
+  }
+
+  .product-card:hover {
+    box-shadow: 0 8px 28px rgba(0,0,0,0.12);
+  }
+
+  .product-img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    background: var(--gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .product-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .3s;
+  }
+
+  .product-card:hover .product-img img { transform: scale(1.06); }
+
+  .product-info {
+    padding: 10px 12px 12px;
+  }
+
+  .product-brand {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gray-600);
+  }
+
+  .product-name {
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 2px;
+    color: var(--black);
+  }
+
+  .product-price {
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 5px;
+    color: var(--black);
+  }
+
+  .product-price .old {
+    font-size: 11px;
+    font-weight: 400;
+    text-decoration: line-through;
+    color: var(--gray-400);
+    margin-right: 5px;
+  }
+
+  .badge-new {
+    display: inline-block;
+    font-size: 8px;
+    font-weight: 700;
+    background: var(--blue);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+
+  .badge-sale {
+    display: inline-block;
+    font-size: 8px;
+    font-weight: 700;
+    background: var(--red);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+
+  /* ── TRUSTED BY ── */
+  .trusted {
+    margin: 40px 40px 0;
+    border-top: 1px solid var(--gray-200);
+    border-bottom: 1px solid var(--gray-200);
+    padding: 22px 0;
+    text-align: center;
+  }
+
+  .trusted p {
+    font-size: 11px;
+    color: var(--gray-400);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .brand-logos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 36px;
+    flex-wrap: wrap;
+  }
+
+  .brand-logo {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--gray-400);
+    letter-spacing: -0.03em;
+    font-style: italic;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--white);
+    padding: 40px 40px 20px;
+    margin-top: 40px;
+    border-top: 1px solid var(--gray-200);
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 24px;
+    margin-bottom: 36px;
+  }
+
+  .footer-col h4 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--black);
+    margin-bottom: 12px;
+  }
+
+  .footer-col ul {
+    list-style: none;
+  }
+
+  .footer-col ul li {
+    margin-bottom: 7px;
+  }
+
+  .footer-col ul li a {
+    font-size: 12px;
+    color: var(--gray-600);
+    transition: color .2s;
+  }
+
+  .footer-col ul li a:hover { color: var(--blue); }
+
+  .footer-contact p {
+    font-size: 11px;
+    color: var(--gray-600);
+    line-height: 1.6;
+  }
+
+  .social-icons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .social-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    cursor: pointer;
+    transition: background .2s;
+  }
+
+  .social-icon:hover { background: var(--blue); color: white; }
+
+  .footer-bottom {
+    text-align: center;
+    font-size: 11px;
+    color: var(--gray-400);
+    border-top: 1px solid var(--gray-200);
+    padding-top: 16px;
+  }
+
+  /* ── PLACEHOLDER SHOE SVG (hero) ── */
+  .shoe-placeholder {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 300px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+</head>
+<body>
+
+  
+  <!-- NAVBAR -->
+  <nav>
+    <div class="logo">
+      
+      <span class="logo-text"><img src="/static/images/SoleVault.png" alt="" style="width: 130px;height: 80px;"></span>
+    </div>
+    
+    <ul class="nav-links">
+      <li><a href="#">Home</a></li>
+      <li><a href="#">Men</a></li>
+      <li><a href="#">Women</a></li>
+    </ul>
+    
+    <div class="nav-actions">
+      <!-- Search -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <!-- User -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <!-- Wishlist -->
+      <div style="position:relative; display:flex; align-items:center;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <span class="wishlist-count">0</span>
+      </div>
+      <!-- Cart -->
+      <div class="cart-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        Cart (0)
+      </div>
+    </div>
+  </nav>
+  
+  <!-- ANNOUNCEMENT BAR -->
+  <div class="announcement">
+    🔥 Our biggest sale—off 30% at all summer shoes
+  </div>
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <span class="hero-badge">Trending Drop</span>
+    <h1 class="hero-title">Elevate Your<span>Step</span></h1>
+    <p class="hero-desc">Experience the ultimate fusion of performance and street luxury. Discover the most exclusive drops and timeless classics.</p>
+    <a href="#" class="hero-btn">Shop Collection</a>
+  </div>
+
+  <!-- Hero shoe illustration -->
+  <!-- <div class="shoe-placeholder">
+    <img src="/static/images/shoe banner.png" alt="">
+  </div> -->
+</section>
+
+<!-- SHOP BY CATEGORY -->
+<div class="section-head">
+  <h2>Shop by Category</h2>
+</div>
+
+<section class="categories">
+  <!-- Women -->
+  <div class="cat-card">
+    <img src="/static/images/women.png" alt="Women"/>
+    <div class="cat-overlay">
+      <div class="cat-name">Women</div>
+      <div class="cat-sub">Elevated styles for her</div>
+    </div>
+  </div>
+  <!-- Men -->
+  <div class="cat-card">
+    <img src="/static/images/men.png" alt="Men"/>
+    <div class="cat-overlay">
+      <div class="cat-name">Men</div>
+      <div class="cat-sub">Classic and modern menswear</div>
+    </div>
+  </div>
+</section>
+
+<!-- BEST SELLERS -->
+<div class="section-head" style="margin-top:36px;">
+  <h2>Best Sellers</h2>
+  <p>Fresh drops from the world's leading brands</p>
+</div>
+
+<section class="products">
+  <!-- 1 -->
+  <div class="product-card">
+    <div class="product-img">
+      <img src="/static/images/Red Shoe.png" alt="Air Max Crimson Edge"/>
+    </div>
+    <div class="product-info">
+      <div class="badge-sale">SALE</div>
+      <div class="product-brand">Nike</div>
+      <div class="product-name">Air Max Crimson Edge</div>
+      <div class="product-price"><span class="old">$189.00</span> $149.00</div>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="product-card">
+    <div class="product-img">
+      <img src="/static/images/white shoe.png" alt="FOAM Protection Pack"/>
+    </div>
+    <div class="product-info">
+      <div class="badge-new">NEW</div>
+      <div class="product-brand">New Balance</div>
+      <div class="product-name">FOAM Protection Pack</div>
+      <div class="product-price">$160.00</div>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="product-card">
+    <div class="product-img">
+      <img src="/static/images/blue shoe.png" alt="Air Jordan 1 High OG"/>
+    </div>
+    <div class="product-info">
+      <div class="badge-new">JORDAN</div>
+      <div class="product-brand">Jordan</div>
+      <div class="product-name">Air Jordan 1 High OG</div>
+      <div class="product-price">$210.00</div>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="product-card">
+    <div class="product-img">
+      <img src="/static/images/Black Shoe.png" alt="Yeezy Boost 350 V2"/>
+    </div>
+    <div class="product-info">
+      <div class="badge-new">ADIDAS</div>
+      <div class="product-brand">Adidas</div>
+      <div class="product-name">Yeezy Boost 350 V2</div>
+      <div class="product-price">$230.00</div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUSTED BY -->
+<div class="trusted">
+  <p>Trusted by</p>
+  <div class="brand-logos">
+    <span class="brand-logo" style="font-style:normal; font-family: 'Barlow Condensed', sans-serif; font-size:22px; font-weight:700; color:#ccc; letter-spacing:-1px;">adidas</span>
+    <span class="brand-logo" style="font-style:italic; font-family: serif; font-size:22px; color:#ccc;">PUMA</span>
+    <span class="brand-logo" style="font-style:normal; font-size:22px; color:#ccc; letter-spacing:2px; font-weight:900;">NIKE</span>
+    <span class="brand-logo" style="font-style:normal; font-size:19px; color:#ccc; font-weight:700;">New Balance</span>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>About SoleVault</h4>
+      <ul>
+        <li><a href="#">Our Story</a></li>
+        <li><a href="#">Philosophy</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Press</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Customer Care</h4>
+      <ul>
+        <li><a href="#">Contact</a></li>
+        <li><a href="#">Shipping & Returns</a></li>
+        <li><a href="#">FAQ</a></li>
+        <li><a href="#">Size Guide</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Information</h4>
+      <ul>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Terms & Conditions</a></li>
+        <li><a href="#">Order Tracking</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>News</h4>
+      <ul>
+        <li><a href="#">Blog</a></li>
+        <li><a href="#">Lookbook</a></li>
+      </ul>
+    </div>
+    <div class="footer-col footer-contact">
+      <h4>Contact Information</h4>
+      <p>
+        123 Main Street<br/>
+        New York, NY 10000<br/>
+        +1 234 567 89<br/>
+        info@solevault.com
+      </p>
+      <div class="social-icons">
+        <div class="social-icon">T</div>
+        <div class="social-icon">f</div>
+        <div class="social-icon">in</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    &copy; 2025 · SoleVault. All rights reserved. The SoleVault name & logo are trademarks.
+  </div>
+</footer>
+
+</body>
+</html>
