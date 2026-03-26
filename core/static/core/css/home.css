@@ -1,0 +1,277 @@
+/* ============================================================
+   home.css  —  Home page specific styles
+   (Loaded on top of base.css)
+   ============================================================ */
+
+/* ── HERO ── */
+.hero {
+  margin: 24px 40px;
+  border-radius: 14px;
+
+  /* Fixed: use Django {% static %} in HTML, so here use a relative path
+     that works when served via Django's staticfiles.
+     The background-image below is a FALLBACK only for direct HTML preview.
+     In production Django serves the image via {% static %} in the template. */
+  background:
+    linear-gradient(rgba(0,0,0,0.52), rgba(0,0,0,0.52)),
+    url("../images/shoe banner.png") center right / cover no-repeat;
+
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  padding: 40px 44px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-content { position: relative; z-index: 1; }
+
+.hero-badge {
+  display: inline-block;
+  background: var(--blue);
+  color: var(--white);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  margin-bottom: 14px;
+}
+
+.hero-title {
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--white);
+  max-width: 300px;
+}
+
+.hero-title span {
+  color: var(--blue);
+  display: block;
+}
+
+.hero-desc {
+  font-size: 12px;
+  color: rgba(255,255,255,0.65);
+  margin: 12px 0 20px;
+  max-width: 260px;
+  line-height: 1.5;
+}
+
+.hero-btn {
+  display: inline-block;
+  background: var(--blue);
+  color: var(--white);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 10px 22px;
+  border-radius: 6px;
+  letter-spacing: 0.03em;
+  transition: background .2s;
+}
+
+.hero-btn:hover { background: var(--blue-dark); }
+
+/* ── SECTION TITLE ── */
+.section-head {
+  padding: 0 40px;
+  margin-top: 36px;
+  margin-bottom: 6px;
+}
+
+.section-head h2 {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.section-head p {
+  font-size: 12px;
+  color: var(--gray-600);
+  margin-top: 2px;
+}
+
+/* ── CATEGORIES ── */
+.categories {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 0 40px;
+  margin-top: 14px;
+}
+
+.cat-card {
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  height: 420px;   /* reduced from 800px for better UX */
+  cursor: pointer;
+}
+
+.cat-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  transition: transform .4s ease;
+  display: block;
+}
+
+.cat-card:hover img { transform: scale(1.04); }
+
+.cat-card .cat-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%);
+  padding: 18px 16px 14px;
+}
+
+.cat-card .cat-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--white);
+}
+
+.cat-card .cat-sub {
+  font-size: 10px;
+  color: rgba(255,255,255,0.72);
+  margin-top: 1px;
+}
+
+/* ── BEST SELLERS ── */
+.products {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  padding: 0 40px;
+  margin-top: 14px;
+}
+
+.product-card {
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--gray-100);
+  cursor: pointer;
+  transition: box-shadow .2s;
+}
+
+.product-card:hover {
+  box-shadow: 0 8px 28px rgba(0,0,0,0.12);
+}
+
+.product-img {
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.product-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .3s;
+  display: block;
+}
+
+.product-card:hover .product-img img { transform: scale(1.06); }
+
+.product-info {
+  padding: 10px 12px 12px;
+}
+
+.product-brand {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray-600);
+}
+
+.product-name {
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 2px;
+  color: var(--black);
+}
+
+.product-price {
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 5px;
+  color: var(--black);
+}
+
+.product-price .old {
+  font-size: 11px;
+  font-weight: 400;
+  text-decoration: line-through;
+  color: var(--gray-400);
+  margin-right: 5px;
+}
+
+.badge-new {
+  display: inline-block;
+  font-size: 8px;
+  font-weight: 700;
+  background: var(--blue);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.badge-sale {
+  display: inline-block;
+  font-size: 8px;
+  font-weight: 700;
+  background: var(--red);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+/* ── TRUSTED BY ── */
+.trusted {
+  margin: 40px 40px 0;
+  border-top: 1px solid var(--gray-200);
+  border-bottom: 1px solid var(--gray-200);
+  padding: 22px 0;
+  text-align: center;
+}
+
+.trusted p {
+  font-size: 11px;
+  color: var(--gray-400);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.brand-logos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  flex-wrap: wrap;
+}
+
+.brand-logo {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--gray-400);
+  letter-spacing: -0.03em;
+  font-style: italic;
+}

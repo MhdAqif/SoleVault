@@ -1,0 +1,283 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}SoleVault{% endblock %}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:      #0D59F2;
+      --blue-dark: #0a46c4;
+      --black:     #0a0a0a;
+      --white:     #ffffff;
+      --gray-100:  #f7f7f7;
+      --gray-200:  #eeeeee;
+      --gray-400:  #aaaaaa;
+      --gray-600:  #666666;
+      --gray-800:  #333333;
+      --red:       #e8221a;
+      --font:      'Barlow', sans-serif;
+    }
+
+    body { font-family: var(--font); background: var(--white); color: var(--black); font-size: 14px; }
+    a { text-decoration: none; color: inherit; }
+
+    /* ANNOUNCEMENT */
+    .announcement {
+      background-color: var(--blue);
+      color: var(--white);
+      text-align: center;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      padding: 7px 16px;
+    }
+
+    /* NAVBAR */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 40px;
+      border-bottom: 1px solid var(--gray-200);
+      background: var(--white);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo { display: flex; align-items: center; gap: 8px; }
+    .logo-text { font-size: 18px; font-weight: 800; color: var(--blue); letter-spacing: -0.02em; }
+    .nav-links { display: flex; gap: 28px; list-style: none; align-items: center; }
+    nav.logged-in { position: relative; }
+    nav.logged-in .nav-links { position: absolute; left: 50%; transform: translateX(-50%); }
+    .nav-links a { font-size: 13px; font-weight: 500; color: var(--gray-800); transition: color .2s; }
+    .nav-links a:hover { color: var(--blue); }
+    .nav-actions { display: flex; align-items: center; gap: 16px; }
+    .nav-actions svg { width: 18px; height: 18px; cursor: pointer; color: var(--gray-800); }
+    .cart-btn { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--gray-800); cursor: pointer; }
+    .wishlist-count {
+      background: var(--red); color: var(--white); border-radius: 50%;
+      width: 15px; height: 15px; font-size: 9px; display: flex;
+      align-items: center; justify-content: center; font-weight: 700;
+      margin-left: -6px; margin-top: -10px;
+    }
+
+    /* AUTH BUTTONS */
+    .btn-login {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-800);
+      padding: 7px 16px;
+      border-radius: 6px;
+      border: 1px solid var(--gray-200);
+      transition: border-color .2s, color .2s;
+    }
+    .btn-login:hover { border-color: var(--blue); color: var(--blue); }
+
+    .btn-signup {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--white);
+      background: var(--blue);
+      padding: 7px 16px;
+      border-radius: 6px;
+      transition: background .2s;
+    }
+    .btn-signup:hover { background: var(--blue-dark); }
+
+    /* USER DROPDOWN */
+    .user-menu { position: relative; display: flex; align-items: center; }
+    .user-menu-btn {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600; color: var(--gray-800);
+      cursor: pointer; padding: 6px 10px; border-radius: 6px;
+      border: 1px solid var(--gray-200); transition: border-color .2s;
+    }
+    .user-menu-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .user-menu-btn svg { width: 15px; height: 15px; }
+    .dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      min-width: 140px;
+      overflow: hidden;
+      z-index: 200;
+    }
+    .user-menu:hover .dropdown { display: block; }
+    .dropdown a {
+      display: block;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--gray-800);
+      transition: background .15s;
+    }
+    .dropdown a:hover { background: var(--gray-100); color: var(--blue); }
+    .dropdown .logout-link { color: var(--red); }
+    .dropdown .logout-link:hover { background: #fff5f5; color: var(--red); }
+    .dropdown-divider { height: 1px; background: var(--gray-200); margin: 2px 0; }
+
+    /* FOOTER */
+    footer { background: var(--white); padding: 40px 40px 20px; margin-top: 40px; border-top: 1px solid var(--gray-200); }
+    .footer-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 24px; margin-bottom: 36px; }
+    .footer-col h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--black); margin-bottom: 12px; }
+    .footer-col ul { list-style: none; }
+    .footer-col ul li { margin-bottom: 7px; }
+    .footer-col ul li a { font-size: 12px; color: var(--gray-600); transition: color .2s; }
+    .footer-col ul li a:hover { color: var(--blue); }
+    .footer-contact p { font-size: 11px; color: var(--gray-600); line-height: 1.6; }
+    .social-icons { display: flex; gap: 10px; margin-top: 10px; }
+    .social-icon {
+      width: 26px; height: 26px; border-radius: 50%; background: var(--gray-200);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; cursor: pointer; transition: background .2s, color .2s;
+    }
+    .social-icon:hover { background: var(--blue); color: white; }
+    .footer-bottom { text-align: center; font-size: 11px; color: var(--gray-400); border-top: 1px solid var(--gray-200); padding-top: 16px; }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="{% if request.user.is_authenticated %}logged-in{% endif %}">
+    <div class="logo">
+      <span class="logo-text">
+        <img src="{% static 'core/images/SoleVault.png' %}" alt="SoleVault" style="width:130px; height:50px;">
+      </span>
+    </div>
+
+    <ul class="nav-links">
+      <li><a href="#">Home</a></li>
+      <li><a href="#">Men</a></li>
+      <li><a href="#">Women</a></li>
+    </ul>
+
+    <div class="nav-actions">
+
+      {% if request.user.is_authenticated %}
+        <!-- Logged in: show icons + user dropdown -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+
+        <!-- Wishlist -->
+        <div style="position:relative; display:flex; align-items:center;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          <span class="wishlist-count">0</span>
+        </div>
+
+        <!-- Cart -->
+        <div class="cart-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          </svg>
+          Cart (0)
+        </div>
+
+        <!-- User dropdown -->
+        <div class="user-menu">
+          <div class="user-menu-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+            {{ request.user.email|truncatechars:16 }}
+          </div>
+          <div class="dropdown">
+            <a href="#">My Profile</a>
+            <a href="#">My Orders</a>
+            <div class="dropdown-divider"></div>
+            <a href="{% url 'logout' %}" class="logout-link">Logout</a>
+          </div>
+        </div>
+
+      {% else %}
+        <!-- Not logged in: show Login + Sign Up -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <a href="{% url 'login' %}" class="btn-login">Login</a>
+        <a href="{% url 'signup' %}" class="btn-signup">Sign Up</a>
+      {% endif %}
+
+    </div>
+  </nav>
+
+  <!-- ANNOUNCEMENT BAR -->
+  <div class="announcement">
+    Our biggest sale—off 30% at all summer shoes
+  </div>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h4>About SoleVault</h4>
+        <ul>
+          <li><a href="#">Our Story</a></li>
+          <li><a href="#">Philosophy</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Press</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Customer Care</h4>
+        <ul>
+          <li><a href="#">Contact</a></li>
+          <li><a href="#">Shipping &amp; Returns</a></li>
+          <li><a href="#">FAQ</a></li>
+          <li><a href="#">Size Guide</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Information</h4>
+        <ul>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms &amp; Conditions</a></li>
+          <li><a href="#">Order Tracking</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>News</h4>
+        <ul>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Lookbook</a></li>
+        </ul>
+      </div>
+      <div class="footer-col footer-contact">
+        <h4>Contact Information</h4>
+        <p>
+          123 Main Street<br/>
+          New York, NY 10000<br/>
+          +1 234 567 89<br/>
+          info@solevault.com
+        </p>
+        <div class="social-icons">
+          <div class="social-icon">T</div>
+          <div class="social-icon">f</div>
+          <div class="social-icon">in</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; 2026 &middot; SoleVault. All rights reserved. The SoleVault name &amp; logo are trademarks.
+    </div>
+  </footer>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

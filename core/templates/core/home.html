@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}SoleVault – Home{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <span class="hero-badge">Trending Drop</span>
+      <h1 class="hero-title">Elevate Your<span>Step</span></h1>
+      <p class="hero-desc">Experience the ultimate fusion of performance and street luxury. Discover the most exclusive drops and timeless classics.</p>
+      <a href="#" class="hero-btn">Shop Collection</a>
+    </div>
+  </section>
+
+  <!-- SHOP BY CATEGORY -->
+  <div class="section-head">
+    <h2>Shop by Category</h2>
+  </div>
+
+  <section class="categories">
+    <!-- Women -->
+    <div class="cat-card">
+      <img src="{% static 'core/images/women.png' %}" alt="Women"/>
+      <div class="cat-overlay">
+        <div class="cat-name">Women</div>
+        <div class="cat-sub">Elevated styles for her</div>
+      </div>
+    </div>
+    <!-- Men -->
+    <div class="cat-card">
+      <img src="{% static 'core/images/men.png' %}" alt="Men"/>
+      <div class="cat-overlay">
+        <div class="cat-name">Men</div>
+        <div class="cat-sub">Classic and modern menswear</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BEST SELLERS -->
+  <div class="section-head" style="margin-top:36px;">
+    <h2>Best Sellers</h2>
+    <p>Fresh drops from the world's leading brands</p>
+  </div>
+
+  <section class="products">
+    <!-- 1 -->
+    <div class="product-card">
+      <div class="product-img">
+        <img src="{% static 'core/images/Red Shoe.png' %}" alt="Air Max Crimson Edge"/>
+      </div>
+      <div class="product-info">
+        <div class="badge-sale">SALE</div>
+        <div class="product-brand">Nike</div>
+        <div class="product-name">Air Max Crimson Edge</div>
+        <div class="product-price"><span class="old">$189.00</span> $149.00</div>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="product-card">
+      <div class="product-img">
+        <img src="{% static 'core/images/white shoe.png' %}" alt="FOAM Protection Pack"/>
+      </div>
+      <div class="product-info">
+        <div class="badge-new">NEW</div>
+        <div class="product-brand">New Balance</div>
+        <div class="product-name">FOAM Protection Pack</div>
+        <div class="product-price">$160.00</div>
+      </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="product-card">
+      <div class="product-img">
+        <img src="{% static 'core/images/blue shoe.png' %}" alt="Air Jordan 1 High OG"/>
+      </div>
+      <div class="product-info">
+        <div class="badge-new">JORDAN</div>
+        <div class="product-brand">Jordan</div>
+        <div class="product-name">Air Jordan 1 High OG</div>
+        <div class="product-price">$210.00</div>
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="product-card">
+      <div class="product-img">
+        <img src="{% static 'core/images/Black Shoe.png' %}" alt="Yeezy Boost 350 V2"/>
+      </div>
+      <div class="product-info">
+        <div class="badge-new">ADIDAS</div>
+        <div class="product-brand">Adidas</div>
+        <div class="product-name">Yeezy Boost 350 V2</div>
+        <div class="product-price">$230.00</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUSTED BY -->
+  <div class="trusted">
+    <p>Trusted by</p>
+    <div class="brand-logos">
+      <span class="brand-logo" style="font-style:normal; font-size:22px; font-weight:700; color:#ccc; letter-spacing:-1px;">adidas</span>
+      <span class="brand-logo" style="font-style:italic; font-family:serif; font-size:22px; color:#ccc;">PUMA</span>
+      <span class="brand-logo" style="font-style:normal; font-size:22px; color:#ccc; letter-spacing:2px; font-weight:900;">NIKE</span>
+      <span class="brand-logo" style="font-style:normal; font-size:19px; color:#ccc; font-weight:700;">New Balance</span>
+    </div>
+  </div>
+
+{% endblock %}

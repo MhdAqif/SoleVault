@@ -1,0 +1,132 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SoleVault - Sign Up</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'accounts/css/signup.css' %}">
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-custom px-5">
+        <a class="navbar-brand" href="#">SoleVault</a>
+
+        <div class="ms-4">
+            <a class="nav-link d-inline" href="#">Home</a>
+            <a class="nav-link d-inline" href="#">About</a>
+        </div>
+    </nav>
+
+    <!-- Form -->
+    <div class="form-container">
+
+
+        <h4 class="mb-4"><strong>Sign up</strong></h4>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <input type="text" name="first_name" class="form-control" placeholder="First Name" required>
+
+            <input type="text" name="last_name" class="form-control" placeholder="Last Name" required>
+
+            <input type="email" name="email" class="form-control" placeholder="Email" required>
+
+            <input type="text" name="phone" class="form-control" placeholder="Mobile Number" required>
+
+            <div class="position-relative">
+                <input type="password" name="password" class="form-control" placeholder="Password" minlength="8"
+                    required>
+            </div>
+
+            <input type="password" name="confirm_password" class="form-control" placeholder="Confirm password" required>
+
+            <p class="small-text">Anyone has referred You? Claim the reward</p>
+
+            <input type="text" name="referral" class="form-control" placeholder="Referral code">
+
+            <p class="small-text">
+                Already have an account?
+                <a href="{% url 'login' %}">Log in</a>
+            </p>
+
+            <button type="submit" class="btn btn-primary">Sign Up</button>
+
+            <div class="divider">Or Register with</div>
+
+            <a href="{% url 'google_login' %}"
+                class="btn btn-outline-dark w-100 d-flex align-items-center justify-content-center gap-2">
+                <img src="https://img.icons8.com/color/16/google-logo.png">
+                Google
+            </a>
+
+        </form>
+        <br>
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert 
+        {% if message.tags == 'error' %}alert-danger
+        {% elif message.tags == 'success' %}alert-success
+        {% elif message.tags == 'warning' %}alert-warning
+        {% else %}alert-info
+        {% endif %}">
+
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(el => el.remove());
+        }, 3000);
+        document.getElementById("signupForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            let formData = new FormData(this);
+
+            fetch("", {
+                method: "POST",
+                body: formData,
+            })
+                .then(response => response.json())
+                .then(data => {
+
+                    // clear old errors
+                    document.getElementById("emailError").innerText = "";
+                    document.getElementById("passwordError").innerText = "";
+
+                    let msgBox = document.getElementById("messageBox");
+
+                    if (data.status === "success") {
+                        msgBox.innerHTML = `<div style="color:green">${data.message}</div>`;
+
+                        // clear form only on success
+                        document.getElementById("signupForm").reset();
+
+                    } else {
+
+                        msgBox.innerHTML = `<div style="color:red">${data.message}</div>`;
+
+                        if (data.errors) {
+                            if (data.errors.email) {
+                                document.getElementById("emailError").innerText = data.errors.email;
+                            }
+
+                            if (data.errors.password) {
+                                document.getElementById("passwordError").innerText = data.errors.password;
+                            }
+                        }
+                    }
+                });
+        });
+    </script>
+</body>
+
+</html>
