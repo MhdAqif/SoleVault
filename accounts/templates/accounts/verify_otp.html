@@ -33,7 +33,7 @@
       code to your phone <strong>test@gmail.com</strong>
     </p>
 
-    <form method="POST">
+    <form method="POST" action="{% url 'verify_otp' %}">
       {% csrf_token %}
 
       <!-- OTP Boxes -->
@@ -43,13 +43,14 @@
         <input type="text" maxlength="1" name="otp_3" id="otp3" inputmode="numeric">
         <input type="text" maxlength="1" name="otp_4" id="otp4" inputmode="numeric">
         <input type="text" maxlength="1" name="otp_5" id="otp5" inputmode="numeric">
+        <input type="text" maxlength="1" name="otp_6" id="otp6" inputmode="numeric">
       </div>
 
       <!-- Timer -->
       <p class="resend-timer">Send code again &nbsp;<span id="timer">00:59</span></p>
 
       <!-- Resend -->
-      <p class="resend-line">I didn't receive a code <a href="#">Resend</a></p>
+      <p class="resend-line">I didn't receive a code <a href="{% url 'resend_otp' %}">Resend</a></p>
 
       <!-- Verify Button -->
       <button type="submit" class="btn btn-primary">Verify</button>
