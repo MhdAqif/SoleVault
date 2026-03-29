@@ -1,0 +1,88 @@
+{% extends 'user_profile/base_profile.html' %}
+{% load static %}
+
+{% block title %}Edit Profile - SoleVault{% endblock %}
+
+{% block active_profile %}active{% endblock %}
+
+{% block profile_content %}
+
+<div class="profile-card">
+  <h4 class="edit-title">EDIT YOUR PROFILE</h4>
+
+  <form method="POST" enctype="multipart/form-data" action="{% url 'user_profile:profile_edit' %}">
+    {% csrf_token %}
+
+    <!-- Profile Picture -->
+    <div class="edit-section">
+      <label class="section-label">Profile Picture</label>
+
+      <div class="photo-row">
+        <!-- Avatar preview -->
+        <div class="edit-avatar" id="avatarPreview">
+          {% if user.profile_image %}
+          <img src="{{ user.profile_image.url }}" alt="Profile" id="avatarImg">
+          {% else %}
+          <span class="edit-avatar-initials">
+            {{ user.get_full_name|slice:":1"|upper }}
+          </span>
+          {% endif %}
+        </div>
+
+        <!-- Photo action buttons -->
+        <div class="photo-actions">
+          <label for="photoInput" class="btn-edit-photo">Edit Photo</label>
+          <input type="file" id="photoInput" name="photo" accept="image/*" style="display:none;">
+          <button type="button" class="btn-remove-photo" id="removePhotoBtn">Remove Photo</button>
+          <input type="hidden" name="remove_photo" id="removePhotoInput" value="0">
+        </div>
+      </div>
+    </div>
+
+    <!-- Full name + Phone -->
+    <div class="edit-fields-row">
+      <div class="edit-field">
+        <label>Full name</label>
+        <input type="text" name="full_name" value="{{ user.get_full_name }}" placeholder="Aqif A">
+      </div>
+      <div class="edit-field">
+        <label>Phone number</label>
+        <input type="tel" name="phone" value="{{ profile.phone|default:'' }}" placeholder="+91 000-000-0000">
+      </div>
+    </div>
+
+    <!-- Update button -->
+    <div class="edit-btn-row">
+      <button type="submit" class="btn-update">UPDATE</button>
+    </div>
+
+  </form>
+</div>
+
+<script>
+  // Preview image on file select
+  const photoInput = document.getElementById('photoInput');
+  const avatarPreview = document.getElementById('avatarPreview');
+  const avatarInitials = document.getElementById('avatarInitials');
+  const removePhotoBtn = document.getElementById('removePhotoBtn');
+  const removePhotoInput = document.getElementById('removePhotoInput');
+
+  photoInput.addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      avatarPreview.innerHTML = `<img src="${e.target.result}" alt="Preview" id="avatarImg">`;
+    };
+    reader.readAsDataURL(file);
+    removePhotoInput.value = '0';
+  });
+
+  removePhotoBtn.addEventListener('click', function () {
+    avatarPreview.innerHTML = `<span class="edit-avatar-initials">{{ user.get_full_name|slice:":1"|upper }}</span>`;
+    photoInput.value = '';
+    removePhotoInput.value = '1';
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,411 @@
+/* ============================================
+   SoleVault – user_profile/static/user_profile/css/profile.css
+   Profile section: sidebar + content area
+   ============================================ */
+
+/* ── Breadcrumb ── */
+.breadcrumb-bar {
+  padding: 10px 48px;
+  font-size: 13px;
+  color: #555;
+}
+
+.breadcrumb-link {
+  color: #333;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.breadcrumb-link:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb-sep {
+  margin-left: 4px;
+  color: #888;
+  font-size: 13px;
+}
+
+/* ── Profile layout ── */
+.profile-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 28px;
+  padding: 0 48px 60px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ────────────────────────────
+   SIDEBAR
+──────────────────────────── */
+.profile-sidebar {
+  flex-shrink: 0;
+  width: 210px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  padding: 20px 0 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Avatar + name row */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 18px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 8px;
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.avatar-initials {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.sidebar-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+}
+
+/* Nav links */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px;
+  font-size: 13px;
+  color: #222;
+  text-decoration: none;
+  transition: background 0.12s;
+  white-space: nowrap;
+}
+
+.sidebar-link:hover {
+  background-color: #f5f5f5;
+  color: #111;
+  text-decoration: none;
+}
+
+.sidebar-link.active {
+  color: #1a6dff;
+  font-weight: 600;
+}
+
+.nav-icon {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-icon img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+/* Disabled links (URL not ready yet) */
+.sidebar-link.disabled {
+  color: #aaa;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.sidebar-link.disabled .nav-icon img {
+  opacity: 0.35;
+}
+
+.sidebar-badge {
+  font-size: 12px;
+  color: #555;
+  margin-left: 2px;
+}
+
+/* ────────────────────────────
+   MAIN CONTENT AREA
+──────────────────────────── */
+.profile-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* White content card */
+.profile-card {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  padding: 32px 36px 40px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.profile-card h4 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+/* Form fields */
+.profile-field {
+  margin-bottom: 18px;
+}
+
+.profile-field label {
+  display: block;
+  font-size: 13px;
+  color: #444;
+  margin-bottom: 6px;
+}
+
+.profile-field input {
+  width: 100%;
+  height: 38px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: #333;
+  background: #f7f7f7;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.profile-field input:focus {
+  border-color: #1a6dff;
+  background: #fff;
+}
+
+.profile-field input[readonly],
+.profile-field input:disabled {
+  background: #efefef;
+  color: #888;
+  cursor: not-allowed;
+}
+
+/* EDIT button */
+.btn-edit {
+  display: block;
+  margin: 24px auto 0;
+  padding: 0 44px;
+  height: 38px;
+  background-color: #1a6dff;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background-color 0.15s;
+}
+
+.btn-edit:hover {
+  background-color: #1558d6;
+}
+
+.btn-edit:active {
+  background-color: #1045b0;
+}
+
+/* ────────────────────────────
+   EDIT PROFILE PAGE
+──────────────────────────── */
+
+.edit-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-align: center;
+  color: #111;
+  margin-bottom: 28px;
+  text-transform: uppercase;
+}
+
+.section-label {
+  display: block;
+  font-size: 13px;
+  color: #444;
+  margin-bottom: 14px;
+}
+
+.photo-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.edit-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.edit-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.edit-avatar-initials {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.photo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.btn-edit-photo {
+  display: block;
+  width: 100%;
+  height: 34px;
+  line-height: 34px;
+  text-align: center;
+  background-color: #1a6dff;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: background-color 0.15s;
+  user-select: none;
+}
+
+.btn-edit-photo:hover {
+  background-color: #1558d6;
+}
+
+.btn-remove-photo {
+  display: block;
+  width: 100%;
+  height: 34px;
+  background-color: #fff;
+  color: #e53935;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1.5px solid #e53935;
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: background-color 0.15s;
+}
+
+.btn-remove-photo:hover {
+  background-color: #fff0f0;
+}
+
+.edit-fields-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.edit-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.edit-field label {
+  display: block;
+  font-size: 13px;
+  color: #444;
+  margin-bottom: 6px;
+}
+
+.edit-field input {
+  width: 100%;
+  height: 38px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: #333;
+  background: #f7f7f7;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.edit-field input:focus {
+  border-color: #1a6dff;
+  background: #fff;
+}
+
+.edit-btn-row {
+  display: flex;
+  justify-content: center;
+}
+
+.btn-update {
+  padding: 0 52px;
+  height: 40px;
+  background-color: #1a6dff;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: background-color 0.15s;
+}
+
+.btn-update:hover {
+  background-color: #1558d6;
+}
+
+.btn-update:active {
+  background-color: #1045b0;
+}
+.center-btn {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px; /* optional spacing */
+}
+.btn-edit {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #0D59F2;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+
+  text-align: center;   /* ✅ THIS FIXES TEXT */
+}

@@ -1,0 +1,81 @@
+{% extends 'user_profile/base_profile.html' %}
+{% load static %}
+
+{% block title %}Add New Address - SoleVault{% endblock %}
+
+{% block active_address %}active{% endblock %}
+
+{% block profile_content %}
+
+<div class="profile-card">
+
+  <div class="addr-form-header">
+    <span class="addr-form-title">Add New Address</span>
+    <span class="addr-form-subtitle">Personal Information</span>
+  </div>
+
+  <form method="POST" action="{% url 'user_profile:add_address' %}">
+    {% csrf_token %}
+
+    <!-- Row 1: Full Name + Mobile Number -->
+    <div class="addr-row">
+      <div class="addr-field">
+        <label>Full Name</label>
+        <input type="text" name="full_name" placeholder="Aqif A" value="{{ form.full_name.value|default:'' }}">
+      </div>
+      <div class="addr-field">
+        <label>Mobile Number</label>
+        <input type="tel" name="mobile_number" placeholder="+91 000-000-000" value="{{ form.mobile_number.value|default:'' }}">
+      </div>
+    </div>
+
+    <!-- Row 2: Address (full width) -->
+    <div class="addr-row">
+      <div class="addr-field addr-field--full">
+        <label>Address</label>
+        <input type="text" name="address" placeholder="House Name , House Number , Locality" value="{{ form.address.value|default:'' }}">
+      </div>
+    </div>
+
+    <!-- Row 3: District + State -->
+    <div class="addr-row">
+      <div class="addr-field">
+        <label>District</label>
+        <input type="text" name="district" placeholder="eg: Ernakulam" value="{{ form.district.value|default:'' }}">
+      </div>
+      <div class="addr-field">
+        <label>State</label>
+        <input type="text" name="state" placeholder="eg: Kerala" value="{{ form.state.value|default:'' }}">
+      </div>
+    </div>
+
+    <!-- Row 4: City + Pin Code -->
+    <div class="addr-row">
+      <div class="addr-field">
+        <label>City</label>
+        <input type="text" name="city" placeholder="eg: Aluva" value="{{ form.city.value|default:'' }}">
+      </div>
+      <div class="addr-field">
+        <label>Pin Code</label>
+        <input type="text" name="pin_code" placeholder="eg: 683101" value="{{ form.pin_code.value|default:'' }}">
+      </div>
+    </div>
+
+    <!-- Row 5: Landmark (optional, full width) -->
+    <div class="addr-row">
+      <div class="addr-field addr-field--full">
+        <label>Landmark (optional)</label>
+        <input type="text" name="landmark" placeholder="eg: Hospital" value="{{ form.landmark.value|default:'' }}">
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="addr-btn-row">
+      <a href="{% url 'user_profile:manage_address' %}" class="btn-addr-cancel">Cancel</a>
+      <button type="submit" class="btn-addr-submit">Add Address</button>
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}

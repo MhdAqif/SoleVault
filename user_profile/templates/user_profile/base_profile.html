@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profile - SoleVault{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'user_profile/css/profile.css' %}">
+<link rel="stylesheet" href="{% static 'user_profile/css/address.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="breadcrumb-bar">
+  <a class="breadcrumb-link" href="#">Profile</a>
+  <span class="breadcrumb-sep">&rsaquo;</span>
+</div>
+
+<!-- Profile Layout -->
+<div class="profile-layout">
+
+  <!-- ── Left Sidebar ── -->
+  <aside class="profile-sidebar">
+
+    <!-- Avatar + Name -->
+    <div class="sidebar-header">
+      <div class="avatar">
+        <span class="avatar-initials">{{ user.get_full_name|slice:":1"|upper }}</span>
+      </div>
+      <span class="sidebar-name">{{ user.get_full_name }}</span>
+    </div>
+
+    <!-- Nav Menu -->
+    <nav class="sidebar-nav">
+
+      <!-- ✅ Active: My Profile -->
+      <a href="{% url 'user_profile:profile' %}" class="sidebar-link {% block active_profile %}{% endblock %}">
+        <span class="nav-icon">
+          <img src="{% static 'user_profile/icons/profile.png' %}" alt="">
+        </span>
+        My Profile
+      </a>
+
+      <!-- 🔒 Coming soon - no URL yet -->
+      <a href="{% url 'user_profile:manage_address' %}" >
+        <span class="nav-icon">
+          <img src="{% static 'user_profile/icons/address.png' %}" alt="">
+        </span>
+        My Address
+      </a>
+
+      <span class="sidebar-link disabled">
+        <span class="nav-icon">
+          <img src="{% static 'user_profile/icons/order.png' %}" alt="">
+        </span>
+        My Order
+      </span>
+
+      <span class="sidebar-link disabled">
+        <span class="nav-icon">
+          <img src="{% static 'user_profile/icons/wishlist.png' %}" alt="">
+        </span>
+        My Wishlist
+        {% if wishlist_count %}
+          <span class="sidebar-badge">({{ wishlist_count }})</span>
+        {% endif %}
+      </span>
+
+      <span class="sidebar-link disabled">
+        <span class="nav-icon">
+          <img src="{% static 'user_profile/icons/wallet.png' %}" alt="">
+        </span>
+        My Wallet
+      </span>
+
+      <span class="sidebar-link disabled">
+        <span class="nav-icon">
+          <img src="{% static 'user_profile/icons/coupon.png' %}" alt="">
+        </span>
+        My Coupon
+      </span>
+
+      <span class="sidebar-link disabled">
+        <span class="nav-icon">
+          <img src="{% static 'user_profile/icons/lock.png' %}" alt="">
+        </span>
+        Change password
+      </span>
+
+      <a href="{% url 'logout' %}" class="sidebar-link">
+        <span class="nav-icon">
+          <img src="{% static 'user_profile/icons/logout.png' %}" alt="">
+        </span>
+        Log out
+      </a>
+
+      <span class="sidebar-link disabled">
+        <span class="nav-icon">
+          <img src="{% static 'user_profile/icons/referral.png' %}" alt="">
+        </span>
+        Referral Code
+      </span>
+
+    </nav>
+  </aside>
+
+  <!-- ── Right Content ── -->
+  <main class="profile-main">
+    {% block profile_content %}{% endblock %}
+  </main>
+
+</div>
+
+{% endblock %}

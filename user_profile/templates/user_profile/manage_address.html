@@ -1,0 +1,82 @@
+{% extends 'user_profile/base_profile.html' %}
+{% load static %}
+
+{% block title %}My Address - SoleVault{% endblock %}
+
+{% block active_address %}active{% endblock %}
+
+{% block profile_content %}
+
+<div class="profile-card">
+  <h4 class="card-heading">Delivery Address</h4>
+
+  <div class="address-grid">
+    {% for address in addresses %}
+    <div class="address-card">
+
+      <!-- Top row: name + action icons -->
+      <div class="addr-top">
+        <span class="addr-name">{{ address.full_name }}</span>
+        <div class="addr-actions">
+          <a href="{% url 'user_profile:edit_address' address.id %}" class="addr-icon-btn" title="Edit">
+            <img src="{% static 'user_profile/icons/edit.png' %}" alt="Edit">
+          </a>
+        </div>
+      </div>
+
+      <p class="addr-line">{{ address.address }}</p>
+      <p class="addr-line">{{ address.mobile_number }}</p>
+      <p class="addr-line">{{ address.district }}, {{ address.state }}</p>
+      <p class="addr-line">{{ address.city }}, {{ address.pin_code }}</p>
+
+      <!-- Delete button -->
+      <button
+        class="btn-addr-delete"
+        onclick="openDeleteModal('{{ address.id }}', '{{ address.full_name }}')"
+      >DELETE</button>
+
+    </div>
+    {% empty %}
+    <p class="no-address">No saved addresses yet.</p>
+    {% endfor %}
+  </div>
+
+  <!-- Add New Address button -->
+  <div class="add-addr-row">
+    <a href="{% url 'user_profile:add_address' %}" class="btn-add-address">Add New Address</a>
+  </div>
+</div>
+
+<!-- ── Delete Confirmation Modal ── -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+    <h5 class="modal-title">ARE YOU SURE!!</h5>
+    <p class="modal-body">Do you want to delete the address?</p>
+    <div class="modal-actions">
+      <form method="POST" id="deleteForm" action="">
+        {% csrf_token %}
+        <input type="hidden" name="_method" value="DELETE">
+        <button type="button" class="btn-modal-cancel" onclick="closeDeleteModal()">Cancel</button>
+        <button type="submit" class="btn-modal-delete">Yes, Delete</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openDeleteModal(addressId, name) {
+    const form = document.getElementById('deleteForm');
+    form.action = `/user-profile/address/delete/${addressId}/`;
+    document.getElementById('deleteModal').classList.add('show');
+  }
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('show');
+  }
+  // Close on overlay click
+  document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+  });
+</script>
+
+{% endblock %}
