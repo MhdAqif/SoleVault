@@ -7,22 +7,29 @@ import re
 import random
 from django.core.mail import send_mail
 import time
-
-# In signup
+from django.template.loader import render_to_string
 
 
 def generate_otp():
     return str(random.randint(100000, 999999))
 
-
 def send_otp(email, otp):
+    subject = 'Your SoleVault Verification Code'
+    message = f'Your OTP is {otp}'
+
+    html_message = render_to_string('accounts/otp_email.html', {
+        'otp': otp
+    })
+
     send_mail(
-        'OTP Verification',
-        f'Your OTP is {otp}',
+        subject,
+        message,
         'your_email@gmail.com',
         [email],
+        html_message=html_message,
         fail_silently=False,
     )
+
 def resend_otp(request):
     email = request.session.get('email')
     otp = generate_otp()
@@ -121,7 +128,7 @@ def verify_otp(request):
         actual_otp = request.session.get('otp')
         otp_time = request.session.get('otp_time')
 
-        # ⏱ OTP expiry (5 min)
+        # OTP expiry (5 min)
         if time.time() - otp_time > 300:
             messages.error(request, "OTP expired")
             return redirect('signup')
@@ -129,7 +136,6 @@ def verify_otp(request):
         if entered_otp == actual_otp:
             data = request.session.get('signup_data')
 
-            # ✅ CREATE USER NOW
             CustomUser.objects.create(
                 username=data['email'],
                 email=data['email'],
@@ -205,7 +211,7 @@ def forget_otp(request):
 
 def reset_password(request):
     if request.method == 'POST':
-        password = request.POST.get('password')
+        password = request.POST.get('new_password')
         confirm_password = request.POST.get('confirm_password')
 
         if not password or not confirm_password:
@@ -224,13 +230,14 @@ def reset_password(request):
 
         try:
             user = CustomUser.objects.get(email=email)
-            user.password = make_password(password)
+            user.set_password(password)
             user.save()
 
-            request.session.flush()  # 🔥 clear session
+            # clear session
+            request.session.flush()
 
             messages.success(request, "Password reset successful. Please login.")
-            return redirect('login')   # ✅ FINAL REDIRECT
+            return redirect('login')
 
         except CustomUser.DoesNotExist:
             messages.error(request, "User not found")

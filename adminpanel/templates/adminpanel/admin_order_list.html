@@ -1,0 +1,51 @@
+{% extends 'adminpanel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Manage Orders – SoleVault Admin{% endblock %}
+{% block nav_orders %}active{% endblock %}
+
+{% block content %}
+<div class="header-split" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+  <h2>Orders</h2>
+</div>
+
+<div class="user-table-wrap" style="background:#fff; border:1px solid var(--gray-200); border-radius:8px; overflow:hidden;">
+  <table style="width:100%; border-collapse:collapse; text-align:left;">
+    <thead style="background:var(--gray-100); font-size:12px; text-transform:uppercase; color:var(--gray-600);">
+      <tr>
+        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Order ID</th>
+        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Customer</th>
+        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Total</th>
+        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Status</th>
+        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Date</th>
+        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in page_obj %}
+      <tr>
+        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">#{{ order.id }}</td>
+        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">
+          {{ order.full_name }}<br>
+          <small style="color:var(--gray-600);">{{ order.user.email }}</small>
+        </td>
+        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">₹{{ order.total }}</td>
+        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">
+          <span style="padding:5px 8px; border-radius:4px; font-size:11px; font-weight:700; text-transform:uppercase; background:var(--gray-100);">
+            {{ order.get_status_display }}
+          </span>
+        </td>
+        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">{{ order.created_at|date:"Y-m-d" }}</td>
+        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">
+          <a href="{% url 'adminpanel:order_detail' order.id %}" style="color:var(--blue); font-weight:600; font-size:13px;">View</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="padding:20px; text-align:center; color:var(--gray-600);">No orders found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,243 @@
+
+{% extends 'adminpanel/admin_base.html' %}
+{% load static %}
+
+{% block title %}{{ action }} Product – SoleVault Admin{% endblock %}
+{% block nav_products %}active{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+<style>
+  .crop-modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; }
+  .crop-modal-content { background:#fff; padding:20px; border-radius:8px; width:90%; max-width:600px; }
+  .img-preview { width:100%; max-height:400px; display:block; }
+  .preview-grid { display:flex; flex-wrap:wrap; gap:15px; margin-top:15px; }
+  .preview-item { position:relative; width:100px; height:100px; border-radius:6px; overflow:hidden; border:1px solid var(--gray-200); }
+  .preview-item img { width:100%; height:100%; object-fit:cover; }
+  .remove-btn { position:absolute; top:4px; right:4px; background:var(--red); color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:12px; cursor:pointer; display:flex; justify-content:center; align-items:center;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header-split" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+  <h2>{{ action }} Product</h2>
+  <div style="display:flex; gap:15px; align-items:center;">
+    <a href="{% url 'adminpanel:product_list' %}" style="color:var(--gray-600); font-weight:600; font-size:14px; text-decoration:none;">← Back</a>
+    <a href="{% url 'adminpanel:product_add' %}" style="background:var(--gray-100); color:var(--gray-800); padding:8px 15px; border-radius:6px; font-weight:600; font-size:13px; text-decoration:none; border:1px solid var(--gray-200);">+ Add New</a>
+    <button type="submit" form="productForm" style="background:#0D59F2; color:#fff; border:none; padding:8px 20px; border-radius:6px; font-weight:700; font-size:13px; cursor:pointer;">
+      Save Product
+    </button>
+  </div>
+</div>
+
+<div style="background:#fff; border:1px solid var(--gray-200); border-radius:8px; padding:30px; max-width:800px;">
+  <form method="POST" enctype="multipart/form-data" id="productForm">
+    {% csrf_token %}
+    
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+      <div>
+        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:5px;">Name *</label>
+        <input type="text" name="name" id="id_name" value="{{ product.name }}" required style="width:100%; padding:10px; border:1px solid var(--gray-200); border-radius:4px;">
+      </div>
+      <div>
+        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:5px;">Slug *</label>
+        <input type="text" name="slug" id="id_slug" value="{{ product.slug }}" required style="width:100%; padding:10px; border:1px solid var(--gray-200); border-radius:4px;">
+      </div>
+    </div>
+    
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+      <div>
+        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:5px;">Price *</label>
+        <input type="number" step="0.01" name="price" value="{{ product.price }}" required style="width:100%; padding:10px; border:1px solid var(--gray-200); border-radius:4px;">
+      </div>
+      <div>
+        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:5px;">Original Price (Optional)</label>
+        <input type="number" step="0.01" name="original_price" value="{{ product.original_price|default:'' }}" style="width:100%; padding:10px; border:1px solid var(--gray-200); border-radius:4px;">
+      </div>
+    </div>
+    
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+      <div>
+        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:5px;">Brand</label>
+        <select name="brand" style="width:100%; padding:10px; border:1px solid var(--gray-200); border-radius:4px;">
+          <option value="">-- Select Brand --</option>
+          {% for b in brands %}
+          <option value="{{ b.id }}" {% if product.brand_id == b.id %}selected{% endif %}>{{ b.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:5px;">Category</label>
+        <select name="category" style="width:100%; padding:10px; border:1px solid var(--gray-200); border-radius:4px;">
+          <option value="">-- Select Category --</option>
+          {% for c in categories %}
+          <option value="{{ c.id }}" {% if product.category_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    
+    <div style="margin-bottom:20px;">
+      <label style="display:block; font-size:13px; font-weight:700; margin-bottom:5px;">Product Images (Minimum 3 Required Total)</label>
+      
+      <div style="background:var(--gray-50); border:1px dashed var(--gray-300); padding:20px; border-radius:6px; text-align:center;">
+        <input type="file" id="imageInput" accept="image/*" style="display:none;">
+        <button type="button" onclick="document.getElementById('imageInput').click()" style="background:var(--gray-200); color:var(--gray-800); border:none; padding:10px 20px; border-radius:4px; font-weight:600; cursor:pointer;">
+          + Select Image to Crop
+        </button>
+        
+        <!-- Hidden input storing all cropped blobs -->
+        <input type="file" id="hiddenImagesInput" name="cropped_images" multiple style="display:none;">
+      </div>
+
+      <div class="preview-grid" id="previewGrid">
+        {% if product.image %}
+          <div class="preview-item existing-image">
+            <img src="{{ product.image.url }}">
+          </div>
+        {% endif %}
+        {% for img in product.images.all %}
+          <div class="preview-item existing-image">
+            <img src="{{ img.image.url }}">
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    
+    <div style="display:flex; gap:30px; margin-bottom:30px; padding:15px; background:var(--gray-50); border-radius:6px;">
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:14px; font-weight:600;">
+        <input type="checkbox" name="is_new" {% if product and product.is_new %}checked{% endif %}> Set as New Arrival
+      </label>
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:14px; font-weight:600;">
+        <input type="checkbox" name="is_active" {% if product and product.is_active or action == 'Add' %}checked{% endif %}> Product is Active
+      </label>
+    </div>
+    
+    <button type="submit" id="submitBtn" style="background:#0D59F2; color:#fff; border:none; padding:12px 24px; border-radius:6px; font-weight:700; font-size:15px; cursor:pointer;">
+      {{ action }} Product
+    </button>
+  </form>
+</div>
+
+<!-- Modal for Cropping -->
+<div class="crop-modal" id="cropModal">
+  <div class="crop-modal-content">
+    <h3 style="margin-top:0;">Crop Image</h3>
+    <div>
+      <img id="cropperImage" class="img-preview" src="">
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+      <button type="button" id="cancelCrop" style="background:var(--gray-200); color:var(--gray-800); border:none; padding:8px 15px; border-radius:4px; font-weight:600; cursor:pointer;">Cancel</button>
+      <button type="button" id="applyCrop" style="background:var(--blue); color:#fff; border:none; padding:8px 15px; border-radius:4px; font-weight:600; cursor:pointer;">Crop & Add</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+  // Slug Auto-generation
+  const nameInput = document.getElementById('id_name');
+  const slugInput = document.getElementById('id_slug');
+
+  if (nameInput && slugInput) {
+    nameInput.addEventListener('input', function() {
+      const slug = nameInput.value
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/[\s_-]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      slugInput.value = slug;
+    });
+  }
+
+  let cropper;
+  let dt = new DataTransfer();
+  const existingImagesCount = parseInt("{{ product.images.count|default:0 }}") + ("{% if product.image %}1{% else %}0{% endif %}" === "1" ? 1 : 0);
+
+  const imageInput = document.getElementById('imageInput');
+  const cropModal = document.getElementById('cropModal');
+  const cropperImage = document.getElementById('cropperImage');
+  const previewGrid = document.getElementById('previewGrid');
+  const hiddenImagesInput = document.getElementById('hiddenImagesInput');
+
+  imageInput.addEventListener('change', (e) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const url = URL.createObjectURL(files[0]);
+      cropperImage.src = url;
+      cropModal.style.display = 'flex';
+      
+      if (cropper) cropper.destroy();
+      cropper = new Cropper(cropperImage, {
+        aspectRatio: 1, // 1:1 Square
+        viewMode: 1,
+      });
+    }
+  });
+
+  document.getElementById('cancelCrop').addEventListener('click', () => {
+    cropModal.style.display = 'none';
+    imageInput.value = '';
+    if (cropper) cropper.destroy();
+  });
+
+  document.getElementById('applyCrop').addEventListener('click', () => {
+    if (!cropper) return;
+    
+    cropper.getCroppedCanvas({ width: 800, height: 800 }).toBlob((blob) => {
+      const fileName = 'cropped_' + Date.now() + '.jpg';
+      const file = new File([blob], fileName, { type: 'image/jpeg' });
+      dt.items.add(file);
+      updateHiddenInput();
+
+      // Add to preview grid
+      const div = document.createElement('div');
+      div.className = 'preview-item';
+      
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(blob);
+      
+      const btn = document.createElement('button');
+      btn.className = 'remove-btn';
+      btn.innerHTML = '×';
+      btn.type = 'button';
+      btn.onclick = () => {
+        div.remove();
+        // Remove from dt
+        const newDt = new DataTransfer();
+        Array.from(dt.files).forEach(f => {
+          if (f.name !== fileName) newDt.items.add(f);
+        });
+        dt = newDt;
+        updateHiddenInput();
+      };
+
+      div.appendChild(img);
+      div.appendChild(btn);
+      previewGrid.appendChild(div);
+
+      // Reset
+      cropModal.style.display = 'none';
+      imageInput.value = '';
+      cropper.destroy();
+    }, 'image/jpeg', 0.85);
+  });
+
+  function updateHiddenInput() {
+    hiddenImagesInput.files = dt.files;
+  }
+
+  // Intercept form submit to check minimum 3 images
+  document.querySelector('form').addEventListener('submit', (e) => {
+    const totalImages = existingImagesCount + dt.files.length;
+    if (totalImages < 3) {
+      e.preventDefault();
+      alert(`You must have at least 3 images for a product. Currently you have ${totalImages}.`);
+    }
+  });
+</script>
+{% endblock %}

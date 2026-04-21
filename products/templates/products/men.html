@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% load static %}
+
+{% block title %}Men's Footwear – SoleVault{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'products/css/shop.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+  <a href="{% url 'core:home' %}">Home</a>
+  <span class="sep">›</span>
+  <span>Men</span>
+</div>
+
+<!-- Hero Banner -->
+<div class="hero-banner mens">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Collection 2024</p>
+    <h1 class="hero-title">Men's<br>Footwear</h1>
+    <p class="hero-desc">Step into the future of performance and street style with our curated performance collection.</p>
+    <a href="#products" class="hero-btn">Shop Now →</a>
+  </div>
+</div>
+
+<!-- Category Tabs -->
+<div class="category-tabs">
+  <a href="?tab=new"      class="tab-item {% if active_tab == 'new' or not active_tab %}active{% endif %}">New Arrivals</a>
+  <a href="?tab=best"     class="tab-item {% if active_tab == 'best' %}active{% endif %}">Best Sellers</a>
+  <a href="?tab=extended" class="tab-item {% if active_tab == 'extended' %}active{% endif %}">Extended Widths</a>
+  <a href="?tab=sale"     class="tab-item {% if active_tab == 'sale' %}active{% endif %}">Sale</a>
+</div>
+
+<!-- Category Cards -->
+<div class="category-row">
+  {% for cat in men_categories %}
+  <div class="cat-card">
+    {% if cat.image %}
+      <img src="{{ cat.image.url }}" alt="{{ cat.name }}">
+    {% else %}
+      <img src="https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=600&q=80" alt="{{ cat.name }}">
+    {% endif %}
+    <div class="cat-overlay"></div>
+    <span class="cat-label">{{ cat.name }}</span>
+    <a href="?category={{ cat.slug }}" class="cat-btn">Shop now</a>
+  </div>
+  {% empty %}
+  <div class="cat-card">
+    <img src="https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=600&q=80" alt="Casuals">
+    <div class="cat-overlay"></div>
+    <span class="cat-label">Casuals</span>
+    <a href="#" class="cat-btn">Shop now</a>
+  </div>
+  <div class="cat-card">
+    <img src="https://images.unsplash.com/photo-1494496195158-c3bc501e2dca?w=600&q=80" alt="Dress">
+    <div class="cat-overlay"></div>
+    <span class="cat-label">Dress</span>
+    <a href="#" class="cat-btn">Shop now</a>
+  </div>
+  <div class="cat-card">
+    <img src="https://images.unsplash.com/photo-1539185441755-769473a23570?w=600&q=80" alt="Sports">
+    <div class="cat-overlay"></div>
+    <span class="cat-label">Sports</span>
+    <a href="#" class="cat-btn">Shop now</a>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Shop Layout -->
+<div class="shop-layout" id="products">
+
+  <!-- Header -->
+  <div class="products-header">
+    <h3>View All Products</h3>
+    <select class="sort-select" onchange="window.location.href=this.value">
+      <option value="?{% query_transform sort=None %}">Sort: Featured</option>
+      <option value="?{% query_transform sort='price_asc' %}"  {% if request.GET.sort == 'price_asc'  %}selected{% endif %}>Price: Low to High</option>
+      <option value="?{% query_transform sort='price_desc' %}" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+      <option value="?{% query_transform sort='a_z' %}"        {% if request.GET.sort == 'a_z' %}selected{% endif %}>A-Z</option>
+      <option value="?{% query_transform sort='z_a' %}"        {% if request.GET.sort == 'z_a' %}selected{% endif %}>Z-A</option>
+      <option value="?{% query_transform sort='newest' %}"     {% if request.GET.sort == 'newest'     %}selected{% endif %}>Newest First</option>
+    </select>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+
+    <div class="filter-group">
+      <h4>Search</h4>
+      <div style="display:flex; gap:5px;">
+        <input type="text" id="searchInput" value="{{ search_query }}" placeholder="Search..." style="flex:1; border:1px solid var(--border); border-radius:4px; padding:6px 8px; font-size:12px; outline:none;">
+        <button type="button" onclick="applySearch()" style="background:var(--blue); color:white; border:none; padding:6px 10px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:700;">Go</button>
+      </div>
+      {% if search_query %}
+      <div style="margin-top:6px; text-align:right;">
+        <a href="?{% query_transform q=None page=1 %}" style="font-size:11px; color:var(--red); font-weight:600; text-decoration:none;">Clear Search &times;</a>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="filter-group" style="padding-top:4px;">
+      <h4>Price Range</h4>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; gap:10px;">
+          <input type="number" id="minPriceInput" value="{{ min_price }}" placeholder="Min" style="width:100%; border:1px solid var(--border); border-radius:4px; font-size:12px; padding:6px; outline:none;">
+          <input type="number" id="maxPriceInput" value="{{ max_price }}" placeholder="Max" style="width:100%; border:1px solid var(--border); border-radius:4px; font-size:12px; padding:6px; outline:none;">
+        </div>
+        <button type="button" onclick="applyPriceFilter()" style="background:var(--blue); color:white; border:none; border-radius:4px; padding:8px; font-size:11px; cursor:pointer; font-weight:700;">Apply Price</button>
+      </div>
+      {% if min_price or max_price %}
+      <div style="margin-top:6px; text-align:right;">
+        <a href="?{% query_transform min_price=None max_price=None page=1 %}" style="font-size:11px; color:var(--red); font-weight:600; text-decoration:none;">Clear Price &times;</a>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="filter-group">
+      <h4>Brand</h4>
+      <div class="brand-list">
+        {% for brand in brands %}
+        <a href="?{% query_transform brand=brand.slug page=1 %}"
+           class="{% if active_brand == brand.slug %}active{% endif %}">{{ brand.name }}</a>
+        {% empty %}
+        <a href="?brand=nike">Nike</a>
+        <a href="?brand=adidas">Adidas</a>
+        <a href="?brand=marvel">Marvel</a>
+        <a href="?brand=gucci">Gucci</a>
+        <a href="?brand=skechers">Skechers</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <h4>Size</h4>
+      <div class="size-grid">
+        {% for size in sizes %}
+        <a href="?{% query_transform size=size page=1 %}"
+           class="size-chip {% if active_size == size %}active{% endif %}">{{ size }}</a>
+        {% empty %}
+        <a href="#" class="size-chip">6</a>
+        <a href="#" class="size-chip">7</a>
+        <a href="#" class="size-chip">8</a>
+        <a href="#" class="size-chip">9</a>
+        <a href="#" class="size-chip">10</a>
+        <a href="#" class="size-chip">11</a>
+        <a href="#" class="size-chip">12</a>
+        <a href="#" class="size-chip">13</a>
+        <a href="#" class="size-chip">14</a>
+        <a href="#" class="size-chip">15</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <h4>Colors</h4>
+      <div class="color-list">
+        {% for color in colors %}
+        <a href="?{% query_transform color=color.name|lower page=1 %}" class="color-item">
+          <span class="color-dot" style="background:{{ color.hex }};"></span>
+          {{ color.name }}
+        </a>
+        {% empty %}
+        <a href="#" class="color-item"><span class="color-dot" style="background:#ef4444;"></span> Red</a>
+        <a href="#" class="color-item"><span class="color-dot" style="background:#3b82f6;"></span> Blue</a>
+        <a href="#" class="color-item"><span class="color-dot" style="background:#111827;"></span> Black</a>
+        <a href="#" class="color-item"><span class="color-dot" style="background:#f3f4f6; border-color:#ccc;"></span> White</a>
+        <a href="#" class="color-item"><span class="color-dot" style="background:#1e3a5f;"></span> Navy</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <h4>Occasion</h4>
+      <div class="check-list">
+        {% for occ in occasions %}
+        <a href="?{% query_transform occasion=occ|lower page=1 %}" class="check-item">{{ occ }}</a>
+        {% empty %}
+        <a href="#" class="check-item">Casual</a>
+        <a href="#" class="check-item">Sports</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <h4>Material</h4>
+      <div class="check-list">
+        {% for mat in materials %}
+        <a href="?{% query_transform material=mat|lower page=1 %}" class="check-item">{{ mat }}</a>
+        {% empty %}
+        <a href="#" class="check-item">Leather</a>
+        <a href="#" class="check-item">Suede</a>
+        {% endfor %}
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- Products -->
+  <div class="products-area">
+    <div class="product-grid">
+
+      {% for product in products %}
+      <div class="product-card">
+        {% if product.is_new %}<span class="badge badge-new">New</span>{% endif %}
+        {% if product.discount %}<span class="badge badge-sale">-{{ product.discount }}%</span>{% endif %}
+        
+        <form method="POST" action="{% url 'cart:wishlist_toggle' product.id %}" style="position: absolute; top: 9px; right: 9px; z-index: 3;">
+          {% csrf_token %}
+          <button type="submit" class="card-wish-btn" title="Toggle Wishlist">&#9825;</button>
+        </form>
+
+        <a href="{% url 'products:detail' product.slug %}">
+          <div class="product-img-wrap">
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+          </div>
+          <div class="product-info">
+            <div class="product-name">{{ product.name }}</div>
+            <div class="product-price-row">
+              <span class="product-price">₹{{ product.price }}</span>
+              {% if product.original_price %}
+              <span class="product-price-old">₹{{ product.original_price }}</span>
+              {% endif %}
+            </div>
+          </div>
+        </a>
+      </div>
+      {% empty %}
+      <!-- Placeholder cards when DB is empty -->
+      {% for i in "123456789"|make_list %}
+      <div class="product-card">
+        <span class="badge badge-new">New</span>
+        <button class="card-wish-btn">&#9825;</button>
+        <div class="product-img-wrap">
+          <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80" alt="Shoe">
+        </div>
+        <div class="product-info">
+          <div class="product-name">Air Max Dawn</div>
+          <div class="product-price-row">
+            <span class="product-price">$150.00</span>
+            <span class="product-price-old">$180.00</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      {% endfor %}
+
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+      {% if page_obj.has_previous %}
+      <a href="?{% query_transform page=page_obj.previous_page_number %}" class="page-btn">&#8249;</a>
+      {% else %}
+      <span class="page-btn" style="opacity:0.35;pointer-events:none;">&#8249;</span>
+      {% endif %}
+
+      {% if page_obj %}
+        {% for num in page_obj.paginator.page_range %}
+          {% if num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+          <a href="?{% query_transform page=num %}"
+             class="page-btn {% if num == page_obj.number %}active{% endif %}">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        <a href="#" class="page-btn active">1</a>
+        <a href="#" class="page-btn">2</a>
+        <a href="#" class="page-btn">3</a>
+      {% endif %}
+
+      {% if page_obj.has_next %}
+      <a href="?{% query_transform page=page_obj.next_page_number %}" class="page-btn">&#8250;</a>
+      {% else %}
+      <span class="page-btn" style="opacity:0.35;pointer-events:none;">&#8250;</span>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<!-- Trusted Partners -->
+<div class="partners">
+  <span class="partners-label">Trusted Partners</span>
+  <div class="partners-logos">
+    <span class="partner-logo">NIKE</span>
+    <span class="partner-logo">PUMA</span>
+    <span class="partner-logo">ADIDAS</span>
+    <span class="partner-logo">REEBOK</span>
+    <span class="partner-logo">VANS</span>
+    <span class="partner-logo">GUCCI</span>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function applySearch() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const q = document.getElementById('searchInput').value;
+  if(q) urlParams.set('q', q); else urlParams.delete('q');
+  urlParams.delete('page');
+  window.location.search = urlParams.toString();
+}
+function applyPriceFilter() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const minPrice = document.getElementById('minPriceInput').value;
+  const maxPrice = document.getElementById('maxPriceInput').value;
+  if(minPrice) urlParams.set('min_price', minPrice); else urlParams.delete('min_price');
+  if(maxPrice) urlParams.set('max_price', maxPrice); else urlParams.delete('max_price');
+  urlParams.delete('page');
+  window.location.search = urlParams.toString();
+}
+</script>
+{% endblock %}

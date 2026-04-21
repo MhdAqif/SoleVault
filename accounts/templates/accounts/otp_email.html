@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OTP Verification – SoleVault</title>
+  <style>
+    /* ── Reset ── */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: #f0f4ff;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      padding: 40px 16px;
+    }
+
+    /* ── Outer wrapper ── */
+    .email-wrapper {
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    .email-header {
+      background: linear-gradient(135deg, #0a45c4 0%, #0D59F2 100%);
+      border-radius: 16px 16px 0 0;
+      padding: 32px 40px 28px;
+      text-align: center;
+    }
+
+    .brand-name {
+      color: #fff;
+      font-size: 22px;
+      font-weight: 800;
+      font-style: italic;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-tagline {
+      color: rgba(255,255,255,0.75);
+      font-size: 11px;
+      margin-top: 4px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    /* ── Body card ── */
+    .email-body {
+      background: #ffffff;
+      padding: 40px 48px 36px;
+      border-left: 1px solid #e8efff;
+      border-right: 1px solid #e8efff;
+    }
+
+    /* ── Icon circle ── */
+    .icon-wrap {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #e8f0ff, #d0e2ff);
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 28px;
+    }
+
+    /* ── Greeting ── */
+    .greeting {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0d1117;
+      text-align: center;
+      margin-bottom: 10px;
+      letter-spacing: -0.3px;
+    }
+
+    /* ── Description ── */
+    .description {
+      font-size: 14px;
+      color: #6b7280;
+      text-align: center;
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+
+    /* ── OTP box ── */
+    .otp-container {
+      background: linear-gradient(135deg, #f0f4ff 0%, #e8efff 100%);
+      border: 1.5px solid rgba(13, 89, 242, 0.15);
+      border-radius: 14px;
+      padding: 28px 24px;
+      text-align: center;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Decorative corner dots */
+    .otp-container::before,
+    .otp-container::after {
+      content: '';
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(13, 89, 242, 0.06);
+    }
+
+    .otp-container::before { top: -30px; left: -30px; }
+    .otp-container::after  { bottom: -30px; right: -30px; }
+
+    .otp-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b7280;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .otp-code {
+      font-size: 42px;
+      font-weight: 800;
+      color: #0D59F2;
+      letter-spacing: 10px;
+      text-indent: 10px;  /* compensate letter-spacing on last char */
+      line-height: 1;
+      margin-bottom: 14px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .otp-timer {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .otp-timer .dot {
+      width: 7px;
+      height: 7px;
+      background: #10b981;
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.75); }
+    }
+
+    /* ── Security note ── */
+    .security-note {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .security-note .note-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .security-note p {
+      font-size: 12px;
+      color: #92400e;
+      line-height: 1.6;
+    }
+
+    .security-note strong {
+      color: #78350f;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      border: none;
+      border-top: 1px solid #f3f4f6;
+      margin: 0 0 24px;
+    }
+
+    /* ── Help text ── */
+    .help-text {
+      font-size: 13px;
+      color: #9ca3af;
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    .help-text a {
+      color: #0D59F2;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    /* ── Footer ── */
+    .email-footer {
+      background: #f8faff;
+      border: 1px solid #e8efff;
+      border-radius: 0 0 16px 16px;
+      padding: 24px 40px;
+      text-align: center;
+    }
+
+    .footer-links {
+      margin-bottom: 14px;
+    }
+
+    .footer-links a {
+      font-size: 12px;
+      color: #6b7280;
+      text-decoration: none;
+      margin: 0 10px;
+      transition: color 0.15s;
+    }
+
+    .footer-links a:hover { color: #0D59F2; }
+
+    .footer-copy {
+      font-size: 11px;
+      color: #9ca3af;
+      line-height: 1.6;
+    }
+
+    .footer-copy strong {
+      color: #6b7280;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 560px) {
+      .email-body    { padding: 32px 24px 28px; }
+      .email-header  { padding: 24px 24px 20px; }
+      .email-footer  { padding: 20px 24px; }
+      .otp-code      { font-size: 34px; letter-spacing: 7px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="email-wrapper">
+
+  <!-- Header -->
+  <div class="email-header">
+    <div class="brand-name">SoleVault</div>
+    <div class="brand-tagline">Premium Footwear</div>
+  </div>
+
+  <!-- Body -->
+  <div class="email-body">
+
+    <!-- Icon -->
+    <div class="icon-wrap">🔐</div>
+
+    <!-- Title -->
+    <h1 class="greeting">Verify Your Identity</h1>
+    <p class="description">
+      Hi there! Use the one-time password below to<br>
+      complete your verification. Do not share this code<br>
+      with anyone.
+    </p>
+
+    <!-- OTP Box -->
+    <div class="otp-container">
+      <p class="otp-label">Your One-Time Password</p>
+      <div class="otp-code">{{ otp }}</div>
+      <div class="otp-timer">
+        <span class="dot"></span>
+        Valid for 5 minutes
+      </div>
+    </div>
+
+    <!-- Security warning -->
+    <div class="security-note">
+      <span class="note-icon">⚠️</span>
+      <p>
+        <strong>Never share this OTP with anyone.</strong>
+        SoleVault will never ask for your OTP via phone,
+        email, or chat. If you didn't request this, please
+        <a href="#" style="color:#b45309; font-weight:600;">secure your account</a>.
+      </p>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Help -->
+    <p class="help-text">
+      Having trouble? <a href="#">Contact Support</a><br>
+      This code expires in <strong style="color:#374151;">5 minutes</strong>.
+      If expired, please request a new one.
+    </p>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="email-footer">
+    <div class="footer-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Help Center</a>
+      <a href="#">Unsubscribe</a>
+    </div>
+    <p class="footer-copy">
+      © 2025 <strong>SoleVault</strong>. All rights reserved.<br>
+      This is an automated email — please do not reply.
+    </p>
+  </div>
+
+</div>
+
+</body>
+</html>

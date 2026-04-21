@@ -1,0 +1,98 @@
+{% extends 'adminpanel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Dashboard – SoleVault Admin{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'adminpanel/css/admin_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- Stats row -->
+<div class="stat-cards">
+  <div class="stat-card">
+    <div class="stat-value">{{ total_revenue|default:"10000" }}</div>
+    <div class="stat-label">Total Revenue</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ total_orders|default:"10000" }}</div>
+    <div class="stat-label">Total Orders</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ total_users|default:"500" }}</div>
+    <div class="stat-label">Total Users</div>
+  </div>
+</div>
+
+<!-- Alert cards -->
+<div class="alert-cards">
+  <div class="alert-card">
+    <div class="alert-title">Low Stock Alerts</div>
+    <div class="alert-value">{{ low_stock_count|default:"100" }}</div>
+  </div>
+  <div class="alert-card">
+    <div class="alert-title">Top Products</div>
+    <div class="alert-value">{{ top_product_count|default:"100" }}</div>
+  </div>
+</div>
+
+
+
+<!-- Recent orders -->
+<div class="orders-table">
+  <table>
+    <thead>
+      <tr>
+        <th>Order ID</th>
+        <th>Customer</th>
+        <th>Total</th>
+        <th>Status</th>
+        <th>Date</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in recent_orders %}
+      <tr>
+        <td>#{{ order.id }}</td>
+        <td>{{ order.user.get_full_name }}</td>
+        <td>${{ order.total }}</td>
+        <td>
+          <span class="status-badge status-{{ order.status|lower }}">{{ order.status }}</span>
+        </td>
+        <td>{{ order.created_at|date:"m/d/Y" }}</td>
+        <td><a href="{% url 'adminpanel:order_detail' order.id %}" class="btn-view">View</a></td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td>#1234</td>
+        <td>John Doe</td>
+        <td>$99.99</td>
+        <td><span class="status-badge status-processing">Processing</span></td>
+        <td>01/02/2024</td>
+        <td><a href="#" class="btn-view">View</a></td>
+      </tr>
+      <tr>
+        <td>#1235</td>
+        <td>Jane Doe</td>
+        <td>$149.99</td>
+        <td><span class="status-badge status-shipped">Shipped</span></td>
+        <td>01/01/2024</td>
+        <td><a href="#" class="btn-view">View</a></td>
+      </tr>
+      <tr>
+        <td>#1236</td>
+        <td>Alice Smith</td>
+        <td>$79.99</td>
+        <td><span class="status-badge status-delivered">Delivered</span></td>
+        <td>12/31/2023</td>
+        <td><a href="#" class="btn-view">View</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

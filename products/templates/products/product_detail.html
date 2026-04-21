@@ -1,0 +1,486 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% load static %}
+
+{% block title %}{{ product.name }} – SoleVault{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'products/css/product_detail.css' %}?v=1.1">
+<style>
+  .gallery-main {
+    overflow: hidden;
+    position: relative;
+    cursor: crosshair;
+  }
+  .gallery-main img {
+    transition: transform 0.2s ease-out;
+    transform-origin: center center;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .size-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f5f5f5;
+    color: #999;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+  <a href="{% url 'core:home' %}">Home</a>
+  <span class="sep">›</span>
+  <a href="{% url 'products:men' %}">Products</a>
+  <span class="sep">›</span>
+  <span>{{ product.name|default:"Nike Air Max Dawn" }}</span>
+</div>
+
+<!-- ═══════════════════════════════
+     PRODUCT HERO
+═══════════════════════════════ -->
+<div class="product-hero">
+
+  <!-- Left: Image Gallery -->
+  <div class="gallery-col">
+    <div class="gallery-main" id="mainImgWrap" onmousemove="zoomImage(event)" onmouseleave="resetZoom()">
+      {% if product.image %}
+        <img src="{{ product.image.url }}" alt="{{ product.name }}" id="mainImg">
+      {% else %}
+        <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80"
+             alt="Nike Air Max Dawn" id="mainImg">
+      {% endif %}
+    </div>
+
+    <div class="gallery-thumbs">
+      <!-- Main image thumb -->
+      <div class="thumb active" onclick="switchImg(this, '{% if product.image %}{{ product.image.url }}{% else %}https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80{% endif %}')">
+        <img src="{% if product.image %}{{ product.image.url }}{% else %}https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80{% endif %}" alt="">
+      </div>
+
+      <!-- Additional images -->
+      {% for img in product.images.all %}
+      <div class="thumb" onclick="switchImg(this, '{{ img.image.url }}')">
+        <img src="{{ img.image.url }}" alt="{{ img.alt }}">
+      </div>
+      {% empty %}
+      <div class="thumb" onclick="switchImg(this, 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=800&q=80')">
+        <img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=800&q=80" alt="">
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Right: Product Info -->
+  <div class="info-col">
+
+    <h1 class="product-title">{{ product.name|default:"Nike Air Max Dawn" }}</h1>
+
+    <div class="product-price-hero">
+      <span class="currency">₹</span>{{ product.price|default:"1200" }}
+      {% if product.original_price %}
+      <span class="old-price">₹{{ product.original_price }}</span>
+      {% endif %}
+    </div>
+
+    <p class="product-desc-short">
+      {{ product.description|default:"Crafted to Trek 30A, the Air Max Dawn is made with at least 20% recycled content by weight. Synthetic suede and other materials are in strappy, running-style with fresh details." }}
+    </p>
+
+    <!-- Size Selection -->
+    <div class="size-section">
+      <div class="size-header">
+        <span>Size Selection (US)</span>
+        <a href="#" class="size-guide-link">↗ Size Guide</a>
+      </div>
+      <div class="size-grid-product">
+        {% for variant in product.variants.all %}
+          <button type="button" class="size-btn {% if forloop.first %}active{% endif %} {% if variant.stock == 0 %}disabled{% endif %}"
+                  data-stock="{{ variant.stock }}"
+                  onclick="{% if variant.stock > 0 %}selectSize(this){% endif %}">
+            {{ variant.size }}
+          </button>
+        {% empty %}
+          {% for s in "7,7.5,8,8.5,9,9.5,10,10.5,11,14"|split:"," %}
+          <button class="size-btn {% if forloop.first %}active{% endif %}"
+                  onclick="selectSize(this)">{{ s }}</button>
+          {% empty %}
+          <button class="size-btn active" onclick="selectSize(this)">7</button>
+          <button class="size-btn" onclick="selectSize(this)">7.5</button>
+          <button class="size-btn" onclick="selectSize(this)">8</button>
+          <button class="size-btn" onclick="selectSize(this)">8.5</button>
+          <button class="size-btn" onclick="selectSize(this)">9</button>
+          <button class="size-btn" onclick="selectSize(this)">9.5</button>
+          <button class="size-btn" onclick="selectSize(this)">10</button>
+          <button class="size-btn" onclick="selectSize(this)">10.5</button>
+          <button class="size-btn" onclick="selectSize(this)">11</button>
+          <button class="size-btn" onclick="selectSize(this)">14</button>
+          {% endfor %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Qty + Cart -->
+    <div class="qty-cart-row">
+      <div class="qty-control">
+        <button type="button" class="qty-btn" onclick="changeQty(-1)">−</button>
+        <div class="qty-value" id="qtyValue">1</div>
+        <button type="button" class="qty-btn" onclick="changeQty(1)">+</button>
+      </div>
+
+      <form method="POST" action="{% url 'cart:add' product.id|default:1 %}" style="flex:1;">
+        {% csrf_token %}
+        <input type="hidden" name="quantity" id="qtyInput" value="1">
+        <input type="hidden" name="size" id="sizeInput" value="">
+        <button type="submit" class="btn-add-cart" id="addCartBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          </svg>
+          <span id="addCartText">Add to Cart</span>
+        </button>
+      </form>
+
+      <form method="POST" action="{% url 'cart:wishlist_toggle' product.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-wishlist-hero" id="wishlistBtn">♡</button>
+      </form>
+    </div>
+
+    <!-- Color -->
+    <p class="color-label">
+      Color: <strong>{{ product.color|default:"Nike Blue" }}</strong>
+    </p>
+
+    <!-- Delivery Options -->
+    <div class="delivery-section">
+      <h5 style="font-size:13px; font-weight:700; color:var(--text); margin-bottom:12px;">
+        Delivery Options
+      </h5>
+      <div class="delivery-top">
+        <input type="text" class="pincode-input" placeholder="Enter pincode"
+               id="pincodeInput" value="678541 (Aqif A)">
+        <button class="btn-change" onclick="checkPincode()">Change</button>
+        <span class="delivery-badge">✓ Easy 14 days return &amp; exchange available</span>
+      </div>
+      <div class="delivery-features">
+        <div class="delivery-feature">100% Original Products</div>
+        <div class="delivery-feature">Pay on delivery might be available</div>
+        <div class="delivery-feature">Easy 14 days returns and exchanges</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════
+     TAB SECTION
+═══════════════════════════════ -->
+<div class="tab-section">
+
+  <div class="tab-nav">
+    <button class="tab-nav-btn active" onclick="switchTab(this, 'description')">Description</button>
+    <button class="tab-nav-btn" onclick="switchTab(this, 'manufacturer')">Manufacturer</button>
+    <button class="tab-nav-btn" onclick="switchTab(this, 'review')">Review</button>
+  </div>
+
+  <!-- ── DESCRIPTION ── -->
+  <div class="tab-content active" id="tab-description">
+    <p class="description-text">
+      {{ product.description|default:"Even the all-powerful Pointing has no control about the blind texts it is an almost unorthographic life One day however a small line of blind text by the name of Lorem Ipsum decided to leave for the far World of Grammar. The Big Oxmox advised her not to do so, because there were thousands of bad Commas, wild Question Marks and devious Semikoli, but the Little Blind Text didn't listen. She packed her seven versalia, put her initial into the belt and made herself on the way." }}
+    </p>
+    <ul class="description-list">
+      <li>The Big Oxmox advised her not to do so</li>
+      <li>Be more than three thousands of Bad Grammar</li>
+      <li>Wild Question Marks and devious Semikoli</li>
+      <li>She packed her seven versalia</li>
+      <li>Put her initial into the belt and made herself on the way</li>
+    </ul>
+  </div>
+
+  <!-- ── MANUFACTURER ── -->
+  <div class="tab-content" id="tab-manufacturer">
+    <div class="manufacturer-card">
+      <h3>About the Manufacturer</h3>
+      <p>
+        Each pair is crafted with high-quality materials to ensure long-lasting comfort and style. Our products go through a careful design and quality process to meet modern fashion trends and provide a perfect fit for every step.
+      </p>
+      <p>
+        Manufactured in compliance with international quality standards, every shoe undergoes rigorous testing for durability, comfort, and performance before reaching you.
+      </p>
+      <div class="manufacturer-specs">
+        <div class="spec-item">
+          <div class="spec-label">Brand</div>
+          <div class="spec-value">{{ product.brand.name|default:"Nike" }}</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-label">Country of Origin</div>
+          <div class="spec-value">Vietnam</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-label">Material</div>
+          <div class="spec-value">Synthetic Suede</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-label">Sole Type</div>
+          <div class="spec-value">Rubber Outsole</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-label">Closure</div>
+          <div class="spec-value">Lace-up</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-label">Recycled Content</div>
+          <div class="spec-value">≥ 20%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── REVIEW ── -->
+  <div class="tab-content" id="tab-review">
+
+    <!-- Summary -->
+    <div class="review-summary">
+      <div class="rating-big">
+        <div class="rating-number">4.3</div>
+        <div class="rating-stars-big">★★★★☆</div>
+        <div class="rating-count">{{ product.review_count|default:"40" }} Reviews</div>
+      </div>
+      <div class="rating-bars">
+        <div class="rating-bar-row">
+          <span class="rating-bar-label">5 ★</span>
+          <div class="rating-bar-track"><div class="rating-bar-fill" style="width:60%;"></div></div>
+          <span class="rating-bar-count">24</span>
+        </div>
+        <div class="rating-bar-row">
+          <span class="rating-bar-label">4 ★</span>
+          <div class="rating-bar-track"><div class="rating-bar-fill" style="width:20%;"></div></div>
+          <span class="rating-bar-count">8</span>
+        </div>
+        <div class="rating-bar-row">
+          <span class="rating-bar-label">3 ★</span>
+          <div class="rating-bar-track"><div class="rating-bar-fill" style="width:10%;"></div></div>
+          <span class="rating-bar-count">4</span>
+        </div>
+        <div class="rating-bar-row">
+          <span class="rating-bar-label">2 ★</span>
+          <div class="rating-bar-track"><div class="rating-bar-fill" style="width:5%;"></div></div>
+          <span class="rating-bar-count">2</span>
+        </div>
+        <div class="rating-bar-row">
+          <span class="rating-bar-label">1 ★</span>
+          <div class="rating-bar-track"><div class="rating-bar-fill" style="width:5%;"></div></div>
+          <span class="rating-bar-count">2</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reviews list -->
+    <div class="review-list">
+      {% for review in product.reviews.all %}
+      <div class="review-card">
+        <div class="review-header">
+          <div class="reviewer-avatar">{{ review.user.first_name|slice:":1"|upper }}</div>
+          <div class="reviewer-info">
+            <div class="reviewer-name">{{ review.user.get_full_name }}</div>
+            <div class="review-date">{{ review.created_at|date:"d M Y" }}</div>
+          </div>
+          <div class="review-stars">
+            {% for i in "12345"|make_list %}
+              {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        <p class="review-text">{{ review.comment }}</p>
+      </div>
+      {% empty %}
+      <!-- Placeholder reviews -->
+      <div class="review-card">
+        <div class="review-header">
+          <div class="reviewer-avatar">A</div>
+          <div class="reviewer-info">
+            <div class="reviewer-name">Afqa</div>
+            <div class="review-date">12 Mar 2024</div>
+          </div>
+          <div class="review-stars">★★★★★</div>
+        </div>
+        <p class="review-text">"Incredible shoes! The fit is perfect and super lightweight. I can wear it all day without any pain."</p>
+      </div>
+      <div class="review-card">
+        <div class="review-header">
+          <div class="reviewer-avatar">A</div>
+          <div class="reviewer-info">
+            <div class="reviewer-name">Anu</div>
+            <div class="review-date">08 Mar 2024</div>
+          </div>
+          <div class="review-stars">★★★★☆</div>
+        </div>
+        <p class="review-text">"Stylish and durable. Easily worth the price. The sizing fit me better than any other surface."</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════
+     SIMILAR PRODUCTS
+═══════════════════════════════ -->
+<div class="similar-section">
+  <h3 class="section-title">Similar Products</h3>
+  <div class="similar-grid">
+    {% for p in similar_products %}
+    <a href="{% url 'products:detail' p.slug %}" class="product-card">
+      <div class="product-card-img">
+        <img src="{{ p.image.url }}" alt="{{ p.name }}">
+      </div>
+      <div class="product-card-info">
+        <div class="product-card-name">{{ p.name }}</div>
+        <div class="product-card-price">₹{{ p.price }}</div>
+      </div>
+    </a>
+    {% empty %}
+    {% for img in "1,2,3,4"|split:"," %}
+    <div class="product-card">
+      <div class="product-card-img">
+        <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80" alt="Shoe">
+      </div>
+      <div class="product-card-info">
+        <div class="product-card-name">Air Max Dawn</div>
+        <div class="product-card-price">₹1200</div>
+      </div>
+    </div>
+    {% endfor %}
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // ── Image gallery ──
+  function switchImg(thumb, url) {
+    document.getElementById('mainImg').src = url;
+    document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+    thumb.classList.add('active');
+  }
+
+  // ── Size selection ──
+  let currentStock = 0;
+  function selectSize(btn) {
+    document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('sizeInput').value = btn.textContent.trim();
+    currentStock = parseInt(btn.getAttribute('data-stock') || 10); // fallback 10 if missing
+    checkStockStatus();
+  }
+
+  // Set initial size value
+  const firstSize = document.querySelector('.size-btn.active');
+  if (firstSize) {
+    selectSize(firstSize);
+  } else {
+    checkStockStatus(); // in case there are no sizes
+  }
+
+  // ── Quantity ──
+  let qty = 1;
+  function changeQty(delta) {
+    let newQty = qty + delta;
+    if (newQty < 1) newQty = 1;
+    // Don't exceed stock, if tracking
+    if (currentStock > 0 && newQty > currentStock) newQty = currentStock;
+    if (newQty > 5) newQty = 5; // absolute max requirement
+    
+    qty = newQty;
+    document.getElementById('qtyValue').textContent = qty;
+    document.getElementById('qtyInput').value = qty;
+  }
+
+  function checkStockStatus() {
+    const addCartBtn = document.getElementById('addCartBtn');
+    const addCartText = document.getElementById('addCartText');
+    if (currentStock <= 0) {
+      addCartBtn.disabled = true;
+      addCartBtn.style.opacity = '0.5';
+      addCartBtn.style.cursor = 'not-allowed';
+      addCartText.textContent = "Out of Stock";
+    } else {
+      addCartBtn.disabled = false;
+      addCartBtn.style.opacity = '1';
+      addCartBtn.style.cursor = 'pointer';
+      addCartText.textContent = "Add to Cart";
+      
+      // if current qty is greater than stock (user changed size)
+      if (qty > currentStock || qty > 5) {
+        qty = Math.min(currentStock, 5);
+        document.getElementById('qtyValue').textContent = qty;
+        document.getElementById('qtyInput').value = qty;
+      }
+    }
+  }
+
+  // ── Image Zoom ──
+  function zoomImage(e) {
+    const img = document.getElementById('mainImg');
+    const wrap = document.getElementById('mainImgWrap');
+    
+    const wrapRect = wrap.getBoundingClientRect();
+    const x = e.clientX - wrapRect.left;
+    const y = e.clientY - wrapRect.top;
+    
+    const xPercent = (x / wrapRect.width) * 100;
+    const yPercent = (y / wrapRect.height) * 100;
+    
+    img.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+    img.style.transform = 'scale(2.5)';
+  }
+
+  function resetZoom() {
+    const img = document.getElementById('mainImg');
+    img.style.transform = 'scale(1)';
+    setTimeout(() => {
+        img.style.transformOrigin = 'center center';
+    }, 200);
+  }
+
+  // ── Wishlist toggle ──
+  function toggleWishlist(btn) {
+    btn.classList.toggle('active');
+    btn.textContent = btn.classList.contains('active') ? '♥' : '♡';
+  }
+
+  // ── Tabs ──
+  function switchTab(btn, tabId) {
+    document.querySelectorAll('.tab-nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + tabId).classList.add('active');
+
+    // Update URL hash without reload
+    history.replaceState(null, '', '#' + tabId);
+  }
+
+  // ── Restore tab from URL hash ──
+  window.addEventListener('DOMContentLoaded', () => {
+    const hash = window.location.hash.replace('#', '');
+    if (['description', 'manufacturer', 'review'].includes(hash)) {
+      const btn = document.querySelector(`[onclick*="${hash}"]`);
+      if (btn) switchTab(btn, hash);
+    }
+  });
+
+  // ── Pincode check ──
+  function checkPincode() {
+    const val = document.getElementById('pincodeInput').value.trim();
+    if (val.length >= 6) {
+      alert('Delivery available for ' + val);
+    }
+  }
+</script>
+{% endblock %}

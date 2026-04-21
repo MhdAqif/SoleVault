@@ -24,7 +24,10 @@ urlpatterns = [
     path('', include('core.urls')),       # homepage
     path('', include('accounts.urls')),   # login/signup
     path('accounts/', include('allauth.urls')),
-    path('user-profile/', include('user_profile.urls')), 
+    path('user-profile/', include('user_profile.urls')),
+    path('admin-panel/', include('adminpanel.urls', namespace='adminpanel')),
+    path('shop/', include('products.urls', namespace='products')), 
+    path('cart/', include('cart.urls', namespace='cart')),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

@@ -1,0 +1,72 @@
+{% extends 'adminpanel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Manage Products – SoleVault Admin{% endblock %}
+{% block nav_products %}active{% endblock %}
+
+{% block content %}
+<div class="header-split" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+  <h2>Products</h2>
+  <a href="{% url 'adminpanel:product_add' %}" style="background:#0D59F2; color:white; padding:8px 15px; border-radius:6px; font-weight:600; font-size:13px; text-decoration:none;">+ Add Product</a>
+</div>
+
+<!-- Search Bar -->
+<div style="margin-bottom: 20px; display:flex; gap:10px;">
+  <form method="GET" style="display:flex; gap:10px; flex-grow:1;">
+    <input type="text" name="q" value="{{ query }}" placeholder="Search products, brands..." style="padding:10px; width:100%; max-width:400px; border:1px solid var(--gray-200); border-radius:4px;">
+    <button type="submit" style="background:#0D59F2; color:white; padding:8px 15px; border:none; border-radius:4px; font-weight:600; cursor:pointer;">Search</button>
+    {% if query %}
+      <a href="{% url 'adminpanel:product_list' %}" style="background:var(--gray-200); color:var(--gray-800); padding:8px 15px; text-decoration:none; border-radius:4px; font-weight:600; display:flex; align-items:center;">Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+<div class="user-table-wrap" style="background:#fff; border:1px solid var(--gray-200); border-radius:8px; overflow:hidden;">
+  <table style="width:100%; border-collapse:collapse; text-align:left;">
+    <thead style="background:var(--gray-100); font-size:12px; text-transform:uppercase; color:var(--gray-600);">
+      <tr>
+        <th style="padding:15px; border-bottom:1px solid var(--gray-200); width:60px;">Image</th>
+        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Name</th>
+        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Brand</th>
+        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Price</th>
+        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Status</th>
+        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in page_obj %}
+      <tr>
+        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">
+          {% if product.image %}
+            <img src="{{ product.image.url }}" style="width:40px; height:40px; border-radius:4px; object-fit:cover;">
+          {% else %}
+            <div style="width:40px; height:40px; border-radius:4px; background:#eee;"></div>
+          {% endif %}
+        </td>
+        <td style="padding:15px; border-bottom:1px solid var(--gray-200); font-weight:600;">{{ product.name }}</td>
+        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">{{ product.brand.name|default:"-" }}</td>
+        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">₹{{ product.price }}</td>
+        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">
+          {% if product.is_active %}
+            <span style="color:#155724; background:#d4edda; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">Active</span>
+          {% else %}
+            <span style="color:#721c24; background:#f8d7da; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">Inactive</span>
+          {% endif %}
+        </td>
+        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">
+          <a href="{% url 'adminpanel:product_edit' product.id %}" style="color:var(--blue); font-weight:600; font-size:13px; margin-right:10px;">Edit</a>
+          <form method="POST" action="{% url 'adminpanel:product_delete' product.id %}" style="display:inline;" onsubmit="return confirm('Delete this product?');">
+            {% csrf_token %}
+            <button type="submit" style="background:none; border:none; color:var(--red); font-weight:600; font-size:13px; cursor:pointer;">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="padding:20px; text-align:center; color:var(--gray-600);">No products found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

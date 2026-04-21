@@ -108,7 +108,7 @@
 }
 
 .sidebar-link.active {
-  color: #1a6dff;
+  color: var(--blue, #0D59F2);
   font-weight: 600;
 }
 
@@ -195,7 +195,7 @@
 }
 
 .profile-field input:focus {
-  border-color: #1a6dff;
+  border-color: var(--blue, #0D59F2);
   background: #fff;
 }
 
@@ -212,7 +212,7 @@
   margin: 24px auto 0;
   padding: 0 44px;
   height: 38px;
-  background-color: #1a6dff;
+  background-color: var(--blue, #0D59F2);
   color: #fff;
   font-size: 13px;
   font-weight: 700;
@@ -224,11 +224,7 @@
 }
 
 .btn-edit:hover {
-  background-color: #1558d6;
-}
-
-.btn-edit:active {
-  background-color: #1045b0;
+  background-color: var(--blue-dark, #0a46c4);
 }
 
 /* ────────────────────────────
@@ -297,7 +293,7 @@
   height: 34px;
   line-height: 34px;
   text-align: center;
-  background-color: #1a6dff;
+  background-color: var(--blue, #0D59F2);
   color: #fff;
   font-size: 12px;
   font-weight: 600;
@@ -309,7 +305,7 @@
 }
 
 .btn-edit-photo:hover {
-  background-color: #1558d6;
+  background-color: var(--blue-dark, #0a46c4);
 }
 
 .btn-remove-photo {
@@ -363,7 +359,7 @@
 }
 
 .edit-field input:focus {
-  border-color: #1a6dff;
+  border-color: var(--blue, #0D59F2);
   background: #fff;
 }
 
@@ -375,7 +371,7 @@
 .btn-update {
   padding: 0 52px;
   height: 40px;
-  background-color: #1a6dff;
+  background-color: var(--blue, #0D59F2);
   color: #fff;
   font-size: 13px;
   font-weight: 700;
@@ -387,11 +383,7 @@
 }
 
 .btn-update:hover {
-  background-color: #1558d6;
-}
-
-.btn-update:active {
-  background-color: #1045b0;
+  background-color: var(--blue-dark, #0a46c4);
 }
 .center-btn {
   display: flex;

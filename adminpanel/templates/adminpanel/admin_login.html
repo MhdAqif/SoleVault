@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoleVault – Admin Login</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'adminpanel/css/admin_login.css' %}">
+</head>
+<body>
+
+<div class="login-card">
+
+  <!-- Brand -->
+  <div class="brand">
+    <img src="{% static 'adminpanel/img/logo.png' %}" alt="SoleVault"
+         onerror="this.style.display='none'">
+    <span class="brand-text">SoleVault</span>
+  </div>
+
+  <h5 class="login-title">Login</h5>
+
+  {% if error %}
+  <div class="error-msg">{{ error }}</div>
+  {% endif %}
+
+  <form method="POST" action="{% url 'adminpanel:admin_login' %}">
+    {% csrf_token %}
+
+    <label class="field-label">Email address</label>
+    <div class="field-wrap">
+      <input
+        type="email"
+        name="email"
+        placeholder="holosonic@gmail.com"
+        value="{{ request.POST.email|default:'' }}"
+        required
+        autofocus
+      >
+      <span class="field-icon">&#10003;</span>
+    </div>
+
+    <label class="field-label">Password</label>
+    <div class="field-wrap">
+      <input
+        type="password"
+        name="password"
+        id="passwordInput"
+        placeholder="••••••••"
+        required
+      >
+      <span class="field-icon" onclick="togglePassword()">&#128065;</span>
+    </div>
+    <button type="submit" class="btn-login">Login</button>
+
+  </form>
+</div>
+
+<script>
+  function togglePassword() {
+    const inp = document.getElementById('passwordInput');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,158 @@
+/* ============================================
+   SoleVault – adminpanel/css/admin_dashboard.css
+   ============================================ */
+
+/* ── Stat cards ── */
+.stat-cards {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 20px 24px;
+  text-align: center;
+}
+
+.stat-card .stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #111;
+}
+
+.stat-card .stat-label {
+  font-size: 12px;
+  color: #777;
+  margin-top: 4px;
+}
+
+/* ── Alert cards ── */
+.alert-cards {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.alert-card {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 20px 24px;
+}
+
+.alert-card .alert-title {
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 6px;
+}
+
+.alert-card .alert-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111;
+}
+
+/* ── Quick action buttons ── */
+.quick-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.btn-quick {
+  padding: 8px 18px;
+  background: #2c3345;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s;
+  display: inline-block;
+}
+
+.btn-quick:hover {
+  background: #4f00e0;
+  color: #fff;
+  text-decoration: none;
+}
+
+/* ── Orders table ── */
+.orders-table {
+  width: 100%;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.orders-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.orders-table thead th {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  background: #fafafa;
+}
+
+.orders-table tbody td {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #444;
+  border-bottom: 1px solid #f5f5f5;
+  vertical-align: middle;
+}
+
+.orders-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.orders-table tbody tr:hover {
+  background: #fafbff;
+}
+
+/* ── Status badges ── */
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status-processing { background: #fff3cd; color: #856404; }
+.status-shipped    { background: #cff4fc; color: #0a6c7c; }
+.status-delivered  { background: #d1e7dd; color: #0f5132; }
+.status-cancelled  { background: #f8d7da; color: #842029; }
+.status-pending    { background: #e2d9f3; color: #432874; }
+
+/* ── View button ── */
+.btn-view {
+  padding: 4px 12px;
+  background: #4f00e0;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.btn-view:hover {
+  background: #3d00b8;
+  color: #fff;
+  text-decoration: none;
+}

@@ -1,10 +1,82 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}SoleVault – Home{% endblock %}
+{% block title %}SoleVault – Premium Footwear & Streetwear{% endblock %}
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* Additional premium touches to match shop pages */
+    .hero-title {
+        font-family: 'Barlow Condensed', sans-serif !important;
+        font-size: 72px !important;
+        font-weight: 900 !important;
+        line-height: 0.92 !important;
+        letter-spacing: -1.5px !important;
+        text-transform: uppercase !important;
+        max-width: 600px !important;
+    }
+    .hero-badge {
+        background: transparent !important;
+        padding: 0 !important;
+        font-size: 11px !important;
+        font-weight: 700 !important;
+        letter-spacing: 3.5px !important;
+        text-transform: uppercase !important;
+        color: rgba(255,255,255,0.70) !important;
+        margin-bottom: 10px !important;
+    }
+    .hero-desc {
+        font-size: 13px !important;
+        color: rgba(255,255,255,0.80) !important;
+        line-height: 1.7 !important;
+        max-width: 280px !important;
+        margin-bottom: 24px !important;
+    }
+    .hero-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--white) !important;
+        color: var(--blue) !important;
+        padding: 11px 24px !important;
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        border-radius: 6px !important;
+        letter-spacing: 0.3px !important;
+        text-transform: none !important;
+        transition: all 0.15s ease !important;
+        margin-top: 0 !important;
+    }
+    .hero-btn:hover {
+        background: #e8f0ff !important;
+        transform: translateY(-1px) !important;
+        box-shadow: none !important;
+    }
+    .cat-card {
+        cursor: pointer;
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .cat-card a {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+    .product-card {
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+    .product-card:hover {
+        transform: translateY(-5px);
+    }
+    .product-link {
+        display: block;
+        height: 100%;
+    }
+  </style>
 {% endblock %}
 
 {% block content %}
@@ -12,10 +84,10 @@
   <!-- HERO -->
   <section class="hero">
     <div class="hero-content">
-      <span class="hero-badge">Trending Drop</span>
+      <span class="hero-badge">2026 Collection</span>
       <h1 class="hero-title">Elevate Your<span>Step</span></h1>
       <p class="hero-desc">Experience the ultimate fusion of performance and street luxury. Discover the most exclusive drops and timeless classics.</p>
-      <a href="#" class="hero-btn">Shop Collection</a>
+      <a href="{% url 'products:men' %}" class="hero-btn">Shop Now</a>
     </div>
   </section>
 
@@ -25,83 +97,62 @@
   </div>
 
   <section class="categories">
-    <!-- Women -->
-    <div class="cat-card">
-      <img src="{% static 'core/images/women.png' %}" alt="Women"/>
-      <div class="cat-overlay">
-        <div class="cat-name">Women</div>
-        <div class="cat-sub">Elevated styles for her</div>
-      </div>
-    </div>
     <!-- Men -->
     <div class="cat-card">
-      <img src="{% static 'core/images/men.png' %}" alt="Men"/>
-      <div class="cat-overlay">
-        <div class="cat-name">Men</div>
-        <div class="cat-sub">Classic and modern menswear</div>
-      </div>
+      <a href="{% url 'products:men' %}">
+        <img src="{% static 'core/images/men.png' %}" alt="Men"/>
+        <div class="cat-overlay">
+          <div class="cat-name">Men</div>
+          <div class="cat-sub">Classic and modern menswear</div>
+        </div>
+      </a>
+    </div>
+    <!-- Women -->
+    <div class="cat-card">
+      <a href="{% url 'products:women' %}">
+        <img src="{% static 'core/images/women.png' %}" alt="Women"/>
+        <div class="cat-overlay">
+          <div class="cat-name">Women</div>
+          <div class="cat-sub">Elevated styles for her</div>
+        </div>
+      </a>
     </div>
   </section>
 
-  <!-- BEST SELLERS -->
+  <!-- FEATURED PRODUCTS -->
+  {% if featured_products %}
   <div class="section-head" style="margin-top:36px;">
-    <h2>Best Sellers</h2>
-    <p>Fresh drops from the world's leading brands</p>
+    <h2>Featured Drops</h2>
+    <p>Hand-picked exclusives just for you</p>
   </div>
 
   <section class="products">
-    <!-- 1 -->
+    {% for product in featured_products %}
     <div class="product-card">
-      <div class="product-img">
-        <img src="{% static 'core/images/Red Shoe.png' %}" alt="Air Max Crimson Edge"/>
-      </div>
-      <div class="product-info">
-        <div class="badge-sale">SALE</div>
-        <div class="product-brand">Nike</div>
-        <div class="product-name">Air Max Crimson Edge</div>
-        <div class="product-price"><span class="old">$189.00</span> $149.00</div>
-      </div>
+      <a href="{% url 'products:detail' product.slug %}" class="product-link">
+        <div class="product-img">
+          <img src="{{ product.image.url }}" alt="{{ product.name }}"/>
+        </div>
+        <div class="product-info">
+          {% if product.is_new %}
+          <div class="badge-new">NEW</div>
+          {% elif product.original_price %}
+          <div class="badge-sale">SALE</div>
+          {% endif %}
+          <div class="product-brand">{{ product.brand.name }}</div>
+          <div class="product-name">{{ product.name }}</div>
+          <div class="product-price">
+            {% if product.original_price %}
+            <span class="old">₹{{ product.original_price }}</span> 
+            {% endif %}
+            ₹{{ product.price }}
+          </div>
+        </div>
+      </a>
     </div>
-
-    <!-- 2 -->
-    <div class="product-card">
-      <div class="product-img">
-        <img src="{% static 'core/images/white shoe.png' %}" alt="FOAM Protection Pack"/>
-      </div>
-      <div class="product-info">
-        <div class="badge-new">NEW</div>
-        <div class="product-brand">New Balance</div>
-        <div class="product-name">FOAM Protection Pack</div>
-        <div class="product-price">$160.00</div>
-      </div>
-    </div>
-
-    <!-- 3 -->
-    <div class="product-card">
-      <div class="product-img">
-        <img src="{% static 'core/images/blue shoe.png' %}" alt="Air Jordan 1 High OG"/>
-      </div>
-      <div class="product-info">
-        <div class="badge-new">JORDAN</div>
-        <div class="product-brand">Jordan</div>
-        <div class="product-name">Air Jordan 1 High OG</div>
-        <div class="product-price">$210.00</div>
-      </div>
-    </div>
-
-    <!-- 4 -->
-    <div class="product-card">
-      <div class="product-img">
-        <img src="{% static 'core/images/Black Shoe.png' %}" alt="Yeezy Boost 350 V2"/>
-      </div>
-      <div class="product-info">
-        <div class="badge-new">ADIDAS</div>
-        <div class="product-brand">Adidas</div>
-        <div class="product-name">Yeezy Boost 350 V2</div>
-        <div class="product-price">$230.00</div>
-      </div>
-    </div>
+    {% endfor %}
   </section>
+  {% endif %}
 
   <!-- TRUSTED BY -->
   <div class="trusted">

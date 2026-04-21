@@ -41,14 +41,15 @@
         My Profile
       </a>
 
-      <!-- 🔒 Coming soon - no URL yet -->
-      <a href="{% url 'user_profile:manage_address' %}" >
+      <!-- My Address -->
+      <a href="{% url 'user_profile:manage_address' %}" class="sidebar-link {% block active_address %}{% endblock %}">
         <span class="nav-icon">
           <img src="{% static 'user_profile/icons/address.png' %}" alt="">
         </span>
         My Address
       </a>
 
+      <!-- My Order -->
       <span class="sidebar-link disabled">
         <span class="nav-icon">
           <img src="{% static 'user_profile/icons/order.png' %}" alt="">
@@ -56,7 +57,8 @@
         My Order
       </span>
 
-      <span class="sidebar-link disabled">
+      <!-- My Wishlist -->
+      <a href="{% url 'cart:wishlist' %}" class="sidebar-link {% block active_wishlist %}{% endblock %}">
         <span class="nav-icon">
           <img src="{% static 'user_profile/icons/wishlist.png' %}" alt="">
         </span>
@@ -64,7 +66,7 @@
         {% if wishlist_count %}
           <span class="sidebar-badge">({{ wishlist_count }})</span>
         {% endif %}
-      </span>
+      </a>
 
       <span class="sidebar-link disabled">
         <span class="nav-icon">
@@ -80,12 +82,13 @@
         My Coupon
       </span>
 
-      <span class="sidebar-link disabled">
+      <!-- Change password -->
+      <a href="{% url 'user_profile:change_password' %}" class="sidebar-link {% block active_change_password %}{% endblock %}">
         <span class="nav-icon">
           <img src="{% static 'user_profile/icons/lock.png' %}" alt="">
         </span>
         Change password
-      </span>
+      </a>
 
       <a href="{% url 'logout' %}" class="sidebar-link">
         <span class="nav-icon">

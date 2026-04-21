@@ -1,0 +1,65 @@
+{% extends 'adminpanel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Order #{{ order.id }} – SoleVault Admin{% endblock %}
+{% block nav_orders %}active{% endblock %}
+
+{% block content %}
+<div class="header-split" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+  <h2>Order #{{ order.id }}</h2>
+  <a href="{% url 'adminpanel:order_list' %}" style="color:var(--gray-600); font-weight:600; font-size:14px;">← Back to Orders</a>
+</div>
+
+<div style="display:grid; grid-template-columns:2fr 1fr; gap:30px;">
+  
+  <div>
+    <div style="background:#fff; border:1px solid var(--gray-200); border-radius:8px; padding:20px;">
+      <h3 style="margin-bottom:15px; font-size:16px; border-bottom:1px solid var(--gray-200); padding-bottom:10px;">Items</h3>
+      {% for item in order.items.all %}
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px dashed var(--gray-200);">
+        <div style="display:flex; gap:15px; align-items:center;">
+          {% if item.product %}
+          <img src="{{ item.product.image.url }}" style="width:50px; height:50px; object-fit:cover; border-radius:4px;">
+          {% else %}
+          <div style="width:50px; height:50px; background:#eee; border-radius:4px;"></div>
+          {% endif %}
+          <div>
+            <div style="font-weight:600; font-size:14px;">{{ item.product_name }}</div>
+            <div style="font-size:12px; color:var(--gray-600);">Qty: {{ item.quantity }} | Size: {{ item.size|default:"-" }}</div>
+          </div>
+        </div>
+        <div style="font-weight:700;">₹{{ item.price }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  
+  <div>
+    <div style="background:#fff; border:1px solid var(--gray-200); border-radius:8px; padding:20px; margin-bottom:20px;">
+      <h3 style="margin-bottom:15px; font-size:16px; border-bottom:1px solid var(--gray-200); padding-bottom:10px;">Update Status</h3>
+      <form method="POST" action="{% url 'adminpanel:order_update_status' order.id %}">
+        {% csrf_token %}
+        <select name="status" style="width:100%; padding:10px; border:1px solid var(--gray-200); border-radius:4px; margin-bottom:15px;">
+          <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>Processing</option>
+          <option value="shipped" {% if order.status == 'shipped' %}selected{% endif %}>Shipped</option>
+          <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>Delivered</option>
+          <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+        <button type="submit" style="width:100%; background:var(--blue); color:#fff; border:none; padding:10px; border-radius:4px; font-weight:700; cursor:pointer;">Update Status</button>
+      </form>
+    </div>
+
+    <div style="background:#fff; border:1px solid var(--gray-200); border-radius:8px; padding:20px;">
+      <h3 style="margin-bottom:15px; font-size:16px; border-bottom:1px solid var(--gray-200); padding-bottom:10px;">Customer Info</h3>
+      <div style="font-size:14px; line-height:1.6;">
+        <strong>{{ order.full_name }}</strong><br>
+        <a href="mailto:{{ order.user.email }}" style="color:var(--blue);">{{ order.user.email }}</a><br><br>
+        {{ order.address }}<br>
+        {{ order.city }}, {{ order.state }} - {{ order.pincode }}<br>
+        Phone: {{ order.phone }}
+      </div>
+    </div>
+  </div>
+  
+</div>
+{% endblock %}

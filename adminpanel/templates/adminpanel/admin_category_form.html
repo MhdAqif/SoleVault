@@ -1,0 +1,81 @@
+{% extends 'adminpanel/admin_base.html' %}
+{% load static %}
+
+{% block title %}{{ action }} Category – SoleVault Admin{% endblock %}
+{% block nav_categories %}active{% endblock %}
+
+{% block content %}
+<div class="header-split" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+  <h2>{{ action }} Category</h2>
+  <div style="display:flex; gap:15px; align-items:center;">
+    <a href="{% url 'adminpanel:category_list' %}" style="color:var(--gray-600); font-weight:600; font-size:14px; text-decoration:none;">← Back</a>
+    <a href="{% url 'adminpanel:category_add' %}" style="background:var(--gray-100); color:var(--gray-800); padding:8px 15px; border-radius:6px; font-weight:600; font-size:13px; text-decoration:none; border:1px solid var(--gray-200);">+ Add New</a>
+    <button type="submit" form="categoryForm" style="background:#0D59F2; color:#fff; border:none; padding:8px 20px; border-radius:6px; font-weight:700; font-size:13px; cursor:pointer;">
+      Save Category
+    </button>
+  </div>
+</div>
+
+<div style="background:#fff; border:1px solid var(--gray-200); border-radius:8px; padding:30px; max-width:800px;">
+  <form method="POST" enctype="multipart/form-data" id="categoryForm">
+    {% csrf_token %}
+    
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+      <div>
+        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:5px;">Name *</label>
+        <input type="text" name="name" id="id_name" value="{{ category.name }}" required style="width:100%; padding:10px; border:1px solid var(--gray-200); border-radius:4px;">
+      </div>
+      <div>
+        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:5px;">Slug *</label>
+        <input type="text" name="slug" id="id_slug" value="{{ category.slug }}" required style="width:100%; padding:10px; border:1px solid var(--gray-200); border-radius:4px;">
+      </div>
+    </div>
+    
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+      <div>
+        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:5px;">Gender *</label>
+        <select name="gender" required style="width:100%; padding:10px; border:1px solid var(--gray-200); border-radius:4px;">
+          <option value="unisex" {% if category.gender == 'unisex' %}selected{% endif %}>Unisex</option>
+          <option value="men" {% if category.gender == 'men' %}selected{% endif %}>Men</option>
+          <option value="women" {% if category.gender == 'women' %}selected{% endif %}>Women</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:5px;">Image</label>
+        {% if category.image %}
+          <img src="{{ category.image.url }}" style="height:40px; border-radius:4px; margin-bottom:10px; display:block;">
+        {% endif %}
+        <input type="file" name="image" style="width:100%; padding:10px; border:1px solid var(--gray-200); border-radius:4px; background:var(--gray-50);">
+      </div>
+    </div>
+    
+    <div style="margin-bottom:30px; padding:15px; background:var(--gray-50); border-radius:6px;">
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:14px; font-weight:600;">
+        <input type="checkbox" name="is_active" {% if category and category.is_active or action == 'Add' %}checked{% endif %}> Category is Active
+      </label>
+    </div>
+    
+    <button type="submit" style="background:#0D59F2; color:#fff; border:none; padding:12px 24px; border-radius:6px; font-weight:700; font-size:15px; cursor:pointer;">
+      {{ action }} Category
+    </button>
+  </form>
+</div>
+
+<script>
+  // Slug Auto-generation
+  const nameInput = document.getElementById('id_name');
+  const slugInput = document.getElementById('id_slug');
+
+  if (nameInput && slugInput) {
+    nameInput.addEventListener('input', function() {
+      const slug = nameInput.value
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/[\s_-]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      slugInput.value = slug;
+    });
+  }
+</script>
+{% endblock %}

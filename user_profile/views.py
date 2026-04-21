@@ -1,11 +1,30 @@
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
 from .models import Address
 
 @login_required
 def user_profile(request):
     return render(request, 'user_profile/profile.html')
+
+@login_required
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important!
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('user_profile:profile')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, 'user_profile/change_password.html', {
+        'form': form
+    })
 
 
 @login_required
@@ -37,7 +56,7 @@ def profile_edit(request):
 
         user.save()
 
-        return redirect('user_profile:user_profile')
+        return redirect('user_profile:profile')
 
     return render(request, 'user_profile/profile_edit.html')
 
@@ -55,8 +74,6 @@ def add_address(request):
         full_name = request.POST.get('full_name')
         phone = request.POST.get('mobile_number')
         address = request.POST.get('address')
-
-        # 🔥 validation
         if not full_name or not phone or not address:
             messages.error(request, "Please fill all required fields")
             return redirect('user_profile:add_address')
@@ -78,8 +95,8 @@ def add_address(request):
     return render(request, 'user_profile/add_address.html')
 
 @login_required
-def edit_address(request, id):
-    address = get_object_or_404(Address, id=id, user=request.user)
+def edit_address(request, pk):
+    address = get_object_or_404(Address, id=pk, user=request.user)
 
     if request.method == 'POST':
         address.full_name = request.POST.get('full_name')

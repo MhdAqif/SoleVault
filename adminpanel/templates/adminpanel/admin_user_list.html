@@ -1,0 +1,200 @@
+{% extends 'adminpanel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Users – SoleVault Admin{% endblock %}
+{% block nav_users %}active{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'adminpanel/css/admin_user_list.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h4 class="page-title">User Management</h4>
+
+  <!-- Search form -->
+  <form class="search-form" method="GET" action="{% url 'adminpanel:user_list' %}">
+    <div class="search-wrap">
+      <input
+        type="text"
+        name="q"
+        id="searchInput"
+        placeholder="Search by name or email…"
+        value="{{ search_query|default:'' }}"
+        autocomplete="off"
+      >
+      <button type="button" class="search-clear" id="clearBtn" onclick="clearSearch()">&#10005;</button>
+    </div>
+    <button type="submit" class="btn-search">Search</button>
+  </form>
+</div>
+
+<!-- Search result info -->
+{% if search_query %}
+<p class="search-info">
+  Showing results for "<strong>{{ search_query }}</strong>"
+  — {{ page_obj.paginator.count }} user(s) found.
+  <a href="{% url 'adminpanel:user_list' %}">Clear search</a>
+</p>
+{% endif %}
+
+<!-- Users table -->
+<div class="table-card">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Joined</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in page_obj %}
+      <tr>
+        <td>{{ page_obj.start_index|add:forloop.counter0 }}</td>
+        <td>{{ user.get_full_name|default:user.username }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.date_joined|date:"d M Y" }}</td>
+        <td>
+          {% if user.is_active %}
+            <span class="badge-active">Active</span>
+          {% else %}
+            <span class="badge-blocked">Blocked</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if user.is_active %}
+            <button
+              class="btn-block btn-block-action"
+              onclick="openModal('{{ user.id }}', '{{ user.get_full_name|default:user.username|escapejs }}', 'block')"
+            >Block</button>
+          {% else %}
+            <button
+              class="btn-block btn-unblock-action"
+              onclick="openModal('{{ user.id }}', '{{ user.get_full_name|default:user.username|escapejs }}', 'unblock')"
+            >Unblock</button>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr class="empty-row">
+        <td colspan="6">
+          No users found{% if search_query %} for "{{ search_query }}"{% endif %}.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  {% if page_obj.paginator.num_pages > 1 %}
+  <div class="pagination-row">
+    <span class="pagination-info">
+      Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}
+      of {{ page_obj.paginator.count }} users
+    </span>
+    <div class="pagination-links">
+
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}"
+           class="page-btn">&lsaquo;</a>
+      {% else %}
+        <span class="page-btn disabled">&lsaquo;</span>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+        {% if num == page_obj.number %}
+          <span class="page-btn active">{{ num }}</span>
+        {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+          <a href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}"
+             class="page-btn">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}"
+           class="page-btn">&rsaquo;</a>
+      {% else %}
+        <span class="page-btn disabled">&rsaquo;</span>
+      {% endif %}
+
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Block / Unblock Confirmation Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h5 class="modal-title" id="modalTitle">ARE YOU SURE?</h5>
+    <p class="modal-body" id="modalBody"></p>
+    <div class="modal-actions">
+      <form method="POST" id="confirmForm" action="">
+        {% csrf_token %}
+        <button type="button" class="btn-modal-cancel" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn-modal-confirm" id="confirmBtn">Confirm</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // ── Search clear button ──
+  const searchInput = document.getElementById('searchInput');
+  const clearBtn    = document.getElementById('clearBtn');
+
+  // Show clear button if there is already a value on page load
+  if (searchInput.value) clearBtn.style.display = 'flex';
+
+  searchInput.addEventListener('input', function () {
+    clearBtn.style.display = this.value ? 'flex' : 'none';
+  });
+
+  function clearSearch() {
+    searchInput.value = '';
+    clearBtn.style.display = 'none';
+    window.location.href = "{% url 'adminpanel:user_list' %}";
+  }
+
+  // ── Block / Unblock modal ──
+  function openModal(userId, userName, action) {
+    const form       = document.getElementById('confirmForm');
+    const title      = document.getElementById('modalTitle');
+    const body       = document.getElementById('modalBody');
+    const confirmBtn = document.getElementById('confirmBtn');
+
+    if (action === 'block') {
+      form.action          = `/admin-panel/users/${userId}/block/`;
+      title.textContent    = 'ARE YOU SURE?';
+      body.textContent     = `Do you want to block "${userName}"?`;
+      confirmBtn.className = 'btn-modal-confirm block-confirm';
+      confirmBtn.textContent = 'Yes, Block';
+    } else {
+      form.action          = `/admin-panel/users/${userId}/unblock/`;
+      title.textContent    = 'ARE YOU SURE?';
+      body.textContent     = `Do you want to unblock "${userName}"?`;
+      confirmBtn.className = 'btn-modal-confirm unblock-confirm';
+      confirmBtn.textContent = 'Yes, Unblock';
+    }
+
+    document.getElementById('confirmModal').classList.add('show');
+  }
+
+  function closeModal() {
+    document.getElementById('confirmModal').classList.remove('show');
+  }
+
+  // Close on overlay click
+  document.getElementById('confirmModal').addEventListener('click', function (e) {
+    if (e.target === this) closeModal();
+  });
+</script>
+{% endblock %}
