@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% load static %}
+
+{% block title %}Search Results – SoleVault{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'products/css/shop.css' %}">
+<style>
+    .search-header {
+        margin: 40px 0 20px;
+        padding: 0 40px;
+    }
+    .search-title {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--black);
+    }
+    .search-query {
+        color: var(--blue);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="search-header">
+    <h1 class="search-title">
+        {% if search_query %}
+            Results for <span class="search-query">"{{ search_query }}"</span>
+        {% else %}
+            Search Our Collection
+        {% endif %}
+    </h1>
+    <p style="color: var(--gray-600); margin-top: 8px;">
+        Showing {{ page_obj.paginator.count }} products
+    </p>
+</div>
+
+<div class="shop-layout" id="products">
+    <!-- Main content only, no sidebar for search results for simplicity -->
+    <div class="products-area" style="width: 100%; border: none;">
+        <div class="product-grid">
+            {% for product in page_obj %}
+            <div class="product-card">
+                {% if product.is_new %}<span class="badge badge-new">New</span>{% endif %}
+                {% if product.discount %}<span class="badge badge-sale">-{{ product.discount }}%</span>{% endif %}
+                
+                <form method="POST" action="{% url 'cart:wishlist_toggle' product.id %}" style="position: absolute; top: 9px; right: 9px; z-index: 3;">
+                    {% csrf_token %}
+                    <button type="submit" class="card-wish-btn" title="Toggle Wishlist">&#9825;</button>
+                </form>
+
+                <a href="{% url 'products:detail' product.slug %}">
+                    <div class="product-img-wrap">
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">{{ product.name }}</div>
+                        <div class="product-price-row">
+                            <span class="product-price">₹{{ product.price }}</span>
+                            {% if product.original_price %}
+                            <span class="product-price-old">₹{{ product.original_price }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 100px 0;">
+                <p style="font-size: 18px; color: var(--gray-400);">No products found matching your search.</p>
+                <a href="{% url 'products:men' %}" style="display: inline-block; margin-top: 20px; color: var(--blue); font-weight: 700;">Browse Men's Collection</a>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <div class="pagination" style="margin-top: 40px;">
+            {% if page_obj.has_previous %}
+            <a href="?{% query_transform page=page_obj.previous_page_number %}" class="page-btn">&#8249;</a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                <a href="?{% query_transform page=num %}"
+                   class="page-btn {% if num == page_obj.number %}active{% endif %}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a href="?{% query_transform page=page_obj.next_page_number %}" class="page-btn">&#8250;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

@@ -179,7 +179,8 @@
       <h4>Occasion</h4>
       <div class="check-list">
         {% for occ in occasions %}
-        <a href="?{% query_transform occasion=occ|lower page=1 %}" class="check-item">{{ occ }}</a>
+        <a href="?{% query_transform occasion=occ|lower page=1 %}" 
+           class="check-item {% if active_occasion == occ|lower %}active{% endif %}">{{ occ }}</a>
         {% empty %}
         <a href="#" class="check-item">Casual</a>
         <a href="#" class="check-item">Sports</a>
@@ -191,7 +192,8 @@
       <h4>Material</h4>
       <div class="check-list">
         {% for mat in materials %}
-        <a href="?{% query_transform material=mat|lower page=1 %}" class="check-item">{{ mat }}</a>
+        <a href="?{% query_transform material=mat|lower page=1 %}" 
+           class="check-item {% if active_material == mat|lower %}active{% endif %}">{{ mat }}</a>
         {% empty %}
         <a href="#" class="check-item">Leather</a>
         <a href="#" class="check-item">Suede</a>

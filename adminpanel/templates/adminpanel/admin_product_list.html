@@ -69,4 +69,25 @@
     </tbody>
   </table>
 </div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<div style="display:flex; justify-content:center; gap:8px; margin-top:20px;">
+  {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}" style="padding:8px 12px; background:#fff; border:1px solid var(--gray-200); border-radius:4px; text-decoration:none; color:var(--gray-800); font-weight:600;">&laquo;</a>
+  {% endif %}
+
+  {% for num in page_obj.paginator.page_range %}
+    {% if page_obj.number == num %}
+      <span style="padding:8px 12px; background:#0D59F2; border:1px solid #0D59F2; border-radius:4px; color:#fff; font-weight:700;">{{ num }}</span>
+    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+      <a href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}" style="padding:8px 12px; background:#fff; border:1px solid var(--gray-200); border-radius:4px; text-decoration:none; color:var(--gray-800); font-weight:600;">{{ num }}</a>
+    {% endif %}
+  {% endfor %}
+
+  {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}" style="padding:8px 12px; background:#fff; border:1px solid var(--gray-200); border-radius:4px; text-decoration:none; color:var(--gray-800); font-weight:600;">&raquo;</a>
+  {% endif %}
+</div>
+{% endif %}
 {% endblock %}

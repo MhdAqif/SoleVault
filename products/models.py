@@ -37,11 +37,25 @@ class Product(models.Model):
         ('unisex','Unisex'),
     ]
 
+    OCCASION_CHOICES = [
+        ('casual', 'Casual'),
+        ('sports', 'Sports'),
+        ('formal', 'Formal'),
+    ]
+    MATERIAL_CHOICES = [
+        ('leather', 'Leather'),
+        ('suede',   'Suede'),
+        ('mesh',    'Mesh'),
+        ('canvas',  'Canvas'),
+    ]
+
     name           = models.CharField(max_length=200)
     slug           = models.SlugField(unique=True)
     brand          = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True, related_name='products')
     category       = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='products')
     gender         = models.CharField(max_length=10, choices=GENDER_CHOICES, default='unisex')
+    occasion       = models.CharField(max_length=20, choices=OCCASION_CHOICES, default='casual')
+    material       = models.CharField(max_length=20, choices=MATERIAL_CHOICES, default='mesh')
     description    = models.TextField(blank=True)
     price          = models.DecimalField(max_digits=10, decimal_places=2)
     original_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)

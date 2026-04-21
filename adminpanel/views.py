@@ -263,97 +263,153 @@ def product_list_admin(request):
 
 @admin_required
 def product_add_admin(request):
-    from products.models import Product, Brand, Category
-    brands = Brand.objects.all()
-    categories = Category.objects.all()
-    
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        slug = request.POST.get('slug')
-        price = request.POST.get('price')
-        cropped_images = request.FILES.getlist('cropped_images')
-        brand_id = request.POST.get('brand')
-        category_id = request.POST.get('category')
+    try:
+        from products.models import Product, Brand, Category, Size
+        brands = Brand.objects.all()
+        categories = Category.objects.all()
+        all_sizes = Size.objects.all()
         
-        # Simple validation
-        if not name or not slug or not price:
-            messages.error(request, "Name, Slug, and Price are required.")
-            return redirect('adminpanel:product_add')
-        
-        if len(cropped_images) < 3:
-            messages.error(request, f"Minimum 3 images are required. You provided {len(cropped_images)}.")
-            return redirect('adminpanel:product_add')
+        if request.method == 'POST':
+            name = request.POST.get('name')
+            slug = request.POST.get('slug')
+            price = request.POST.get('price')
+            cropped_images = request.FILES.getlist('cropped_images')
+            brand_id = request.POST.get('brand')
+            category_id = request.POST.get('category')
             
-        main_image = cropped_images.pop(0)
+            # Simple validation
+            if not name or not slug or not price:
+                messages.error(request, "Name, Slug, and Price are required.")
+                return redirect('adminpanel:product_add')
             
-        product = Product.objects.create(
-            name=name,
-            slug=slug,
-            price=price,
-            image=main_image,
-            brand_id=brand_id if brand_id else None,
-            category_id=category_id if category_id else None,
-            description=request.POST.get('description', ''),
-            original_price=request.POST.get('original_price') or None,
-            is_new=request.POST.get('is_new') == 'on',
-            is_active=request.POST.get('is_active') == 'on',
-        )
-        
-        from products.models import ProductImage
-        for img in cropped_images:
-            ProductImage.objects.create(product=product, image=img)
+            if len(cropped_images) < 3:
+                messages.error(request, f"Minimum 3 images are required. You provided {len(cropped_images)}.")
+                return redirect('adminpanel:product_add')
+                
+            main_image = cropped_images.pop(0)
+                
+            product = Product.objects.create(
+                name=name,
+                slug=slug,
+                price=price,
+                image=main_image,
+                brand_id=brand_id if brand_id else None,
+                category_id=category_id if category_id else None,
+                occasion=request.POST.get('occasion', 'casual'),
+                material=request.POST.get('material', 'mesh'),
+                description=request.POST.get('description', ''),
+                original_price=request.POST.get('original_price') or None,
+                is_new=request.POST.get('is_new') == 'on',
+                is_active=request.POST.get('is_active') == 'on',
+            )
+
+            # Save Variants
+            from products.models import ProductVariant
+            v_sizes  = request.POST.getlist('v_size[]')
+            v_colors = request.POST.getlist('v_color[]')
+            v_stocks = request.POST.getlist('v_stock[]')
+
+            for i in range(len(v_sizes)):
+                if i < len(v_colors) and i < len(v_stocks):
+                    ProductVariant.objects.create(
+                        product=product,
+                        size_id=v_sizes[i],
+                        color=v_colors[i],
+                        stock=v_stocks[i]
+                    )
             
-        messages.success(request, f"Product {name} created!")
+            from products.models import ProductImage
+            for img in cropped_images:
+                ProductImage.objects.create(product=product, image=img)
+                
+            messages.success(request, f"Product {name} created!")
+            return redirect('adminpanel:product_list')
+    except Exception as e:
+        messages.error(request, f"Error adding product: {str(e)}")
         return redirect('adminpanel:product_list')
         
     return render(request, 'adminpanel/admin_product_form.html', {
-        'brands': brands, 'categories': categories, 'action': 'Add'
+        'brands': brands, 
+        'categories': categories, 
+        'all_sizes': all_sizes, 
+        'occasion_choices': Product.OCCASION_CHOICES,
+        'material_choices': Product.MATERIAL_CHOICES,
+        'action': 'Add'
     })
 
 @admin_required
 def product_edit_admin(request, product_id):
-    from products.models import Product, Brand, Category
-    product = get_object_or_404(Product, id=product_id)
-    brands = Brand.objects.all()
-    categories = Category.objects.all()
-    
-    if request.method == 'POST':
-        product.name = request.POST.get('name')
-        product.slug = request.POST.get('slug')
-        product.price = request.POST.get('price')
+    try:
+        from products.models import Product, Brand, Category, Size
+        product = get_object_or_404(Product, id=product_id)
+        brands = Brand.objects.all()
+        categories = Category.objects.all()
+        all_sizes = Size.objects.all()
         
-        cropped_images = request.FILES.getlist('cropped_images')
-        existing_img_count = product.images.count() + (1 if product.image else 0)
-        
-        if existing_img_count + len(cropped_images) < 3:
-            messages.error(request, f"Minimum 3 total images are required. You have {existing_img_count + len(cropped_images)}.")
-            return redirect('adminpanel:product_edit', product_id=product.id)
+        if request.method == 'POST':
+            product.name = request.POST.get('name')
+            product.slug = request.POST.get('slug')
+            product.price = request.POST.get('price')
             
-        # If product doesn't have a main image but we got new ones
-        if not product.image and cropped_images:
-            product.image = cropped_images.pop(0)
+            cropped_images = request.FILES.getlist('cropped_images')
+            existing_img_count = product.images.count() + (1 if product.image else 0)
             
-        brand_id = request.POST.get('brand')
-        category_id = request.POST.get('category')
-        product.brand_id = brand_id if brand_id else None
-        product.category_id = category_id if category_id else None
-        
-        product.description = request.POST.get('description', '')
-        product.original_price = request.POST.get('original_price') or None
-        product.is_new = request.POST.get('is_new') == 'on'
-        product.is_active = request.POST.get('is_active') == 'on'
-        
-        product.save()
-        
-        from products.models import ProductImage
-        for img in cropped_images:
-            ProductImage.objects.create(product=product, image=img)
+            if existing_img_count + len(cropped_images) < 3:
+                messages.error(request, f"Minimum 3 total images are required. You have {existing_img_count + len(cropped_images)}.")
+                return redirect('adminpanel:product_edit', product_id=product.id)
+                
+            # If product doesn't have a main image but we got new ones
+            if not product.image and cropped_images:
+                product.image = cropped_images.pop(0)
+                
+            brand_id = request.POST.get('brand')
+            category_id = request.POST.get('category')
+            product.brand_id = brand_id if brand_id else None
+            product.category_id = category_id if category_id else None
             
-        messages.success(request, f"Product {product.name} updated!")
+            product.occasion = request.POST.get('occasion', 'casual')
+            product.material = request.POST.get('material', 'mesh')
+            product.description = request.POST.get('description', '')
+            product.original_price = request.POST.get('original_price') or None
+            product.is_new = request.POST.get('is_new') == 'on'
+            product.is_active = request.POST.get('is_active') == 'on'
+            
+            product.save()
+
+            # Update Variants (Simple approach: delete and recreate)
+            from products.models import ProductVariant
+            product.variants.all().delete()
+            v_sizes  = request.POST.getlist('v_size[]')
+            v_colors = request.POST.getlist('v_color[]')
+            v_stocks = request.POST.getlist('v_stock[]')
+
+            for i in range(len(v_sizes)):
+                if i < len(v_colors) and i < len(v_stocks):
+                    ProductVariant.objects.create(
+                        product=product,
+                        size_id=v_sizes[i],
+                        color=v_colors[i],
+                        stock=v_stocks[i]
+                    )
+            
+            from products.models import ProductImage
+            for img in cropped_images:
+                ProductImage.objects.create(product=product, image=img)
+                
+            messages.success(request, f"Product {product.name} updated!")
+            return redirect('adminpanel:product_list')
+    except Exception as e:
+        messages.error(request, f"Error editing product: {str(e)}")
         return redirect('adminpanel:product_list')
         
     return render(request, 'adminpanel/admin_product_form.html', {
-        'product': product, 'brands': brands, 'categories': categories, 'action': 'Edit'
+        'product': product, 
+        'brands': brands, 
+        'categories': categories, 
+        'all_sizes': all_sizes, 
+        'occasion_choices': Product.OCCASION_CHOICES,
+        'material_choices': Product.MATERIAL_CHOICES,
+        'action': 'Edit'
     })
 
 @admin_required

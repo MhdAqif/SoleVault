@@ -26,60 +26,71 @@ def cart_detail(request):
 
 @require_POST
 def cart_add(request, product_id):
-    cart = _get_or_create_cart(request)
-    product = get_object_or_404(Product, id=product_id, is_active=True)
-    
-    quantity = int(request.POST.get('quantity', 1))
-    size_name = request.POST.get('size', '').strip()
-
-    # Try to find variant if size is matching
-    variant = product.variants.filter(size__name=size_name).first() if size_name else None
-
-    # Check if this exact product+size is already in cart
-    cart_item = cart.items.filter(product=product, size=size_name).first()
-    
-    if cart_item:
-        cart_item.quantity += quantity
-        cart_item.save()
-        messages.success(request, f"Updated {product.name} quantity in your cart.")
-    else:
-        CartItem.objects.create(
-            cart=cart,
-            product=product,
-            variant=variant,
-            size=size_name,
-            quantity=quantity
-        )
-        messages.success(request, f"Added {product.name} to your cart.")
+    try:
+        cart = _get_or_create_cart(request)
+        product = get_object_or_404(Product, id=product_id, is_active=True)
         
-    # Remove from wishlist if it exists
-    if request.user.is_authenticated:
-        WishlistItem.objects.filter(wishlist__user=request.user, product=product).delete()
+        quantity = int(request.POST.get('quantity', 1))
+        size_name = request.POST.get('size', '').strip()
+
+        # Try to find variant if size is matching
+        variant = product.variants.filter(size__name=size_name).first() if size_name else None
+
+        # Check if this exact product+size is already in cart
+        cart_item = cart.items.filter(product=product, size=size_name).first()
+        
+        if cart_item:
+            cart_item.quantity += quantity
+            cart_item.save()
+            messages.success(request, f"Updated {product.name} quantity in your cart.")
+        else:
+            CartItem.objects.create(
+                cart=cart,
+                product=product,
+                variant=variant,
+                size=size_name,
+                quantity=quantity
+            )
+            messages.success(request, f"Added {product.name} to your cart.")
+            
+        # Remove from wishlist if it exists
+        if request.user.is_authenticated:
+            WishlistItem.objects.filter(wishlist__user=request.user, product=product).delete()
+            
+    except Exception as e:
+        messages.error(request, f"Could not add item to cart: {str(e)}")
         
     # Redirect to where they came from or cart
     return redirect(request.META.get('HTTP_REFERER', 'cart:detail'))
 
 @require_POST
 def cart_update(request, item_id):
-    cart = _get_or_create_cart(request)
-    cart_item = get_object_or_404(CartItem, id=item_id, cart=cart)
-    
-    action = request.POST.get('action') # 'increase' or 'decrease'
-    if action == 'increase':
-        cart_item.quantity += 1
-        cart_item.save()
-    elif action == 'decrease' and cart_item.quantity > 1:
-        cart_item.quantity -= 1
-        cart_item.save()
+    try:
+        cart = _get_or_create_cart(request)
+        cart_item = get_object_or_404(CartItem, id=item_id, cart=cart)
+        
+        action = request.POST.get('action') # 'increase' or 'decrease'
+        if action == 'increase':
+            cart_item.quantity += 1
+            cart_item.save()
+        elif action == 'decrease' and cart_item.quantity > 1:
+            cart_item.quantity -= 1
+            cart_item.save()
+    except Exception as e:
+        messages.error(request, f"Error updating cart: {str(e)}")
         
     return redirect('cart:detail')
 
 @require_POST
 def cart_remove(request, item_id):
-    cart = _get_or_create_cart(request)
-    cart_item = get_object_or_404(CartItem, id=item_id, cart=cart)
-    cart_item.delete()
-    messages.success(request, "Item removed from cart.")
+    try:
+        cart = _get_or_create_cart(request)
+        cart_item = get_object_or_404(CartItem, id=item_id, cart=cart)
+        cart_item.delete()
+        messages.success(request, "Item removed from cart.")
+    except Exception as e:
+        messages.error(request, f"Error removing item: {str(e)}")
+        
     return redirect('cart:detail')
 
 @login_required(login_url='/login/')
