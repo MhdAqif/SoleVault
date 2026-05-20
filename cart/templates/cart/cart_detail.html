@@ -184,7 +184,7 @@
           <div class="cart-item-title">{{ item.product.name }}</div>
           <div class="cart-item-meta">
             Size: {{ item.size|default:"N/A" }}<br>
-            Color: {{ item.product.variants.first.color|default:"N/A" }}
+            Color: {{ item.variant.color|default:"N/A" }}
           </div>
           <div class="cart-actions">
             

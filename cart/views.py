@@ -32,12 +32,20 @@ def cart_add(request, product_id):
         
         quantity = int(request.POST.get('quantity', 1))
         size_name = request.POST.get('size', '').strip()
+        color_name = request.POST.get('color', '').strip()
 
-        # Try to find variant if size is matching
-        variant = product.variants.filter(size__name=size_name).first() if size_name else None
+        # Try to find variant if size and color are matching
+        variant = None
+        if size_name and color_name:
+            variant = product.variants.filter(size__name=size_name, color__iexact=color_name).first()
+        if not variant and size_name:
+            variant = product.variants.filter(size__name=size_name).first()
 
-        # Check if this exact product+size is already in cart
-        cart_item = cart.items.filter(product=product, size=size_name).first()
+        # Check if this exact product+variant is already in cart
+        if variant:
+            cart_item = cart.items.filter(product=product, variant=variant).first()
+        else:
+            cart_item = cart.items.filter(product=product, size=size_name).first()
         
         if cart_item:
             cart_item.quantity += quantity

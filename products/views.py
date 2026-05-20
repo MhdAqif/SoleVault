@@ -79,7 +79,8 @@ def _get_filter_context():
         'red': '#ef4444', 'blue': '#3b82f6', 'black': '#111827', 'white': '#ffffff',
         'navy': '#1e3a5f', 'green': '#22c55e', 'yellow': '#eab308', 'grey': '#6b7280',
         'gray': '#6b7280', 'orange': '#f97316', 'purple': '#a855f7', 'pink': '#ec4899',
-        'brown': '#78350f', 'beige': '#f5f5dc', 'maroon': '#800000', 'teal': '#008080'
+        'brown': '#78350f', 'beige': '#f5f5dc', 'maroon': '#800000', 'teal': '#008080',
+        'royal blue': '#4169e1', 'sand': '#c2b280', 'sage': '#87a96b',
     }
     
     colors = []

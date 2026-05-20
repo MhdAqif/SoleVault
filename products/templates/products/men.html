@@ -175,7 +175,7 @@
                 {% regroup product.variants.all by color as color_list %}
                 <div class="variant-colors">
                     {% for color_group in color_list %}
-                        <span class="variant-dot" title="{{ color_group.grouper }}"></span>
+                        <span class="variant-dot" title="{{ color_group.grouper }}" style="background: {{ color_group.grouper|color_hex }};"></span>
                     {% endfor %}
                 </div>
                 <div class="variant-sizes">
