@@ -191,21 +191,35 @@ def category_list_admin(request):
 def category_add_admin(request):
     from products.models import Category
     if request.method == 'POST':
-        name = request.POST.get('name')
-        slug = request.POST.get('slug')
-        gender = request.POST.get('gender')
-        image = request.FILES.get('image')
-        is_active = request.POST.get('is_active') == 'on'
-        
-        if not name or not slug:
-            messages.error(request, "Name and Slug are required.")
-            return redirect('adminpanel:category_add')
+        try:
+            name = request.POST.get('name', '').strip()
+            slug = request.POST.get('slug', '').strip()
+            gender = request.POST.get('gender')
+            image = request.FILES.get('image')
+            is_active = request.POST.get('is_active') == 'on'
             
-        Category.objects.create(
-            name=name, slug=slug, gender=gender, image=image, is_active=is_active
-        )
-        messages.success(request, f"Category {name} created!")
-        return redirect('adminpanel:category_list')
+            if not name or not slug:
+                messages.error(request, "Name and Slug are required.")
+                return redirect('adminpanel:category_add')
+            
+            # Case insensitive check for duplicate name
+            if Category.objects.filter(name__iexact=name).exists():
+                messages.error(request, f"A category with name '{name}' already exists.")
+                return redirect('adminpanel:category_add')
+                
+            # Case insensitive check for duplicate slug
+            if Category.objects.filter(slug__iexact=slug).exists():
+                messages.error(request, f"A category with slug '{slug}' already exists.")
+                return redirect('adminpanel:category_add')
+                
+            Category.objects.create(
+                name=name, slug=slug, gender=gender, image=image, is_active=is_active
+            )
+            messages.success(request, f"Category {name} created successfully!")
+            return redirect('adminpanel:category_list')
+        except Exception as e:
+            messages.error(request, f"Could not create category: {str(e)}")
+            return redirect('adminpanel:category_add')
         
     return render(request, 'adminpanel/admin_category_form.html', {'action': 'Add'})
 
@@ -215,17 +229,40 @@ def category_edit_admin(request, category_id):
     category = get_object_or_404(Category, id=category_id)
     
     if request.method == 'POST':
-        category.name = request.POST.get('name')
-        category.slug = request.POST.get('slug')
-        category.gender = request.POST.get('gender')
-        category.is_active = request.POST.get('is_active') == 'on'
-        
-        if request.FILES.get('image'):
-            category.image = request.FILES.get('image')
+        try:
+            name = request.POST.get('name', '').strip()
+            slug = request.POST.get('slug', '').strip()
+            gender = request.POST.get('gender')
+            is_active = request.POST.get('is_active') == 'on'
             
-        category.save()
-        messages.success(request, f"Category {category.name} updated!")
-        return redirect('adminpanel:category_list')
+            if not name or not slug:
+                messages.error(request, "Name and Slug are required.")
+                return redirect('adminpanel:category_edit', category_id=category.id)
+                
+            # Case insensitive check for duplicate name (excluding this category)
+            if Category.objects.filter(name__iexact=name).exclude(id=category_id).exists():
+                messages.error(request, f"A category with name '{name}' already exists.")
+                return redirect('adminpanel:category_edit', category_id=category.id)
+                
+            # Case insensitive check for duplicate slug (excluding this category)
+            if Category.objects.filter(slug__iexact=slug).exclude(id=category_id).exists():
+                messages.error(request, f"A category with slug '{slug}' already exists.")
+                return redirect('adminpanel:category_edit', category_id=category.id)
+            
+            category.name = name
+            category.slug = slug
+            category.gender = gender
+            category.is_active = is_active
+            
+            if request.FILES.get('image'):
+                category.image = request.FILES.get('image')
+                
+            category.save()
+            messages.success(request, f"Category {category.name} updated successfully!")
+            return redirect('adminpanel:category_list')
+        except Exception as e:
+            messages.error(request, f"Could not update category: {str(e)}")
+            return redirect('adminpanel:category_edit', category_id=category.id)
         
     return render(request, 'adminpanel/admin_category_form.html', {'category': category, 'action': 'Edit'})
 
@@ -243,9 +280,15 @@ def category_delete_admin(request, category_id):
 # --- CATALOG MANAGEMENT ---
 @admin_required
 def product_list_admin(request):
-    from products.models import Product
+    from products.models import Product, Category, Brand, Size, ProductVariant
     from django.db.models import Q
+    
     query = request.GET.get('q', '')
+    cat_id = request.GET.get('category', '')
+    brand_id = request.GET.get('brand', '')
+    size_id = request.GET.get('size', '')
+    color = request.GET.get('color', '')
+
     products = Product.objects.all().order_by('-created_at')
     
     if query:
@@ -255,18 +298,46 @@ def product_list_admin(request):
             Q(slug__icontains=query)
         )
     
+    if cat_id:
+        products = products.filter(category_id=cat_id)
+    if brand_id:
+        products = products.filter(brand_id=brand_id)
+    if size_id:
+        products = products.filter(variants__size_id=size_id).distinct()
+    if color:
+        products = products.filter(variants__color=color).distinct()
+
+    # Get options for filters
+    categories = Category.objects.filter(is_active=True).order_by('name')
+    brands = Brand.objects.all().order_by('name')
+    sizes = Size.objects.all().order_by('name')
+    colors = ProductVariant.objects.exclude(color='').values_list('color', flat=True).distinct().order_by('color')
+    
     paginator = Paginator(products, 10)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     
-    return render(request, 'adminpanel/admin_product_list.html', {'page_obj': page_obj})
+    context = {
+        'page_obj': page_obj,
+        'query': query,
+        'cat_id': cat_id,
+        'brand_id': brand_id,
+        'size_id': size_id,
+        'selected_color': color,
+        'categories': categories,
+        'brands': brands,
+        'sizes': sizes,
+        'colors': colors,
+    }
+    
+    return render(request, 'adminpanel/admin_product_list.html', context)
 
 @admin_required
 def product_add_admin(request):
     try:
         from products.models import Product, Brand, Category, Size
         brands = Brand.objects.all()
-        categories = Category.objects.all()
+        categories = Category.objects.filter(is_active=True)
         all_sizes = Size.objects.all()
         
         if request.method == 'POST':
@@ -343,7 +414,7 @@ def product_edit_admin(request, product_id):
         from products.models import Product, Brand, Category, Size
         product = get_object_or_404(Product, id=product_id)
         brands = Brand.objects.all()
-        categories = Category.objects.all()
+        categories = Category.objects.filter(is_active=True)
         all_sizes = Size.objects.all()
         
         if request.method == 'POST':

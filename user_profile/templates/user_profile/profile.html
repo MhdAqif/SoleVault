@@ -15,17 +15,17 @@
 
     <div class="profile-field">
       <label>Full name</label>
-      <input type="text" name="full_name" value="{{ user.get_full_name }}" placeholder="Aqif A">
+      <input type="text" name="full_name" value="{{ user.get_full_name }}" placeholder="Aqif A" readonly style="background-color: #f9f9f9; color: var(--gray-600); cursor: not-allowed; border: 1px solid var(--gray-200);">
     </div>
 
     <div class="profile-field">
       <label>Email</label>
-      <input type="email" name="email" value="{{ user.email }}" placeholder="example@gmail.com" readonly>
+      <input type="email" name="email" value="{{ user.email }}" placeholder="example@gmail.com" readonly style="background-color: #f9f9f9; color: var(--gray-600); cursor: not-allowed; border: 1px solid var(--gray-200);">
     </div>
 
     <div class="profile-field">
       <label>Phone</label>
-      <input type="tel" name="phone" value="{{ profile.phone|default:'' }}" placeholder="+91 000-000-0000">
+      <input type="tel" name="phone" value="{{ profile.phone|default:'' }}" placeholder="+91 000-000-0000" readonly style="background-color: #f9f9f9; color: var(--gray-600); cursor: not-allowed; border: 1px solid var(--gray-200);">
     </div>
 
   <div class="center-btn">

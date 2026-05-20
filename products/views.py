@@ -64,16 +64,36 @@ def _apply_filters(queryset, request):
 
 def _get_filter_context():
     """Return shared filter data for both men/women pages."""
+    from .models import Size, ProductVariant
+    
+    # Get sizes that actually have variants
+    sizes = Size.objects.filter(productvariant__isnull=False).distinct().order_by('name')
+    if not sizes.exists():
+        sizes = Size.objects.all().order_by('name')
+
+    # Get unique colors from variants
+    color_names = ProductVariant.objects.exclude(color='').values_list('color', flat=True).distinct().order_by('color')
+    
+    # Mapping for UI dots
+    color_map = {
+        'red': '#ef4444', 'blue': '#3b82f6', 'black': '#111827', 'white': '#ffffff',
+        'navy': '#1e3a5f', 'green': '#22c55e', 'yellow': '#eab308', 'grey': '#6b7280',
+        'gray': '#6b7280', 'orange': '#f97316', 'purple': '#a855f7', 'pink': '#ec4899',
+        'brown': '#78350f', 'beige': '#f5f5dc', 'maroon': '#800000', 'teal': '#008080'
+    }
+    
+    colors = []
+    for name in color_names:
+        colors.append({
+            'name': name.title(),
+            'slug': name.lower(),
+            'hex': color_map.get(name.lower(), '#cccccc')
+        })
+
     return {
         'brands'    : Brand.objects.all(),
-        'sizes'     : ['5','6','7','8','9','10','11','12','13','14'],
-        'colors'    : [
-            {'name': 'Red',   'hex': '#ef4444'},
-            {'name': 'Blue',  'hex': '#3b82f6'},
-            {'name': 'Black', 'hex': '#111827'},
-            {'name': 'White', 'hex': '#f3f4f6'},
-            {'name': 'Navy',  'hex': '#1e3a5f'},
-        ],
+        'sizes'     : sizes,
+        'colors'    : colors,
         'occasions' : [choice[1] for choice in Product.OCCASION_CHOICES],
         'materials' : [choice[1] for choice in Product.MATERIAL_CHOICES],
     }
@@ -96,7 +116,7 @@ def men_page(request):
         products = Product.objects.filter(
             gender__in=['men', 'unisex'],
             is_active=True,
-        ).select_related('brand', 'category')
+        ).filter(Q(category__isnull=True) | Q(category__is_active=True)).select_related('brand', 'category').prefetch_related('variants')
 
         if category_slug:
             products = products.filter(category__slug=category_slug)
@@ -121,6 +141,7 @@ def men_page(request):
             'page_obj'      : page_obj,
             'products'      : page_obj,
             'active_tab'    : tab,
+            'active_category': category_slug,
             'men_categories': men_categories,
             'search_query'  : request.GET.get('q', ''),
             'active_brand'  : request.GET.get('brand', ''),
@@ -155,7 +176,7 @@ def women_page(request):
         products = Product.objects.filter(
             gender__in=['women', 'unisex'],
             is_active=True,
-        ).select_related('brand', 'category')
+        ).filter(Q(category__isnull=True) | Q(category__is_active=True)).select_related('brand', 'category').prefetch_related('variants')
 
         if category_slug:
             products = products.filter(category__slug=category_slug)
@@ -177,6 +198,7 @@ def women_page(request):
             'page_obj'        : page_obj,
             'products'        : page_obj,
             'active_tab'      : tab,
+            'active_category' : category_slug,
             'women_categories': women_categories,
             'search_query'    : request.GET.get('q', ''),
             'active_brand'    : request.GET.get('brand', ''),

@@ -69,6 +69,48 @@
       });
     }, 3500);
   </script>
+  <!-- Global Custom Confirmation Modal -->
+  <div id="globalConfirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:99999; align-items:center; justify-content:center; animation: modalFadeIn 0.2s ease-out;">
+    <div style="background:#ffffff; padding:28px; border-radius:10px; width:100%; max-width:400px; box-shadow:0 20px 40px rgba(0,0,0,0.15); border:1px solid #eeeeee; position:relative; text-align:center; animation: modalScaleIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">
+      <div style="font-size:44px; margin-bottom:12px; color:#e8221a;">⚠️</div>
+      <h3 style="margin-bottom:8px; font-weight:700; color:#111827; font-family:inherit;">Are you sure?</h3>
+      <p id="globalConfirmMessage" style="margin-bottom:24px; color:#4b5563; font-size:14px; line-height:1.5;">Do you really want to proceed with this action?</p>
+      <div style="display:flex; justify-content:center; gap:12px;">
+        <button id="globalConfirmCancelBtn" type="button" style="padding:10px 20px; background:#f3f4f6; color:#374151; border:1px solid #e5e7eb; border-radius:6px; font-weight:600; cursor:pointer; font-size:13px; transition: background 0.15s;">Cancel</button>
+        <button id="globalConfirmSubmitBtn" type="button" style="padding:10px 20px; background:#e8221a; color:white; border:none; border-radius:6px; font-weight:600; cursor:pointer; font-size:13px; transition: background 0.15s;">Confirm</button>
+      </div>
+    </div>
+  </div>
+  <style>
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes modalScaleIn {
+      from { transform: scale(0.93); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+  </style>
+  <script>
+    let pendingFormToSubmit = null;
+    function showCustomConfirm(message, formElement, actionText="Confirm", buttonColor="#e8221a") {
+        pendingFormToSubmit = formElement;
+        document.getElementById('globalConfirmMessage').textContent = message;
+        const submitBtn = document.getElementById('globalConfirmSubmitBtn');
+        submitBtn.textContent = actionText;
+        submitBtn.style.backgroundColor = buttonColor;
+        document.getElementById('globalConfirmModal').style.display = 'flex';
+    }
+    document.getElementById('globalConfirmCancelBtn').addEventListener('click', function() {
+        document.getElementById('globalConfirmModal').style.display = 'none';
+        pendingFormToSubmit = null;
+    });
+    document.getElementById('globalConfirmSubmitBtn').addEventListener('click', function() {
+        if (pendingFormToSubmit) {
+            pendingFormToSubmit.submit();
+        }
+    });
+  </script>
   {% block extra_js %}{% endblock %}
 
 </body>

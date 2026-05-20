@@ -341,6 +341,34 @@
 
 <body>
 
+  <!-- Django messages toast container -->
+  {% if messages %}
+  <div class="toast-container" style="position: fixed; top: 100px; right: 20px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;">
+    {% for msg in messages %}
+    <div class="toast-msg {{ msg.tags }}" style="background: #ffffff; border-left: 4px solid {% if msg.tags == 'error' %}#e8221a{% elif msg.tags == 'success' %}#22c55e{% elif msg.tags == 'warning' %}#f59e0b{% else %}#0D59F2{% endif %}; padding: 14px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); font-weight: 600; font-size: 13px; color: var(--black); min-width: 280px; display: flex; justify-content: space-between; align-items: center; pointer-events: auto; animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+      <span>{{ msg }}</span>
+      <button onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 18px; font-weight: 700; cursor: pointer; color: var(--gray-400); margin-left: 15px; display: flex; align-items: center; justify-content: center;">&times;</button>
+    </div>
+    {% endfor %}
+  </div>
+  <style>
+    @keyframes toastSlideIn {
+      from { transform: translateX(120%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+  <script>
+    setTimeout(() => {
+      document.querySelectorAll('.toast-msg').forEach(el => {
+        el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        el.style.opacity = '0';
+        el.style.transform = 'translateX(40px)';
+        setTimeout(() => el.remove(), 400);
+      });
+    }, 4000);
+  </script>
+  {% endif %}
+
   <!-- NAVBAR -->
   <nav class="{% if request.user.is_authenticated %}logged-in{% endif %}">
     <div class="logo">

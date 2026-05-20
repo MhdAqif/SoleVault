@@ -31,10 +31,11 @@
 
 <!-- Category Tabs -->
 <div class="category-tabs">
-  <a href="?tab=new"      class="tab-item {% if active_tab == 'new' or not active_tab %}active{% endif %}">New Arrivals</a>
-  <a href="?tab=best"     class="tab-item {% if active_tab == 'best' %}active{% endif %}">Best Sellers</a>
-  <a href="?tab=extended" class="tab-item {% if active_tab == 'extended' %}active{% endif %}">Extended Widths</a>
-  <a href="?tab=sale"     class="tab-item {% if active_tab == 'sale' %}active{% endif %}">Sale</a>
+  <a href="?{% query_transform tab='new' page=1 %}"      class="tab-item {% if active_tab == 'new' %}active{% endif %}">New Arrivals</a>
+  <a href="?{% query_transform tab='best' page=1 %}"     class="tab-item {% if active_tab == 'best' %}active{% endif %}">Best Sellers</a>
+  <a href="?{% query_transform tab='extended' page=1 %}" class="tab-item {% if active_tab == 'extended' %}active{% endif %}">Extended Widths</a>
+  <a href="?{% query_transform tab='sale' page=1 %}"     class="tab-item {% if active_tab == 'sale' %}active{% endif %}">Sale</a>
+  <a href="?{% query_transform tab='all' page=1 %}"     class="tab-item {% if active_tab == 'all' or not active_tab %}active{% endif %}">All</a>
 </div>
 
 <!-- Category Cards -->
@@ -48,28 +49,9 @@
     {% endif %}
     <div class="cat-overlay"></div>
     <span class="cat-label">{{ cat.name }}</span>
-    <a href="?category={{ cat.slug }}" class="cat-btn">Shop now</a>
+    <a href="?{% query_transform category=cat.slug page=1 %}" class="cat-btn">Shop now</a>
   </div>
-  {% empty %}
-  <div class="cat-card">
-    <img src="https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=600&q=80" alt="Casuals">
-    <div class="cat-overlay"></div>
-    <span class="cat-label">Casuals</span>
-    <a href="#" class="cat-btn">Shop now</a>
-  </div>
-  <div class="cat-card">
-    <img src="https://images.unsplash.com/photo-1494496195158-c3bc501e2dca?w=600&q=80" alt="Dress">
-    <div class="cat-overlay"></div>
-    <span class="cat-label">Dress</span>
-    <a href="#" class="cat-btn">Shop now</a>
-  </div>
-  <div class="cat-card">
-    <img src="https://images.unsplash.com/photo-1539185441755-769473a23570?w=600&q=80" alt="Sports">
-    <div class="cat-overlay"></div>
-    <span class="cat-label">Sports</span>
-    <a href="#" class="cat-btn">Shop now</a>
-  </div>
-  {% endfor %}
+{% endfor %}
 </div>
 
 <!-- Shop Layout -->
@@ -91,17 +73,9 @@
   <!-- Sidebar -->
   <aside class="sidebar">
 
-    <div class="filter-group">
-      <h4>Search</h4>
-      <div style="display:flex; gap:5px;">
-        <input type="text" id="searchInput" value="{{ search_query }}" placeholder="Search..." style="flex:1; border:1px solid var(--border); border-radius:4px; padding:6px 8px; font-size:12px; outline:none;">
-        <button type="button" onclick="applySearch()" style="background:var(--blue); color:white; border:none; padding:6px 10px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:700;">Go</button>
-      </div>
-      {% if search_query %}
-      <div style="margin-top:6px; text-align:right;">
-        <a href="?{% query_transform q=None page=1 %}" style="font-size:11px; color:var(--red); font-weight:600; text-decoration:none;">Clear Search &times;</a>
-      </div>
-      {% endif %}
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+      <h3 style="margin:0; font-size:16px;">Filters</h3>
+      <a href="?" style="font-size:11px; color:var(--red); font-weight:700; text-decoration:none; text-transform:uppercase;">Clear All &times;</a>
     </div>
 
     <div class="filter-group" style="padding-top:4px;">
@@ -126,12 +100,6 @@
         {% for brand in brands %}
         <a href="?{% query_transform brand=brand.slug page=1 %}"
            class="{% if active_brand == brand.slug %}active{% endif %}">{{ brand.name }}</a>
-        {% empty %}
-        <a href="?brand=nike">Nike</a>
-        <a href="?brand=adidas">Adidas</a>
-        <a href="?brand=marvel">Marvel</a>
-        <a href="?brand=gucci">Gucci</a>
-        <a href="?brand=skechers">Skechers</a>
         {% endfor %}
       </div>
     </div>
@@ -140,19 +108,8 @@
       <h4>Size</h4>
       <div class="size-grid">
         {% for size in sizes %}
-        <a href="?{% query_transform size=size page=1 %}"
-           class="size-chip {% if active_size == size %}active{% endif %}">{{ size }}</a>
-        {% empty %}
-        <a href="#" class="size-chip">6</a>
-        <a href="#" class="size-chip">7</a>
-        <a href="#" class="size-chip">8</a>
-        <a href="#" class="size-chip">9</a>
-        <a href="#" class="size-chip">10</a>
-        <a href="#" class="size-chip">11</a>
-        <a href="#" class="size-chip">12</a>
-        <a href="#" class="size-chip">13</a>
-        <a href="#" class="size-chip">14</a>
-        <a href="#" class="size-chip">15</a>
+        <a href="?{% query_transform size=size.name page=1 %}"
+           class="size-chip {% if active_size == size.name %}active{% endif %}">{{ size.name }}</a>
         {% endfor %}
       </div>
     </div>
@@ -161,16 +118,11 @@
       <h4>Colors</h4>
       <div class="color-list">
         {% for color in colors %}
-        <a href="?{% query_transform color=color.name|lower page=1 %}" class="color-item">
+        <a href="?{% query_transform color=color.slug page=1 %}" 
+           class="color-item {% if active_color == color.slug %}active{% endif %}">
           <span class="color-dot" style="background:{{ color.hex }};"></span>
           {{ color.name }}
         </a>
-        {% empty %}
-        <a href="#" class="color-item"><span class="color-dot" style="background:#ef4444;"></span> Red</a>
-        <a href="#" class="color-item"><span class="color-dot" style="background:#3b82f6;"></span> Blue</a>
-        <a href="#" class="color-item"><span class="color-dot" style="background:#111827;"></span> Black</a>
-        <a href="#" class="color-item"><span class="color-dot" style="background:#f3f4f6; border-color:#ccc;"></span> White</a>
-        <a href="#" class="color-item"><span class="color-dot" style="background:#1e3a5f;"></span> Navy</a>
         {% endfor %}
       </div>
     </div>
@@ -181,9 +133,6 @@
         {% for occ in occasions %}
         <a href="?{% query_transform occasion=occ|lower page=1 %}" 
            class="check-item {% if active_occasion == occ|lower %}active{% endif %}">{{ occ }}</a>
-        {% empty %}
-        <a href="#" class="check-item">Casual</a>
-        <a href="#" class="check-item">Sports</a>
         {% endfor %}
       </div>
     </div>
@@ -194,9 +143,6 @@
         {% for mat in materials %}
         <a href="?{% query_transform material=mat|lower page=1 %}" 
            class="check-item {% if active_material == mat|lower %}active{% endif %}">{{ mat }}</a>
-        {% empty %}
-        <a href="#" class="check-item">Leather</a>
-        <a href="#" class="check-item">Suede</a>
         {% endfor %}
       </div>
     </div>
@@ -223,6 +169,23 @@
           </div>
           <div class="product-info">
             <div class="product-name">{{ product.name }}</div>
+            
+            <!-- Variants Display -->
+            <div class="product-variants-preview">
+                {% regroup product.variants.all by color as color_list %}
+                <div class="variant-colors">
+                    {% for color_group in color_list %}
+                        <span class="variant-dot" title="{{ color_group.grouper }}"></span>
+                    {% endfor %}
+                </div>
+                <div class="variant-sizes">
+                    {% for v in product.variants.all|slice:":4" %}
+                        <span class="variant-size">{{ v.size.name }}</span>
+                    {% endfor %}
+                    {% if product.variants.count > 4 %}<span class="variant-size">+</span>{% endif %}
+                </div>
+            </div>
+
             <div class="product-price-row">
               <span class="product-price">₹{{ product.price }}</span>
               {% if product.original_price %}
@@ -233,23 +196,12 @@
         </a>
       </div>
       {% empty %}
-      <!-- Placeholder cards when DB is empty -->
-      {% for i in "123456789"|make_list %}
-      <div class="product-card">
-        <span class="badge badge-new">New</span>
-        <button class="card-wish-btn">&#9825;</button>
-        <div class="product-img-wrap">
-          <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80" alt="Shoe">
-        </div>
-        <div class="product-info">
-          <div class="product-name">Air Max Dawn</div>
-          <div class="product-price-row">
-            <span class="product-price">$150.00</span>
-            <span class="product-price-old">$180.00</span>
-          </div>
-        </div>
+      <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: #fff; border-radius: 12px; border: 1px solid var(--border);">
+        <div style="font-size: 48px; margin-bottom: 15px;">🔍</div>
+        <h3 style="margin-bottom: 10px; color: var(--gray-800);">No products found</h3>
+        <p style="color: var(--gray-500); max-width: 400px; margin: 0 auto 20px;">We couldn't find any products matching your current filters. Try adjusting your search or clearing some filters.</p>
+        <a href="?" style="display: inline-block; background: var(--blue); color: white; padding: 10px 25px; border-radius: 6px; font-weight: 600; text-decoration: none;">Clear All Filters</a>
       </div>
-      {% endfor %}
       {% endfor %}
 
     </div>

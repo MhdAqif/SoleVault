@@ -348,6 +348,22 @@ body { background: var(--bg); }
 }
 
 .color-item:hover { color: var(--text); }
+.color-item.active {
+  color: var(--blue);
+  font-weight: 600;
+}
+.color-item.active .color-dot {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px rgba(13, 89, 242, 0.2);
+}
+.womens-page .color-item.active {
+  color: var(--purple);
+  font-weight: 600;
+}
+.womens-page .color-item.active .color-dot {
+  border-color: var(--purple);
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+}
 
 .color-dot {
   width: 11px;
@@ -355,6 +371,7 @@ body { background: var(--bg); }
   border-radius: 50%;
   border: 1.5px solid rgba(0,0,0,0.12);
   flex-shrink: 0;
+  transition: border-color 0.12s, box-shadow 0.12s;
 }
 
 .check-list {
@@ -507,6 +524,48 @@ body { background: var(--bg); }
   color: var(--muted);
   text-decoration: line-through;
 }
+
+/* ═══════════════════════════════
+   VARIANTS PREVIEW
+   On Product Cards
+   ═══════════════════════════════ */
+.product-variants-preview {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.variant-colors {
+  display: flex;
+  gap: 4px;
+}
+
+.variant-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: var(--muted); /* Fallback */
+}
+
+.variant-sizes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.variant-size {
+  font-size: 9px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: #fafafa;
+}
+
+.womens-page .variant-dot { background: var(--purple-lt); } /* Placeholder if color logic is complex */
 
 /* ═══════════════════════════════
    PAGINATION
