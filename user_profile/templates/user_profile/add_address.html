@@ -69,6 +69,14 @@
       </div>
     </div>
 
+    <!-- Set as Default Checkbox -->
+    <div class="addr-row" style="margin-top: 15px;">
+      <div class="addr-field" style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" name="is_default" id="id_is_default" style="width: 16px; height: 16px; margin: 0; cursor: pointer;">
+        <label for="id_is_default" style="margin: 0; cursor: pointer; font-weight: 600; font-size: 13px; color: var(--gray-800);">Set as Default Address</label>
+      </div>
+    </div>
+
     <!-- Buttons -->
     <div class="addr-btn-row">
       <a href="{% url 'user_profile:manage_address' %}" class="btn-addr-cancel">Cancel</a>

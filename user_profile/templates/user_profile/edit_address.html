@@ -17,15 +17,15 @@
   <form method="POST" action="{% url 'user_profile:edit_address' address.id %}">
     {% csrf_token %}
 
-    <!-- Row 1: Full Name + Email -->
+    <!-- Row 1: Full Name + Mobile Number -->
     <div class="addr-row">
       <div class="addr-field">
         <label>Full Name</label>
         <input type="text" name="full_name" placeholder="full name" value="{{ address.full_name }}">
       </div>
       <div class="addr-field">
-        <label>Email</label>
-        <input type="email" name="email" placeholder="email@example.gmail.com" value="{{ address.email|default:'' }}">
+        <label>Mobile Number</label>
+        <input type="tel" name="phone" placeholder="+91 000-000-000" value="{{ address.phone }}">
       </div>
     </div>
 
@@ -57,7 +57,7 @@
       </div>
       <div class="addr-field">
         <label>Pin Code</label>
-        <input type="text" name="pin_code" placeholder="eg: 683101" value="{{ address.pin_code }}">
+        <input type="text" name="pincode" placeholder="eg: 683101" value="{{ address.pincode }}">
       </div>
     </div>
 
@@ -66,6 +66,14 @@
       <div class="addr-field addr-field--full">
         <label>Landmark (optional)</label>
         <input type="text" name="landmark" placeholder="eg: Hospital" value="{{ address.landmark|default:'' }}">
+      </div>
+    </div>
+
+    <!-- Set as Default Checkbox -->
+    <div class="addr-row" style="margin-top: 15px;">
+      <div class="addr-field" style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" name="is_default" id="id_is_default" {% if address.is_default %}checked{% endif %} style="width: 16px; height: 16px; margin: 0; cursor: pointer;">
+        <label for="id_is_default" style="margin: 0; cursor: pointer; font-weight: 600; font-size: 13px; color: var(--gray-800);">Set as Default Address</label>
       </div>
     </div>
 

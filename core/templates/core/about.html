@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}About Us - SoleVault{% endblock %}
+
+{% block content %}
+<div class="about-container" style="background: var(--surface); color: var(--text); min-height: 80vh; padding: 60px 20px;">
+  
+  <!-- Hero Section -->
+  <div class="about-hero" style="max-width: 1000px; margin: 0 auto 60px auto; text-align: center;">
+    <h1 style="font-size: 42px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 20px; background: linear-gradient(135deg, #0D59F2, #4a8ef5); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Redefining the Sneaker Culture</h1>
+    <p style="font-size: 16px; color: var(--text-muted); line-height: 1.8; max-width: 700px; margin: 0 auto;">
+      Welcome to SoleVault. We are not just a store; we are a dedicated sanctuary for premium sneakers, street fashion, and exceptional craftsmanship. Founded by footwear enthusiasts, we bridge the gap between classic streetwear and modern design aesthetics.
+    </p>
+  </div>
+
+  <!-- Content Grid -->
+  <div style="max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; margin-bottom: 80px;">
+    <div>
+      <h3 style="font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 16px;">Our Philosophy</h3>
+      <p style="font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-bottom: 12px;">
+        At SoleVault, we believe that every step you take is a personal statement. Your footwear represents your personality, your ambition, and your unique lifestyle.
+      </p>
+      <p style="font-size: 14px; color: var(--text-muted); line-height: 1.7;">
+        We source our catalogs directly from globally verified designers, ensuring that every pair, every stitch, and every sole is genuine, high-grade, and built to survive both the court and the street.
+      </p>
+    </div>
+    <div style="background: linear-gradient(135deg, rgba(13,89,242,0.1), rgba(74,142,245,0.05)); border: 1px solid var(--border); border-radius: 16px; padding: 40px; text-align: center;">
+      <span style="font-size: 48px;">👟</span>
+      <h4 style="font-size: 20px; font-weight: 700; margin-top: 15px; margin-bottom: 8px;">Authentic Selection</h4>
+      <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;">
+        From limited edition drops to trusted everyday silhouettes, our quality control ensures you only receive elite products.
+      </p>
+    </div>
+  </div>
+
+  <!-- Features Row -->
+  <div style="max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; border-top: 1px solid var(--border); padding-top: 50px;">
+    <div style="text-align: center;">
+      <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(13,89,242,0.1); color: var(--blue); display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; font-size: 20px;">✓</div>
+      <h5 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Verified Quality</h5>
+      <p style="font-size: 12.5px; color: var(--text-muted); line-height: 1.6; margin: 0;">Every sneaker goes through a comprehensive authenticity check before shipment.</p>
+    </div>
+    <div style="text-align: center;">
+      <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(13,89,242,0.1); color: var(--blue); display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; font-size: 20px;">⚡</div>
+      <h5 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Instant Dispatch</h5>
+      <p style="font-size: 12.5px; color: var(--text-muted); line-height: 1.6; margin: 0;">Super-fast processing and real-time tracking so your pair reaches you in time.</p>
+    </div>
+    <div style="text-align: center;">
+      <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(13,89,242,0.1); color: var(--blue); display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; font-size: 20px;">🛡</div>
+      <h5 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Secure Checkout</h5>
+      <p style="font-size: 12.5px; color: var(--text-muted); line-height: 1.6; margin: 0;">Advanced database transactional security checks to guarantee inventory integrity.</p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

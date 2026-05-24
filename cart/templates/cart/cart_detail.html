@@ -141,10 +141,94 @@
     transition: background 0.2s;
     border: none;
     cursor: pointer;
+    text-decoration: none;
   }
   .btn-checkout:hover {
     background: var(--blue-dark);
+    color: var(--white);
   }
+
+  /* ── Login Gate Modal ── */
+  .login-gate-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .login-gate-overlay.open { display: flex; }
+  .login-gate-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 40px 36px;
+    max-width: 420px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+    animation: lgFadeIn 0.25s ease;
+  }
+  @keyframes lgFadeIn {
+    from { opacity:0; transform: translateY(16px) scale(0.97); }
+    to   { opacity:1; transform: translateY(0)    scale(1);    }
+  }
+  .login-gate-icon {
+    font-size: 42px;
+    margin-bottom: 14px;
+  }
+  .login-gate-box h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #111;
+    margin-bottom: 8px;
+  }
+  .login-gate-box p {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+  .login-gate-actions {
+    display: flex;
+    gap: 12px;
+    flex-direction: column;
+  }
+  .lg-btn-login {
+    display: block;
+    background: #111;
+    color: #fff;
+    padding: 13px 20px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .lg-btn-login:hover { background: #333; color: #fff; }
+  .lg-btn-register {
+    display: block;
+    background: #f4f4f4;
+    color: #111;
+    padding: 13px 20px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .lg-btn-register:hover { background: #e8e8e8; color: #111; }
+  .lg-btn-cancel {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 13px;
+    cursor: pointer;
+    margin-top: 6px;
+    padding: 4px;
+  }
+  .lg-btn-cancel:hover { color: #333; }
   .empty-cart {
     text-align: center;
     padding: 50px 20px;
@@ -183,8 +267,8 @@
         <div class="cart-item-details">
           <div class="cart-item-title">{{ item.product.name }}</div>
           <div class="cart-item-meta">
-            Size: {{ item.size|default:"N/A" }}<br>
-            Color: {{ item.variant.color|default:"N/A" }}
+            Size: {{ item.size|default:"Not Available" }}<br>
+            Color: {{ item.variant.color|default:"Not Available" }}
           </div>
           <div class="cart-actions">
             
@@ -193,7 +277,7 @@
               <div class="qty-control">
                 <button type="submit" name="action" value="decrease" class="qty-btn" {% if item.quantity <= 1 %}disabled{% endif %}>-</button>
                 <div class="qty-val">{{ item.quantity }}</div>
-                <button type="submit" name="action" value="increase" class="qty-btn">+</button>
+                <button type="submit" name="action" value="increase" class="qty-btn" {% if item.variant and item.quantity >= item.variant.stock or item.quantity >= 5 %}disabled style="opacity:0.5; cursor:not-allowed;" title="Maximum limit or stock reached"{% endif %}>+</button>
               </div>
             </form>
 
@@ -224,7 +308,12 @@
         <span>Total</span>
         <span>₹{{ cart.total_price }}</span>
       </div>
-      <!-- Checkout removed -->
+      <!-- Checkout -->
+      {% if request.user.is_authenticated %}
+        <a href="{% url 'orders:checkout' %}" class="btn-checkout">Proceed to Checkout</a>
+      {% else %}
+        <button type="button" class="btn-checkout" onclick="openLoginGate()">Proceed to Checkout</button>
+      {% endif %}
     </div>
   </div>
   {% else %}
@@ -236,4 +325,38 @@
   {% endif %}
   
 </div>
+
+<!-- ── Login Gate Modal ── -->
+<div class="login-gate-overlay" id="loginGateOverlay" onclick="handleOverlayClick(event)">
+  <div class="login-gate-box">
+    <div class="login-gate-icon">🔐</div>
+    <h2>Sign in to Checkout</h2>
+    <p>You need an account to place an order.<br>Log in or create a free account to continue.</p>
+    <div class="login-gate-actions">
+      <a href="{% url 'login' %}?next={% url 'orders:checkout' %}" class="lg-btn-login">Log In to My Account</a>
+      <a href="{% url 'signup' %}?next={% url 'orders:checkout' %}" class="lg-btn-register">Create Free Account</a>
+      <button class="lg-btn-cancel" onclick="closeLoginGate()">Continue Shopping</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function openLoginGate() {
+    document.getElementById('loginGateOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLoginGate() {
+    document.getElementById('loginGateOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('loginGateOverlay')) closeLoginGate();
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeLoginGate();
+  });
+</script>
 {% endblock %}

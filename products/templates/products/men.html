@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="mens-page">
 
 <!-- Breadcrumb -->
 <div class="breadcrumb">
@@ -28,32 +29,6 @@
     <a href="#products" class="hero-btn">Shop Now →</a>
   </div>
 </div>
-
-<!-- Category Tabs -->
-<div class="category-tabs">
-  <a href="?{% query_transform tab='new' page=1 %}"      class="tab-item {% if active_tab == 'new' %}active{% endif %}">New Arrivals</a>
-  <a href="?{% query_transform tab='best' page=1 %}"     class="tab-item {% if active_tab == 'best' %}active{% endif %}">Best Sellers</a>
-  <a href="?{% query_transform tab='extended' page=1 %}" class="tab-item {% if active_tab == 'extended' %}active{% endif %}">Extended Widths</a>
-  <a href="?{% query_transform tab='sale' page=1 %}"     class="tab-item {% if active_tab == 'sale' %}active{% endif %}">Sale</a>
-  <a href="?{% query_transform tab='all' page=1 %}"     class="tab-item {% if active_tab == 'all' or not active_tab %}active{% endif %}">All</a>
-</div>
-
-<!-- Category Cards -->
-<div class="category-row">
-  {% for cat in men_categories %}
-  <div class="cat-card">
-    {% if cat.image %}
-      <img src="{{ cat.image.url }}" alt="{{ cat.name }}">
-    {% else %}
-      <img src="https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=600&q=80" alt="{{ cat.name }}">
-    {% endif %}
-    <div class="cat-overlay"></div>
-    <span class="cat-label">{{ cat.name }}</span>
-    <a href="?{% query_transform category=cat.slug page=1 %}" class="cat-btn">Shop now</a>
-  </div>
-{% endfor %}
-</div>
-
 <!-- Shop Layout -->
 <div class="shop-layout" id="products">
 
@@ -79,6 +54,21 @@
     </div>
 
     <div class="filter-group" style="padding-top:4px;">
+      <h4>Category</h4>
+      <div class="brand-list">
+        {% for cat in men_categories %}
+        <a href="?{% query_transform category=cat.slug page=1 %}"
+           class="{% if active_category == cat.slug %}active{% endif %}">{{ cat.name }}</a>
+        {% endfor %}
+      </div>
+      {% if active_category %}
+      <div style="margin-top:6px; text-align:right;">
+        <a href="?{% query_transform category=None page=1 %}" style="font-size:11px; color:var(--red); font-weight:600; text-decoration:none;">Clear Category &times;</a>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="filter-group">
       <h4>Price Range</h4>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <div style="display:flex; gap:10px;">
@@ -127,26 +117,6 @@
       </div>
     </div>
 
-    <div class="filter-group">
-      <h4>Occasion</h4>
-      <div class="check-list">
-        {% for occ in occasions %}
-        <a href="?{% query_transform occasion=occ|lower page=1 %}" 
-           class="check-item {% if active_occasion == occ|lower %}active{% endif %}">{{ occ }}</a>
-        {% endfor %}
-      </div>
-    </div>
-
-    <div class="filter-group">
-      <h4>Material</h4>
-      <div class="check-list">
-        {% for mat in materials %}
-        <a href="?{% query_transform material=mat|lower page=1 %}" 
-           class="check-item {% if active_material == mat|lower %}active{% endif %}">{{ mat }}</a>
-        {% endfor %}
-      </div>
-    </div>
-
   </aside>
 
   <!-- Products -->
@@ -160,7 +130,11 @@
         
         <form method="POST" action="{% url 'cart:wishlist_toggle' product.id %}" style="position: absolute; top: 9px; right: 9px; z-index: 3;">
           {% csrf_token %}
-          <button type="submit" class="card-wish-btn" title="Toggle Wishlist">&#9825;</button>
+          {% if product|is_wishlisted_by:request.user %}
+            <button type="submit" class="card-wish-btn active" style="color: var(--red); font-size: 15px;" title="Remove from Wishlist">♥</button>
+          {% else %}
+            <button type="submit" class="card-wish-btn" title="Add to Wishlist">&#9825;</button>
+          {% endif %}
         </form>
 
         <a href="{% url 'products:detail' product.slug %}">
@@ -249,7 +223,7 @@
     <span class="partner-logo">GUCCI</span>
   </div>
 </div>
-
+</div>
 {% endblock %}
 
 {% block extra_js %}

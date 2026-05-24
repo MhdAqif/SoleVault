@@ -4,9 +4,56 @@ from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from .models import Address
+import time
+from accounts.views import generate_otp, send_otp
 
 @login_required
 def user_profile(request):
+    user = request.user
+
+    if request.method == "POST":
+        full_name = request.POST.get("full_name")
+        email = request.POST.get("email", "").strip()
+        phone = request.POST.get("phone")
+        photo = request.FILES.get("photo")
+        remove_photo = request.POST.get("remove_photo")
+
+        # Save standard fields first immediately
+        if full_name:
+            name_parts = full_name.split()
+            user.first_name = name_parts[0]
+            user.last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else ""
+
+        user.phone_number = phone
+
+        if remove_photo == "1":
+            user.profile_image = None
+        if photo:
+            user.profile_image = photo
+
+        user.save()
+
+        # Check if email is changing
+        if email and email != user.email:
+            from accounts.models import CustomUser
+            if CustomUser.objects.exclude(id=user.id).filter(email=email).exists():
+                messages.error(request, "This email is already in use by another account.")
+                return render(request, 'user_profile/profile.html')
+
+            # Generate OTP & Store in Session
+            otp = generate_otp()
+            request.session['new_email_pending'] = email
+            request.session['email_change_otp'] = otp
+            request.session['email_change_otp_time'] = time.time()
+
+            # Send OTP to new email address
+            send_otp(email, otp)
+            messages.success(request, f"Verification code sent to {email}. Please enter the OTP to confirm your email change.")
+            return redirect('user_profile:verify_email_otp')
+
+        messages.success(request, "Profile updated successfully.")
+        return redirect('user_profile:profile')
+
     return render(request, 'user_profile/profile.html')
 
 @login_required
@@ -26,39 +73,9 @@ def change_password(request):
         'form': form
     })
 
-
 @login_required
 def profile_edit(request):
-    user = request.user
-
-    if request.method == "POST":
-        full_name = request.POST.get("full_name")
-        phone = request.POST.get("phone")
-        photo = request.FILES.get("photo")
-        remove_photo = request.POST.get("remove_photo")
-
-        # Split name
-        if full_name:
-            name_parts = full_name.split()
-            user.first_name = name_parts[0]
-            user.last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else ""
-
-        # Phone
-        user.phone_number = phone
-
-        # Remove photo
-        if remove_photo == "1":
-            user.profile_image = None
-
-        # Upload photo
-        if photo:
-            user.profile_image = photo
-
-        user.save()
-
-        return redirect('user_profile:profile')
-
-    return render(request, 'user_profile/profile_edit.html')
+    return redirect('user_profile:profile')
 
 @login_required
 def manage_address(request):
@@ -78,6 +95,14 @@ def add_address(request):
             messages.error(request, "Please fill all required fields")
             return redirect('user_profile:add_address')
 
+        is_default = request.POST.get('is_default') == 'on'
+        # If this is the user's first address, force it to be default
+        if not Address.objects.filter(user=request.user).exists():
+            is_default = True
+        
+        if is_default:
+            Address.objects.filter(user=request.user).update(is_default=False)
+
         Address.objects.create(
             user=request.user,
             full_name=full_name,
@@ -88,8 +113,10 @@ def add_address(request):
             city=request.POST.get('city'),
             pincode=request.POST.get('pin_code'),
             landmark=request.POST.get('landmark'),
+            is_default=is_default,
         )
 
+        messages.success(request, "Address added successfully.")
         return redirect('user_profile:manage_address')
 
     return render(request, 'user_profile/add_address.html')
@@ -99,6 +126,14 @@ def edit_address(request, pk):
     address = get_object_or_404(Address, id=pk, user=request.user)
 
     if request.method == 'POST':
+        is_default = request.POST.get('is_default') == 'on'
+        # If it is the only address, force it to remain default
+        if not Address.objects.filter(user=request.user).exclude(id=pk).exists():
+            is_default = True
+
+        if is_default:
+            Address.objects.filter(user=request.user).update(is_default=False)
+
         address.full_name = request.POST.get('full_name')
         address.phone = request.POST.get('phone')
         address.address = request.POST.get('address')
@@ -107,8 +142,10 @@ def edit_address(request, pk):
         address.city = request.POST.get('city')
         address.pincode = request.POST.get('pincode')
         address.landmark = request.POST.get('landmark')
+        address.is_default = is_default
         address.save()
 
+        messages.success(request, "Address updated successfully.")
         return redirect('user_profile:manage_address')
 
     return render(request, 'user_profile/edit_address.html', {
@@ -120,9 +157,76 @@ def delete_address(request, pk):
     address = get_object_or_404(Address, id=pk, user=request.user)
 
     if request.method == 'POST':
+        was_default = address.is_default
         address.delete()
+        
+        # If we deleted the default address, set another address as default
+        if was_default:
+            first_addr = Address.objects.filter(user=request.user).first()
+            if first_addr:
+                first_addr.is_default = True
+                first_addr.save()
+                
+        messages.success(request, "Address deleted successfully.")
         return redirect('user_profile:manage_address')
 
     return render(request, 'user_profile/delete_address.html', {
         'address': address
     })
+
+@login_required
+def set_default_address(request, pk):
+    address = get_object_or_404(Address, id=pk, user=request.user)
+    Address.objects.filter(user=request.user).update(is_default=False)
+    address.is_default = True
+    address.save()
+    messages.success(request, f"Set {address.full_name}'s address as default.")
+    
+    referer = request.META.get('HTTP_REFERER', '')
+    if 'checkout' in referer:
+        return redirect('orders:checkout')
+    return redirect('user_profile:manage_address')
+
+@login_required
+def verify_email_otp(request):
+    new_email = request.session.get('new_email_pending')
+    actual_otp = request.session.get('email_change_otp')
+    otp_time = request.session.get('email_change_otp_time')
+
+    if not new_email or not actual_otp or not otp_time:
+        messages.error(request, "No pending email change request found.")
+        return redirect('user_profile:profile')
+
+    if request.method == 'POST':
+        entered_otp = ''.join([
+            request.POST.get('otp_1', ''),
+            request.POST.get('otp_2', ''),
+            request.POST.get('otp_3', ''),
+            request.POST.get('otp_4', ''),
+            request.POST.get('otp_5', ''),
+            request.POST.get('otp_6', ''),
+        ])
+
+        # Expiry check (5 mins)
+        if time.time() - otp_time > 300:
+            messages.error(request, "OTP expired. Please try updating your email again.")
+            request.session.pop('new_email_pending', None)
+            request.session.pop('email_change_otp', None)
+            request.session.pop('email_change_otp_time', None)
+            return redirect('user_profile:profile')
+
+        if entered_otp == actual_otp:
+            user = request.user
+            user.email = new_email
+            user.username = new_email
+            user.save()
+
+            messages.success(request, f"Email updated successfully to {new_email}!")
+            request.session.pop('new_email_pending', None)
+            request.session.pop('email_change_otp', None)
+            request.session.pop('email_change_otp_time', None)
+            return redirect('user_profile:profile')
+        else:
+            messages.error(request, "Invalid OTP. Please try again.")
+
+    return render(request, 'user_profile/verify_email_otp.html', {'new_email': new_email})

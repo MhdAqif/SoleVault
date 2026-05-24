@@ -77,6 +77,11 @@ class Product(models.Model):
             return int(((self.original_price - self.price) / self.original_price) * 100)
         return None
 
+    @property
+    def is_in_stock(self):
+        """Return True if at least one variant is in stock."""
+        return self.variants.filter(stock__gt=0).exists()
+
 
 class ProductImage(models.Model):
     """Additional images for a product."""

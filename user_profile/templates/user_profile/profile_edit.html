@@ -39,15 +39,23 @@
       </div>
     </div>
 
-    <!-- Full name + Phone -->
+    <!-- Full name -->
     <div class="edit-fields-row">
       <div class="edit-field">
         <label>Full name</label>
         <input type="text" name="full_name" value="{{ user.get_full_name }}" placeholder="Aqif A">
       </div>
+    </div>
+
+    <!-- Email + Phone -->
+    <div class="edit-fields-row">
+      <div class="edit-field">
+        <label>Email Address</label>
+        <input type="email" name="email" value="{{ user.email }}" placeholder="example@domain.com" required>
+      </div>
       <div class="edit-field">
         <label>Phone number</label>
-        <input type="tel" name="phone" value="{{ profile.phone|default:'' }}" placeholder="+91 000-000-0000">
+        <input type="tel" name="phone" value="{{ user.phone_number|default:'' }}" placeholder="+91 000-000-0000">
       </div>
     </div>
 

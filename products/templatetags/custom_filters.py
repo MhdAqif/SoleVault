@@ -29,3 +29,10 @@ def color_hex(name):
         'royal blue': '#4169e1', 'sand': '#c2b280', 'sage': '#87a96b'
     }
     return color_map.get(name, '#cccccc')
+
+@register.filter
+def is_wishlisted_by(product, user):
+    if not user or not user.is_authenticated:
+        return False
+    from cart.models import WishlistItem
+    return WishlistItem.objects.filter(wishlist__user=user, product=product).exists()

@@ -27,4 +27,13 @@ urlpatterns = [
     path('products/add/', views.product_add_admin, name='product_add'),
     path('products/<int:product_id>/edit/', views.product_edit_admin, name='product_edit'),
     path('products/<int:product_id>/delete/', views.product_delete_admin, name='product_delete'),
+
+    # Orders
+    path('orders/', views.order_list_admin, name='order_list'),
+    path('orders/<int:order_id>/', views.order_detail_admin, name='order_detail'),
+    path('orders/<int:order_id>/status/', views.order_update_status_admin, name='order_update_status'),
+
+    # Inventory
+    path('inventory/', views.inventory_list_admin, name='inventory_list'),
+    path('inventory/<int:variant_id>/update-stock/', views.inventory_update_stock_admin, name='inventory_update_stock'),
 ]

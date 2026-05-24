@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'user_profile',
     'products',
     'cart',
+    'orders',
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -99,7 +100,7 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'adminpanel.middleware.SeparateSessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -129,6 +130,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'cart.context_processors.cart_and_wishlist_stats',
             ],
         },
     },

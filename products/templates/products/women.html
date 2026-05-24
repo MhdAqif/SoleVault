@@ -6,29 +6,10 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'products/css/shop.css' %}">
-<style>
-  /* Women's purple accent overrides */
-  :root { --accent: #7c3aed; --accent-dk: #6d28d9; --accent-lt: #f5f0ff; }
-  .category-tabs              { background: var(--accent); }
-  .filter-group h4            { border-bottom-color: var(--accent); }
-  .brand-list a:hover,
-  .brand-list a.active        { color: var(--accent); }
-  .size-chip:hover,
-  .size-chip.active           { border-color: var(--accent); color: var(--accent); background: var(--accent-lt); }
-  .check-item::before         { color: var(--accent); }
-  .product-price              { color: var(--accent); }
-  .product-card:hover         { box-shadow: 0 12px 32px rgba(124,58,237,0.13); }
-  .badge-new                  { background: var(--accent); }
-  .page-btn:hover             { border-color: var(--accent); color: var(--accent); }
-  .page-btn.active            { background: var(--accent); border-color: var(--accent); }
-  .cat-btn                    { background: var(--accent); }
-  .cat-btn:hover              { background: var(--accent-dk); }
-  .hero-overlay               { background: linear-gradient(90deg,rgba(109,40,217,.88) 0%,rgba(124,58,237,.55) 55%,transparent 100%) !important; }
-  .hero-btn                   { color: var(--accent) !important; }
-</style>
 {% endblock %}
 
 {% block content %}
+<div class="womens-page">
 
 <!-- Breadcrumb -->
 <div class="breadcrumb">
@@ -48,32 +29,6 @@
     <a href="#products" class="hero-btn">Shop Now →</a>
   </div>
 </div>
-
-<!-- Category Tabs -->
-<div class="category-tabs">
-  <a href="?{% query_transform tab='new' page=1 %}"      class="tab-item {% if active_tab == 'new' %}active{% endif %}">New Arrivals</a>
-  <a href="?{% query_transform tab='best' page=1 %}"     class="tab-item {% if active_tab == 'best' %}active{% endif %}">Best Sellers</a>
-  <a href="?{% query_transform tab='extended' page=1 %}" class="tab-item {% if active_tab == 'extended' %}active{% endif %}">Extended Widths</a>
-  <a href="?{% query_transform tab='sale' page=1 %}"     class="tab-item {% if active_tab == 'sale' %}active{% endif %}">Sale</a>
-  <a href="?{% query_transform tab='all' page=1 %}"     class="tab-item {% if active_tab == 'all' or not active_tab %}active{% endif %}">All</a>
-</div>
-
-<!-- Category Cards -->
-<div class="category-row">
-  {% for cat in women_categories %}
-  <div class="cat-card">
-    {% if cat.image %}
-      <img src="{{ cat.image.url }}" alt="{{ cat.name }}">
-    {% else %}
-      <img src="https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&q=80" alt="{{ cat.name }}">
-    {% endif %}
-    <div class="cat-overlay"></div>
-    <span class="cat-label">{{ cat.name }}</span>
-    <a href="?{% query_transform category=cat.slug page=1 %}" class="cat-btn">Shop now</a>
-  </div>
-{% endfor %}
-</div>
-
 <!-- Shop Layout -->
 <div class="shop-layout" id="products">
 
@@ -98,6 +53,21 @@
     </div>
 
     <div class="filter-group" style="padding-top:4px;">
+      <h4>Category</h4>
+      <div class="brand-list">
+        {% for cat in women_categories %}
+        <a href="?{% query_transform category=cat.slug page=1 %}"
+           class="{% if active_category == cat.slug %}active{% endif %}">{{ cat.name }}</a>
+        {% endfor %}
+      </div>
+      {% if active_category %}
+      <div style="margin-top:6px; text-align:right;">
+        <a href="?{% query_transform category=None page=1 %}" style="font-size:11px; color:var(--red); font-weight:600; text-decoration:none;">Clear Category &times;</a>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="filter-group">
       <h4>Price Range</h4>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <div style="display:flex; gap:10px;">
@@ -145,22 +115,6 @@
       </div>
     </div>
 
-    <div class="filter-group">
-      <h4>Occasion</h4>
-      <div class="check-list">
-        {% for occ in occasions %}
-        {% endfor %}
-      </div>
-    </div>
-
-    <div class="filter-group">
-      <h4>Material</h4>
-      <div class="check-list">
-        {% for mat in materials %}
-        {% endfor %}
-      </div>
-    </div>
-
   </aside>
 
   <!-- Products -->
@@ -173,7 +127,11 @@
         
         <form method="POST" action="{% url 'cart:wishlist_toggle' product.id %}" style="position: absolute; top: 9px; right: 9px; z-index: 3;">
           {% csrf_token %}
-          <button type="submit" class="card-wish-btn" title="Toggle Wishlist">&#9825;</button>
+          {% if product|is_wishlisted_by:request.user %}
+            <button type="submit" class="card-wish-btn active" style="color: var(--red); font-size: 15px;" title="Remove from Wishlist">♥</button>
+          {% else %}
+            <button type="submit" class="card-wish-btn" title="Add to Wishlist">&#9825;</button>
+          {% endif %}
         </form>
 
         <a href="{% url 'products:detail' product.slug %}">
@@ -261,7 +219,6 @@
     <span class="partner-logo">GUCCI</span>
   </div>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}

@@ -3,49 +3,331 @@
 
 {% block title %}Manage Orders – SoleVault Admin{% endblock %}
 {% block nav_orders %}active{% endblock %}
+{% block topbar_title %}Orders{% endblock %}
+{% block topbar_breadcrumb %}Manage all customer orders{% endblock %}
 
 {% block content %}
-<div class="header-split" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-  <h2>Orders</h2>
-</div>
+<style>
+  .admin-orders-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .title-text {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  
+  /* Filter controls */
+  .controls-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-card);
+  }
+  .controls-form {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+  .search-input-wrap {
+    flex: 2;
+    min-width: 250px;
+    position: relative;
+  }
+  .control-input {
+    width: 100%;
+    height: 40px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-btn);
+    padding: 0 14px;
+    font-size: 13.5px;
+    color: var(--text);
+    background: var(--surface-2);
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color var(--transition);
+  }
+  .control-input:focus {
+    border-color: var(--blue);
+  }
+  .select-input {
+    min-width: 160px;
+    height: 40px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-btn);
+    padding: 0 12px;
+    font-size: 13.5px;
+    color: var(--text);
+    background: var(--surface-2);
+    outline: none;
+    cursor: pointer;
+    transition: border-color var(--transition);
+  }
+  .select-input:focus {
+    border-color: var(--blue);
+  }
+  .btn-submit {
+    height: 40px;
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: var(--radius-btn);
+    padding: 0 20px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition);
+  }
+  .btn-submit:hover {
+    background: var(--blue-dark);
+  }
+  .btn-clear {
+    height: 40px;
+    background: var(--surface-3);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-btn);
+    padding: 0 16px;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: all var(--transition);
+  }
+  .btn-clear:hover {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+  
+  /* Status pills */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .status-pending          { background: var(--purple-soft); color: var(--purple); }
+  .status-processing       { background: var(--amber-soft);  color: var(--amber); }
+  .status-shipped          { background: rgba(59,130,246,0.12);  color: #60a5fa; }
+  .status-out_for_delivery { background: rgba(168,85,247,0.12);  color: #c084fc; }
+  .status-delivered        { background: var(--green-soft);  color: var(--green); }
+  .status-cancelled        { background: var(--red-soft);   color: var(--red); }
+  .status-returned         { background: rgba(156,163,175,0.12); color: #9ca3af; }
+  
+  /* Table Styles */
+  .table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    margin-bottom: 24px;
+  }
+  .orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+  .orders-table th {
+    background: var(--surface-2);
+    padding: 14px 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-subtle);
+    border-bottom: 1px solid var(--border);
+  }
+  .orders-table td {
+    padding: 14px 20px;
+    font-size: 13.5px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+  }
+  .orders-table tr:last-child td {
+    border-bottom: none;
+  }
+  .customer-name {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .customer-email {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .order-id-link {
+    font-weight: 700;
+    color: var(--blue);
+    text-decoration: none;
+  }
+  .order-id-link:hover {
+    text-decoration: underline;
+  }
+  
+  /* Pagination */
+  .pagination-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .page-btn {
+    height: 36px;
+    min-width: 36px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    border-radius: var(--radius-btn);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all var(--transition);
+  }
+  .page-btn:hover {
+    background: var(--surface-3);
+    color: var(--text);
+  }
+  .page-btn.active {
+    background: var(--blue);
+    color: white;
+    border-color: var(--blue);
+  }
+</style>
 
-<div class="user-table-wrap" style="background:#fff; border:1px solid var(--gray-200); border-radius:8px; overflow:hidden;">
-  <table style="width:100%; border-collapse:collapse; text-align:left;">
-    <thead style="background:var(--gray-100); font-size:12px; text-transform:uppercase; color:var(--gray-600);">
-      <tr>
-        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Order ID</th>
-        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Customer</th>
-        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Total</th>
-        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Status</th>
-        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Date</th>
-        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for order in page_obj %}
-      <tr>
-        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">#{{ order.id }}</td>
-        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">
-          {{ order.full_name }}<br>
-          <small style="color:var(--gray-600);">{{ order.user.email }}</small>
-        </td>
-        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">₹{{ order.total }}</td>
-        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">
-          <span style="padding:5px 8px; border-radius:4px; font-size:11px; font-weight:700; text-transform:uppercase; background:var(--gray-100);">
-            {{ order.get_status_display }}
-          </span>
-        </td>
-        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">{{ order.created_at|date:"Y-m-d" }}</td>
-        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">
-          <a href="{% url 'adminpanel:order_detail' order.id %}" style="color:var(--blue); font-weight:600; font-size:13px;">View</a>
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="6" style="padding:20px; text-align:center; color:var(--gray-600);">No orders found.</td>
-      </tr>
+<div class="admin-orders-container">
+  
+  <div class="header-row">
+    <h2 class="title-text">Orders Dashboard</h2>
+  </div>
+
+  <!-- Controls Bar -->
+  <div class="controls-bar">
+    <form method="GET" action="{% url 'adminpanel:order_list' %}" class="controls-form">
+      
+      <!-- Search Input -->
+      <div class="search-input-wrap">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search Order ID, name, email..." class="control-input">
+      </div>
+      
+      <!-- Filter Status Dropdown -->
+      <div>
+        <select name="status" class="select-input">
+          <option value="">All Statuses</option>
+          {% for st in all_statuses %}
+            <option value="{{ st.0 }}" {% if status_filter == st.0 %}selected{% endif %}>{{ st.1 }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <!-- Sorting Dropdown -->
+      <div>
+        <select name="sort" class="select-input">
+          <option value="-created_at" {% if sort_order == '-created_at' %}selected{% endif %}>Date: Newest First</option>
+          <option value="created_at" {% if sort_order == 'created_at' %}selected{% endif %}>Date: Oldest First</option>
+          <option value="price_desc" {% if sort_order == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+          <option value="price_asc" {% if sort_order == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+        </select>
+      </div>
+      
+      <!-- Buttons -->
+      <div>
+        <button type="submit" class="btn-submit">Apply Filters</button>
+        {% if query or status_filter or sort_order != '-created_at' %}
+          <a href="{% url 'adminpanel:order_list' %}" class="btn-clear">Clear</a>
+        {% endif %}
+      </div>
+      
+    </form>
+  </div>
+
+  <!-- Orders Table Card -->
+  <div class="table-card">
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer Details</th>
+          <th>Total Payable</th>
+          <th>Order Status</th>
+          <th>Order Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in page_obj %}
+          <tr>
+            <td>
+              <a href="{% url 'adminpanel:order_detail' order.id %}" class="order-id-link">{{ order.order_id }}</a>
+            </td>
+            <td>
+              <div class="customer-name">{{ order.full_name }}</div>
+              <div class="customer-email">{{ order.user.email }}</div>
+            </td>
+            <td style="font-weight: 700;">₹{{ order.final_price }}</td>
+            <td>
+              <span class="status-pill status-{{ order.status }}">
+                {{ order.get_status_display }}
+              </span>
+            </td>
+            <td>{{ order.created_at|date:"d M Y, h:i A" }}</td>
+            <td>
+              <a href="{% url 'adminpanel:order_detail' order.id %}" class="page-btn" style="height:30px; font-size:12px;">View details</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" style="padding:40px; text-align:center; color:var(--gray-500);">
+              <div style="font-size:32px; margin-bottom:12px;">📦</div>
+              No orders found matching the active search or filters.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Controls -->
+  {% if page_obj.has_other_pages %}
+    <div class="pagination-row">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if sort_order %}&sort={{ sort_order }}{% endif %}" class="page-btn">&lsaquo;</a>
+      {% endif %}
+      
+      {% for num in page_obj.paginator.page_range %}
+        {% if num >= page_obj.number|add:"-3" and num <= page_obj.number|add:"3" %}
+          <a href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if sort_order %}&sort={{ sort_order }}{% endif %}" 
+             class="page-btn {% if num == page_obj.number %}active{% endif %}">{{ num }}</a>
+        {% endif %}
       {% endfor %}
-    </tbody>
-  </table>
+      
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if sort_order %}&sort={{ sort_order }}{% endif %}" class="page-btn">&rsaquo;</a>
+      {% endif %}
+    </div>
+  {% endif %}
+
 </div>
 {% endblock %}

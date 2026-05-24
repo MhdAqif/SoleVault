@@ -212,11 +212,16 @@
           
           <div class="wishlist-actions">
             <!-- Add to Cart Form -->
+            {% if item.product.is_in_stock %}
             <form method="POST" action="{% url 'cart:add' item.product.id %}">
               {% csrf_token %}
               <input type="hidden" name="quantity" value="1">
               <button type="submit" class="btn-add-cart">Add to Cart</button>
             </form>
+            {% else %}
+            <div style="color: var(--red); font-weight: 600; font-size: 13px; margin-bottom: 10px; text-align: center;">Out of Stock</div>
+            <button class="btn-add-cart" style="background-color: var(--gray-400); cursor: not-allowed; opacity: 0.6;" disabled>Add to Cart</button>
+            {% endif %}
             
             <!-- Remove Form -->
             <form method="POST" action="{% url 'cart:wishlist_toggle' item.product.id %}">

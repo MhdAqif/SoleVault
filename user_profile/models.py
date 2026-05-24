@@ -11,6 +11,7 @@ class Address(models.Model):
     city = models.CharField(max_length=100)
     pincode = models.CharField(max_length=10)
     landmark = models.CharField(max_length=255, blank=True, null=True)
+    is_default = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.full_name
+        return f"{self.full_name} ({'Default' if self.is_default else 'Alternative'})"

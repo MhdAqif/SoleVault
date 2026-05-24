@@ -1,0 +1,307 @@
+{% extends 'user_profile/base_profile.html' %}
+{% load static %}
+
+{% block title %}My Orders - SoleVault{% endblock %}
+
+{% block active_orders %}active{% endblock %}
+
+{% block profile_content %}
+<style>
+  .orders-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .orders-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--black);
+    margin: 0;
+  }
+  
+  /* Search Bar */
+  .order-search-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .order-search-input {
+    flex: 1;
+    height: 38px;
+    border: 1px solid var(--gray-300);
+    border-radius: 6px;
+    padding: 0 14px;
+    font-size: 13.5px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .order-search-input:focus {
+    border-color: var(--blue);
+  }
+  .btn-order-search {
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0 20px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-order-search:hover {
+    background: var(--blue-dk);
+  }
+  
+  /* Order Cards */
+  .order-card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .order-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+  }
+  
+  .order-card-header {
+    background: var(--gray-50);
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .order-meta-info {
+    display: flex;
+    gap: 24px;
+    font-size: 12.5px;
+    color: var(--gray-600);
+  }
+  .order-meta-info strong {
+    color: var(--black);
+  }
+  .order-id-label {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--blue);
+    text-decoration: none;
+  }
+  .order-id-label:hover {
+    text-decoration: underline;
+  }
+  
+  .order-card-body {
+    padding: 20px;
+  }
+  .order-item-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .order-item-row:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  .order-item-img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: var(--gray-100);
+  }
+  .order-item-details {
+    flex: 1;
+  }
+  .order-item-name {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: 4px;
+  }
+  .order-item-spec {
+    font-size: 11.5px;
+    color: var(--gray-500);
+  }
+  .order-item-qty-price {
+    font-size: 13px;
+    color: var(--gray-700);
+    text-align: right;
+  }
+  
+  .order-card-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--gray-100);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  /* Status Badges */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .status-pending { background: #fef3c7; color: #d97706; } /* Yellow */
+  .status-processing { background: #e0f2fe; color: #0284c7; } /* Cyan */
+  .status-shipped { background: #e0e7ff; color: #4f46e5; } /* Indigo */
+  .status-delivered { background: #dcfce7; color: #16a34a; } /* Green */
+  .status-cancelled { background: #fee2e2; color: #dc2626; } /* Red */
+  .status-returned { background: #f3f4f6; color: #4b5563; } /* Grey */
+  
+  .btn-view-order {
+    background: var(--white);
+    color: var(--gray-800);
+    border: 1px solid var(--gray-300);
+    padding: 6px 14px;
+    font-size: 12.5px;
+    font-weight: 700;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .btn-view-order:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-400);
+  }
+  
+  .empty-orders-box {
+    text-align: center;
+    padding: 60px 20px;
+    border: 1px dashed var(--gray-200);
+    border-radius: 10px;
+    background: var(--white);
+  }
+</style>
+
+<div class="orders-header-row">
+  <h4 class="orders-title">My Orders</h4>
+</div>
+
+<!-- Search Orders -->
+<form method="GET" action="{% url 'orders:list' %}" class="order-search-form">
+  <input type="text" name="q" value="{{ search_query }}" placeholder="Search by Order ID or Product Name..." class="order-search-input">
+  <button type="submit" class="btn-order-search">Search</button>
+  {% if search_query %}
+    <a href="{% url 'orders:list' %}" class="btn-view-order" style="display:flex; align-items:center; height:38px; box-sizing:border-box;">Clear</a>
+  {% endif %}
+</form>
+
+{% if orders %}
+  <div class="order-cards-list">
+    {% for order in orders %}
+      <div class="order-card">
+        
+        <!-- Header -->
+        <div class="order-card-header">
+          <div>
+            <a href="{% url 'orders:detail' order.order_id %}" class="order-id-label">{{ order.order_id }}</a>
+          </div>
+          <div class="order-meta-info">
+            <div>Ordered: <strong>{{ order.created_at|date:"d M Y" }}</strong></div>
+            <div>Total: <strong>₹{{ order.final_price }}</strong></div>
+          </div>
+        </div>
+        
+        <!-- Body (Items Preview) -->
+        <div class="order-card-body">
+          {% for item in order.items.all|slice:":3" %}
+            <div class="order-item-row">
+              {% if item.product and item.product.image %}
+                <img src="{{ item.product.image.url }}" alt="{{ item.product_name }}" class="order-item-img">
+              {% else %}
+                <div class="order-item-img" style="display:flex; align-items:center; justify-content:center; font-size:20px; background:#f3f4f6;">👟</div>
+              {% endif %}
+              <div class="order-item-details">
+                <div class="order-item-name">
+                  {{ item.product_name }}
+                  {% if item.is_cancelled %}
+                    <span style="color:var(--red); font-size:10px; font-weight:700; margin-left:6px; text-transform:uppercase;">(Cancelled)</span>
+                  {% endif %}
+                </div>
+                <div class="order-item-spec">Size: {{ item.size }} &nbsp;|&nbsp; Color: {{ item.color|default:"-" }}</div>
+              </div>
+              <div class="order-item-qty-price">
+                Qty: {{ item.quantity }}<br>
+                <strong>₹{{ item.item_total }}</strong>
+              </div>
+            </div>
+          {% endfor %}
+          {% if order.items.count > 3 %}
+            <p style="font-size:12px; color:var(--gray-500); margin: 10px 0 0; text-align:center;">
+              + {{ order.items.count|add:"-3" }} more item(s) in this order
+            </p>
+          {% endif %}
+        </div>
+        
+        <!-- Footer -->
+        <div class="order-card-footer">
+          <div>
+            <span class="status-pill status-{{ order.status }}">
+              {{ order.get_status_display }}
+            </span>
+          </div>
+          <div>
+            <a href="{% url 'orders:detail' order.order_id %}" class="btn-view-order">Manage Order Details</a>
+          </div>
+        </div>
+        
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination Section -->
+  {% if page_obj.has_other_pages %}
+  <div class="orders-pagination" style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:30px; margin-bottom:10px;">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="btn-pagination-nav" style="padding:8px 14px; background:var(--surface-2); border:1px solid var(--border); border-radius:6px; color:var(--text); text-decoration:none; font-size:12.5px; font-weight:700; transition:all 0.15s;" onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--surface-2)'">&larr; Prev</a>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+      {% if page_obj.number == num %}
+        <span class="pagination-current" style="padding:8px 14px; background:var(--blue); color:#fff; border-radius:6px; font-size:12.5px; font-weight:800; border:1px solid var(--blue);">{{ num }}</span>
+      {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}" class="btn-pagination-num" style="padding:8px 14px; background:var(--surface-2); border:1px solid var(--border); border-radius:6px; color:var(--text); text-decoration:none; font-size:12.5px; font-weight:700; transition:all 0.15s;" onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--surface-2)'">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="btn-pagination-nav" style="padding:8px 14px; background:var(--surface-2); border:1px solid var(--border); border-radius:6px; color:var(--text); text-decoration:none; font-size:12.5px; font-weight:700; transition:all 0.15s;" onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--surface-2)'">Next &rarr;</a>
+    {% endif %}
+  </div>
+  {% endif %}
+  
+  </div>
+{% else %}
+  <div class="empty-orders-box">
+    <div style="font-size:40px; margin-bottom:12px;">📦</div>
+    {% if search_query %}
+      <h5 style="margin:0 0 8px; font-size:15px; font-weight:700;">No orders found matching "{{ search_query }}"</h5>
+      <p style="margin:0; font-size:12.5px; color:var(--gray-500);">Try searching for another keyword or check spelling.</p>
+    {% else %}
+      <h5 style="margin:0 0 8px; font-size:15px; font-weight:700;">No orders placed yet</h5>
+      <p style="margin:0 0 15px; font-size:12.5px; color:var(--gray-500);">Your purchase history will show up here.</p>
+      <a href="{% url 'products:men' %}" style="display:inline-block; background:var(--blue); color:white; padding:8px 20px; border-radius:5px; font-weight:700; text-decoration:none; font-size:12.5px;">Shop Our Store</a>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% endblock %}

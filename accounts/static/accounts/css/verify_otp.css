@@ -1,176 +1,179 @@
-/* ============================================
-   SoleVault – accounts/css/otp_verify.css
-   OTP Verify page styles
-   ============================================ */
+/* Premium Unified Auth Theme - SoleVault OTP Verify */
 
-/* ── Reset & Base ── */
-*, *::before, *::after {
-  box-sizing: border-box;
+:root {
+  --primary: #0D59F2;
+  --primary-hover: #0b4ecd;
+  --bg-gradient: radial-gradient(circle at 10% 20%, rgb(17, 21, 39) 0%, rgb(20, 26, 47) 90%);
+  --card-bg: rgba(30, 34, 53, 0.75);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --text: #f3f4f6;
+  --text-muted: #9ca3af;
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-border: rgba(255, 255, 255, 0.12);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+body {
+  background: var(--bg-gradient);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   margin: 0;
   padding: 0;
 }
 
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f5f5f5;
-  min-height: 100vh;
-}
-
-/* ── Navbar ── */
+/* Sleek Navbar */
 .navbar-custom {
-  background-color: #0D59F2 !important;
-  height: 52px;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
+  background: rgba(17, 21, 39, 0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--card-border);
+  padding: 15px 40px !important;
 }
 
-.navbar-custom .navbar-brand {
+.navbar-brand {
+  font-weight: 800;
   color: #fff !important;
-  font-weight: 700;
-  font-size: 17px;
-  letter-spacing: -0.3px;
-  text-decoration: none;
+  font-size: 20px;
+  letter-spacing: -0.02em;
 }
 
-.navbar-custom .nav-link {
-  color: #fff !important;
-  font-size: 14px;
-  padding: 0 10px !important;
-  text-decoration: none;
+.nav-link {
+  color: var(--text-muted) !important;
+  font-size: 13.5px;
+  font-weight: 600;
+  margin-left: 15px;
+  transition: color 0.2s;
 }
 
-.navbar-custom .nav-link:hover {
-  opacity: 0.85;
+.nav-link:hover {
+  color: var(--primary) !important;
 }
 
-/* ── Page wrapper ── */
+/* Page wrapper container */
 .form-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px 16px 60px;
+  max-width: 460px;
+  width: 90%;
+  margin: 80px auto;
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 40px 35px;
+  box-shadow: var(--shadow);
+  text-align: center;
 }
 
-/* ── Page title ── */
 .form-container h4 {
-  width: 100%;
-  max-width: 480px;
-  text-align: left;
-  font-size: 22px;
-  font-weight: 700;
-  color: #111;
-  margin-bottom: 8px;
+  font-weight: 800 !important;
+  color: #fff;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+  font-size: 24px;
 }
 
-/* ── Subtitle (outside card) ── */
 .subtitle {
-  width: 100%;
-  max-width: 480px;
-  font-size: 13px;
-  color: #444;
+  font-size: 13.5px;
+  color: var(--text-muted);
   line-height: 1.6;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .subtitle strong {
-  color: #111;
-  font-weight: 600;
+  color: var(--primary);
+  font-weight: 700;
 }
 
-/* ── White card ── */
+/* Form block */
 .form-container form {
   width: 100%;
-  max-width: 480px;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  padding: 32px 36px 36px;
 }
 
-/* ── OTP input boxes ── */
+/* OTP inputs */
 .otp-inputs {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: center;
-  margin-bottom: 24px;
+  margin-bottom: 25px;
 }
 
 .otp-inputs input {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 54px;
   text-align: center;
-  font-size: 20px;
-  font-weight: 600;
-  color: #111;
-  border: 1px solid #bbb;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  border: 1.5px solid var(--input-border);
   border-radius: 8px;
   outline: none;
-  background: #fff;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  background: var(--input-bg);
+  transition: all 0.2s;
 }
 
 .otp-inputs input:focus {
-  border-color: #0D59F2;
-  box-shadow: 0 0 0 3px rgba(61, 0, 224, 0.1);
+  border-color: var(--primary);
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 0 0 3px rgba(13, 89, 242, 0.15);
 }
 
 .otp-inputs input.filled {
-  border-color: #0D59F2;
+  border-color: var(--primary);
+  background: rgba(255, 255, 255, 0.05);
 }
 
-/* ── Resend timer ── */
+/* Resend components */
 .resend-timer {
-  text-align: center;
   font-size: 13px;
-  color: #333;
-  margin-bottom: 10px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
 }
 
 .resend-timer span {
-  font-weight: 600;
-  color: #111;
+  font-weight: 700;
+  color: #fff;
 }
 
-/* ── Resend line ── */
 .resend-line {
-  text-align: center;
   font-size: 13px;
-  color: #333;
-  margin-bottom: 20px;
+  color: var(--text-muted);
+  margin-bottom: 25px;
 }
 
 .resend-line a {
-  color: #111;
+  color: var(--primary);
   font-weight: 700;
   text-decoration: none;
   margin-left: 4px;
+  transition: color 0.15s;
 }
 
 .resend-line a:hover {
   text-decoration: underline;
+  color: #fff;
 }
 
-/* ── Verify Button ── */
+/* Button */
 .form-container .btn-primary {
-  display: block;
-  width: 100%;
-  height: 42px;
-  background-color: #0D59F2 !important;
-  color: #fff !important;
-  font-size: 15px;
-  font-weight: 600;
+  background: var(--primary) !important;
   border: none !important;
-  border-radius: 4px;
+  color: #fff !important;
+  font-weight: 700 !important;
+  font-size: 14.5px !important;
+  padding: 12px !important;
+  border-radius: 8px !important;
+  width: 100% !important;
+  transition: all 0.2s !important;
   cursor: pointer;
-  letter-spacing: 0.2px;
-  box-shadow: none !important;
-  transition: background-color 0.15s;
+  box-shadow: 0 4px 12px rgba(13, 89, 242, 0.25) !important;
 }
 
 .form-container .btn-primary:hover {
-  background-color: #0D59F2 !important;
+  background: var(--primary-hover) !important;
+  transform: translateY(-1px);
 }
 
 .form-container .btn-primary:active {
-  background-color: #0D59F2 !important;
+  transform: translateY(0);
 }

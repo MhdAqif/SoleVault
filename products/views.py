@@ -1,8 +1,9 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.db.models import Q
-from .models import Product, Brand, Category
+from .models import Product, Brand, Category, Size, ProductVariant
 from django.db import models
+from django.contrib import messages
 
 # ─────────────────────────────────────────
 #  HELPERS
@@ -10,7 +11,7 @@ from django.db import models
 def _apply_filters(queryset, request):
     """
     Apply common GET filters to a product queryset.
-    Supported params: brand, color, size, occasion, material, q (search)
+    Supported params: brand, color, size, occasion, material, q (search), category
     """
     brand     = request.GET.get('brand', '').strip()
     color     = request.GET.get('color', '').strip()
@@ -18,9 +19,12 @@ def _apply_filters(queryset, request):
     occasion  = request.GET.get('occasion', '').strip()
     material  = request.GET.get('material', '').strip()
     search    = request.GET.get('q', '').strip()
+    category  = request.GET.get('category', '').strip()
 
     if brand:
         queryset = queryset.filter(brand__slug=brand)
+    if category:
+        queryset = queryset.filter(category__slug=category)
     if color:
         queryset = queryset.filter(variants__color__iexact=color).distinct()
     if size:
@@ -64,7 +68,6 @@ def _apply_filters(queryset, request):
 
 def _get_filter_context():
     """Return shared filter data for both men/women pages."""
-    from .models import Size, ProductVariant
     
     # Get sizes that actually have variants
     sizes = Size.objects.filter(productvariant__isnull=False).distinct().order_by('name')
@@ -97,6 +100,7 @@ def _get_filter_context():
         'colors'    : colors,
         'occasions' : [choice[1] for choice in Product.OCCASION_CHOICES],
         'materials' : [choice[1] for choice in Product.MATERIAL_CHOICES],
+        'categories': Category.objects.filter(is_active=True).order_by('gender', 'name'),
     }
 
 
@@ -118,9 +122,6 @@ def men_page(request):
             gender__in=['men', 'unisex'],
             is_active=True,
         ).filter(Q(category__isnull=True) | Q(category__is_active=True)).select_related('brand', 'category').prefetch_related('variants')
-
-        if category_slug:
-            products = products.filter(category__slug=category_slug)
 
         # Tab filter
         if tab == 'new':
@@ -156,7 +157,6 @@ def men_page(request):
         }
         return render(request, 'products/men.html', context)
     except Exception as e:
-        from django.contrib import messages
         messages.error(request, f"An error occurred while loading products: {str(e)}")
         return render(request, 'products/men.html', {'products': [], 'men_categories': []})
 
@@ -179,8 +179,7 @@ def women_page(request):
             is_active=True,
         ).filter(Q(category__isnull=True) | Q(category__is_active=True)).select_related('brand', 'category').prefetch_related('variants')
 
-        if category_slug:
-            products = products.filter(category__slug=category_slug)
+
 
         if tab == 'new':
             products = products.filter(is_new=True)
@@ -213,7 +212,6 @@ def women_page(request):
         }
         return render(request, 'products/women.html', context)
     except Exception as e:
-        from django.contrib import messages
         messages.error(request, f"An error occurred while loading products: {str(e)}")
         return render(request, 'products/women.html', {'products': [], 'women_categories': []})
 
@@ -254,8 +252,6 @@ def product_detail(request, slug):
     ).select_related('brand', 'category').prefetch_related('images', 'variants__size').first()
 
     if not product or not product.is_active:
-        from django.contrib import messages
-        from django.shortcuts import redirect
         messages.error(request, "This product is currently unavailable.")
         return redirect('products:men')
 
@@ -266,8 +262,94 @@ def product_detail(request, slug):
         models.Q(category=product.category) | models.Q(brand=product.brand)
     ).exclude(id=product.id)[:4]
 
+    # Get unique sizes specifically for this product
+    unique_sizes = Size.objects.filter(productvariant__product=product).distinct().order_by('name')
+
     context = {
         'product'         : product,
         'similar_products': similar_products,
+        'unique_sizes'    : unique_sizes,
     }
     return render(request, 'products/product_detail.html', context)
+
+
+# ─────────────────────────────────────────
+#  NEW DROPS PAGE
+# ─────────────────────────────────────────
+def new_drops_page(request):
+    """
+    Dedicated page for New Drops (both men and women new arrivals).
+    """
+    try:
+        products = Product.objects.filter(
+            is_active=True,
+            is_new=True
+        ).filter(Q(category__isnull=True) | Q(category__is_active=True)).select_related('brand', 'category').prefetch_related('variants')
+
+        products = _apply_filters(products, request)
+
+        paginator   = Paginator(products, 9)
+        page_number = request.GET.get('page', 1)
+        page_obj    = paginator.get_page(page_number)
+
+        context = {
+            'page_obj'      : page_obj,
+            'products'      : page_obj,
+            'title_label'   : "New Drops",
+            'desc_label'    : "Step into the latest exclusive releases and seasonal highlights.",
+            'hero_class'    : "drops",
+            'search_query'  : request.GET.get('q', ''),
+            'active_brand'  : request.GET.get('brand', ''),
+            'active_color'  : request.GET.get('color', ''),
+            'active_size'   : request.GET.get('size', ''),
+            'active_occasion' : request.GET.get('occasion', ''),
+            'active_material' : request.GET.get('material', ''),
+            'min_price'     : request.GET.get('min_price', ''),
+            'max_price'     : request.GET.get('max_price', ''),
+            **_get_filter_context(),
+        }
+        return render(request, 'products/new_drops.html', context)
+    except Exception as e:
+        messages.error(request, f"An error occurred while loading new drops: {str(e)}")
+        return redirect('core:home')
+
+
+# ─────────────────────────────────────────
+#  SALE PAGE
+# ─────────────────────────────────────────
+def sale_page(request):
+    """
+    Dedicated page for products on Sale.
+    """
+    try:
+        products = Product.objects.filter(
+            is_active=True,
+            original_price__isnull=False
+        ).filter(Q(category__isnull=True) | Q(category__is_active=True)).select_related('brand', 'category').prefetch_related('variants')
+
+        products = _apply_filters(products, request)
+
+        paginator   = Paginator(products, 9)
+        page_number = request.GET.get('page', 1)
+        page_obj    = paginator.get_page(page_number)
+
+        context = {
+            'page_obj'      : page_obj,
+            'products'      : page_obj,
+            'title_label'   : "Sale Exclusives",
+            'desc_label'    : "Upgrade your step with premium styles at special limited-time prices.",
+            'hero_class'    : "sale",
+            'search_query'  : request.GET.get('q', ''),
+            'active_brand'  : request.GET.get('brand', ''),
+            'active_color'  : request.GET.get('color', ''),
+            'active_size'   : request.GET.get('size', ''),
+            'active_occasion' : request.GET.get('occasion', ''),
+            'active_material' : request.GET.get('material', ''),
+            'min_price'     : request.GET.get('min_price', ''),
+            'max_price'     : request.GET.get('max_price', ''),
+            **_get_filter_context(),
+        }
+        return render(request, 'products/sale.html', context)
+    except Exception as e:
+        messages.error(request, f"An error occurred while loading sale products: {str(e)}")
+        return redirect('core:home')

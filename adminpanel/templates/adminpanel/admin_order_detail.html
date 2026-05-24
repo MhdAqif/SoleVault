@@ -1,65 +1,329 @@
 {% extends 'adminpanel/admin_base.html' %}
 {% load static %}
 
-{% block title %}Order #{{ order.id }} – SoleVault Admin{% endblock %}
+{% block title %}Order {{ order.order_id }} – SoleVault Admin{% endblock %}
 {% block nav_orders %}active{% endblock %}
 
 {% block content %}
-<div class="header-split" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-  <h2>Order #{{ order.id }}</h2>
-  <a href="{% url 'adminpanel:order_list' %}" style="color:var(--gray-600); font-weight:600; font-size:14px;">← Back to Orders</a>
-</div>
-
-<div style="display:grid; grid-template-columns:2fr 1fr; gap:30px;">
+<style>
+  .admin-detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .title-text {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .btn-back {
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 13.5px;
+    text-decoration: none;
+    transition: color var(--transition);
+  }
+  .btn-back:hover {
+    color: var(--text);
+  }
   
-  <div>
-    <div style="background:#fff; border:1px solid var(--gray-200); border-radius:8px; padding:20px;">
-      <h3 style="margin-bottom:15px; font-size:16px; border-bottom:1px solid var(--gray-200); padding-bottom:10px;">Items</h3>
-      {% for item in order.items.all %}
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px dashed var(--gray-200);">
-        <div style="display:flex; gap:15px; align-items:center;">
-          {% if item.product %}
-          <img src="{{ item.product.image.url }}" style="width:50px; height:50px; object-fit:cover; border-radius:4px;">
-          {% else %}
-          <div style="width:50px; height:50px; background:#eee; border-radius:4px;"></div>
-          {% endif %}
-          <div>
-            <div style="font-weight:600; font-size:14px;">{{ item.product_name }}</div>
-            <div style="font-size:12px; color:var(--gray-600);">Qty: {{ item.quantity }} | Size: {{ item.size|default:"-" }}</div>
+  /* Layout split */
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+  }
+  @media (max-width: 900px) {
+    .detail-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .card-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-card);
+  }
+  .card-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 0;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+  }
+  
+  /* Status pills */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .status-pending          { background: var(--purple-soft); color: var(--purple); }
+  .status-processing       { background: var(--amber-soft);  color: var(--amber); }
+  .status-shipped          { background: rgba(59,130,246,0.12);  color: #60a5fa; }
+  .status-out_for_delivery { background: rgba(168,85,247,0.12);  color: #c084fc; }
+  .status-delivered        { background: var(--green-soft);  color: var(--green); }
+  .status-cancelled        { background: var(--red-soft);   color: var(--red); }
+  .status-returned         { background: rgba(156,163,175,0.12); color: #9ca3af; }
+  
+  /* Product row list */
+  .item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .item-row:last-child {
+    border-bottom: none;
+  }
+  .item-left {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  .item-img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+  }
+  .item-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .item-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .item-price {
+    font-weight: 700;
+    font-size: 14.5px;
+    color: var(--text);
+  }
+  
+  /* Status Form Select */
+  .status-select {
+    width: 100%;
+    height: 40px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-btn);
+    padding: 0 12px;
+    font-size: 13.5px;
+    outline: none;
+    color: var(--text);
+    background: var(--surface-2);
+    cursor: pointer;
+    margin-bottom: 14px;
+    transition: border-color var(--transition);
+  }
+  .status-select:focus {
+    border-color: var(--blue);
+  }
+  .btn-update-status {
+    width: 100%;
+    height: 40px;
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: var(--radius-btn);
+    font-weight: 600;
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: background var(--transition);
+  }
+  .btn-update-status:hover {
+    background: var(--blue-dark);
+  }
+  
+  /* Cost lists */
+  .cost-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13.5px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+  .cost-row.total {
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+    margin-top: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+  }
+</style>
+
+<div class="admin-detail-container">
+  
+  <div class="header-row">
+    <div>
+      <h2 class="title-text">Order Info: {{ order.order_id }}</h2>
+      <div style="font-size:12.5px; color:var(--gray-500); margin-top:4px;">Date Placed: <b>{{ order.created_at|date:"d M Y, h:i A" }}</b></div>
+    </div>
+    <a href="{% url 'adminpanel:order_list' %}" class="btn-back">← Back to Orders</a>
+  </div>
+
+  <div class="detail-grid">
+    
+    <!-- Left Column: Products and Breakdown -->
+    <div>
+      
+      <!-- Ordered Products -->
+      <div class="card-block">
+        <h3 class="card-title">Ordered Items</h3>
+        <div class="items-list">
+          {% for item in order.items.all %}
+            <div class="item-row">
+              <div class="item-left">
+                {% if item.product and item.product.image %}
+                  <img src="{{ item.product.image.url }}" alt="{{ item.product_name }}" class="item-img">
+                {% else %}
+                  <div class="item-img" style="display:flex; align-items:center; justify-content:center; font-size:24px; background:#f3f4f6;">👟</div>
+                {% endif %}
+                <div>
+                  <div class="item-name">
+                    {{ item.product_name }}
+                    {% if item.is_cancelled %}
+                      <span style="color:var(--red); font-size:9.5px; font-weight:700; margin-left:6px; text-transform:uppercase;">(Cancelled)</span>
+                    {% endif %}
+                  </div>
+                  <div class="item-meta">
+                    Size: <b>{{ item.size }}</b> &nbsp;|&nbsp; Color: <b>{{ item.color|default:"-" }}</b><br>
+                    Qty: <b>{{ item.quantity }}</b>
+                  </div>
+                </div>
+              </div>
+              <div class="item-price">₹{{ item.item_total }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      
+      <!-- Cost breakdown -->
+      <div class="card-block">
+        <h3 class="card-title">Billing Summary</h3>
+        
+        <div class="cost-row">
+          <span>Subtotal</span>
+          <span>₹{{ order.subtotal }}</span>
+        </div>
+        {% if order.discount > 0 %}
+          <div class="cost-row" style="color:#10b981; font-weight:600;">
+            <span>Saved Discount</span>
+            <span>-₹{{ order.discount }}</span>
+          </div>
+        {% endif %}
+        <div class="cost-row">
+          <span>GST (18% included)</span>
+          <span>₹{{ order.tax|floatformat:2 }}</span>
+        </div>
+        <div class="cost-row">
+          <span>Shipping & Handling</span>
+          <span>
+            {% if order.shipping_fee == 0 %}
+              <span style="color:#10b981; font-weight:700; text-transform:uppercase;">FREE</span>
+            {% else %}
+              ₹{{ order.shipping_fee }}
+            {% endif %}
+          </span>
+        </div>
+        
+        <div class="cost-row total">
+          <span>Total Receivable</span>
+          <span>₹{{ order.final_price }}</span>
+        </div>
+      </div>
+      
+      {% if order.cancel_reason or order.return_reason %}
+        <div class="card-block" style="background: var(--red-soft); border-color: var(--red);">
+          <h3 class="card-title" style="color: var(--red); border-bottom-color: rgba(239, 68, 68, 0.2);">Cancellations / Returns Reason</h3>
+          <div style="font-size:13.5px; color: var(--text); line-height:1.5;">
+            {% if order.cancel_reason %}
+              <strong>Cancellation Reason:</strong> "<i>{{ order.cancel_reason }}</i>"
+            {% endif %}
+            {% if order.return_reason %}
+              <div style="margin-top: {% if order.cancel_reason %}10px{% else %}0px{% endif %};">
+                <strong>Return Reason:</strong> "<i>{{ order.return_reason }}</i>"
+              </div>
+            {% endif %}
           </div>
         </div>
-        <div style="font-weight:700;">₹{{ item.price }}</div>
+      {% endif %}
+      
+    </div>
+    
+    <!-- Right Column: Status Form and Customer details -->
+    <div>
+      
+      <!-- Update status -->
+      <div class="card-block">
+        <h3 class="card-title">Order Status</h3>
+        <div style="margin-bottom:15px; font-size:13px;">
+          Current Status: &nbsp;<span class="status-pill status-{{ order.status }}">{{ order.get_status_display }}</span>
+        </div>
+        
+        <form method="POST" action="{% url 'adminpanel:order_update_status' order.id %}">
+          {% csrf_token %}
+          <select name="status" class="status-select">
+            {% for st in all_statuses %}
+              <option value="{{ st.0 }}" {% if order.status == st.0 %}selected{% endif %}>{{ st.1 }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn-update-status">Update Status</button>
+        </form>
       </div>
-      {% endfor %}
+      
+      <!-- Customer Info -->
+      <div class="card-block">
+        <h3 class="card-title">Customer Info</h3>
+        <div style="font-size:13.5px; line-height:1.6; color: var(--text-muted);">
+          <div style="font-weight:600; color: var(--text); font-size:14.5px; margin-bottom:4px;">{{ order.full_name }}</div>
+          <a href="mailto:{{ order.user.email }}" style="color:var(--blue); font-weight:600; text-decoration:none;">{{ order.user.email }}</a><br>
+          <div style="margin-top:6px; color: var(--text);">Phone: <b>{{ order.phone }}</b></div>
+          
+          <div style="border-top: 1px solid var(--border); margin-top:14px; padding-top:14px;">
+            <strong style="color: var(--text); font-size:12px; text-transform:uppercase; letter-spacing:0.05em; display:block; margin-bottom:8px;">Shipping Snapshot:</strong>
+            {{ order.address }}<br>
+            {{ order.city }}, {{ order.district }}<br>
+            {{ order.state }} - <b style="color: var(--text);">{{ order.pincode }}</b>
+            {% if order.landmark %}
+              <div style="margin-top: 4px; color: var(--text-muted);">Landmark: {{ order.landmark }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
     </div>
+    
   </div>
-  
-  <div>
-    <div style="background:#fff; border:1px solid var(--gray-200); border-radius:8px; padding:20px; margin-bottom:20px;">
-      <h3 style="margin-bottom:15px; font-size:16px; border-bottom:1px solid var(--gray-200); padding-bottom:10px;">Update Status</h3>
-      <form method="POST" action="{% url 'adminpanel:order_update_status' order.id %}">
-        {% csrf_token %}
-        <select name="status" style="width:100%; padding:10px; border:1px solid var(--gray-200); border-radius:4px; margin-bottom:15px;">
-          <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>Processing</option>
-          <option value="shipped" {% if order.status == 'shipped' %}selected{% endif %}>Shipped</option>
-          <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>Delivered</option>
-          <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
-        </select>
-        <button type="submit" style="width:100%; background:var(--blue); color:#fff; border:none; padding:10px; border-radius:4px; font-weight:700; cursor:pointer;">Update Status</button>
-      </form>
-    </div>
 
-    <div style="background:#fff; border:1px solid var(--gray-200); border-radius:8px; padding:20px;">
-      <h3 style="margin-bottom:15px; font-size:16px; border-bottom:1px solid var(--gray-200); padding-bottom:10px;">Customer Info</h3>
-      <div style="font-size:14px; line-height:1.6;">
-        <strong>{{ order.full_name }}</strong><br>
-        <a href="mailto:{{ order.user.email }}" style="color:var(--blue);">{{ order.user.email }}</a><br><br>
-        {{ order.address }}<br>
-        {{ order.city }}, {{ order.state }} - {{ order.pincode }}<br>
-        Phone: {{ order.phone }}
-      </div>
-    </div>
-  </div>
-  
 </div>
 {% endblock %}

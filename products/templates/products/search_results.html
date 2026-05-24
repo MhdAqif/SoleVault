@@ -47,7 +47,11 @@
                 
                 <form method="POST" action="{% url 'cart:wishlist_toggle' product.id %}" style="position: absolute; top: 9px; right: 9px; z-index: 3;">
                     {% csrf_token %}
-                    <button type="submit" class="card-wish-btn" title="Toggle Wishlist">&#9825;</button>
+                    {% if product|is_wishlisted_by:request.user %}
+                        <button type="submit" class="card-wish-btn active" style="color: var(--red); font-size: 15px;" title="Remove from Wishlist">♥</button>
+                    {% else %}
+                        <button type="submit" class="card-wish-btn" title="Add to Wishlist">&#9825;</button>
+                    {% endif %}
                 </form>
                 
                 <a href="{% url 'products:detail' product.slug %}">

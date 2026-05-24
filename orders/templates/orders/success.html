@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order Placed Successfully – SoleVault{% endblock %}
+
+{% block extra_css %}
+<style>
+  .success-container {
+    max-width: 600px;
+    margin: 60px auto;
+    padding: 0 20px;
+    text-align: center;
+  }
+  .success-card {
+    background: var(--white);
+    padding: 50px 40px;
+    border-radius: 16px;
+    border: 1px solid var(--gray-200);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+  }
+  
+  /* Animated Checkmark SVG */
+  .checkmark-svg {
+    width: 80px;
+    height: 80px;
+    display: block;
+    margin: 0 auto 24px;
+  }
+  .checkmark-circle {
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    stroke-width: 2;
+    stroke-miterlimit: 10;
+    stroke: #10b981;
+    fill: none;
+    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+  }
+  .checkmark-check {
+    transform-origin: 50% 50%;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    stroke-width: 3;
+    stroke: #10b981;
+    fill: none;
+    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards;
+  }
+  @keyframes stroke {
+    100% { stroke-dashoffset: 0; }
+  }
+  
+  .success-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--black);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: -0.3px;
+  }
+  .success-subtitle {
+    font-size: 14px;
+    color: var(--gray-600);
+    line-height: 1.6;
+    margin-bottom: 30px;
+  }
+  
+  .order-info-box {
+    background: var(--gray-50);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+    border: 1px dashed var(--gray-200);
+    text-align: left;
+  }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13.5px;
+    color: var(--gray-700);
+    margin-bottom: 10px;
+  }
+  .info-row:last-child {
+    margin-bottom: 0;
+  }
+  .info-row span:first-child {
+    font-weight: 600;
+  }
+  .info-row span:last-child {
+    color: var(--black);
+    font-weight: 700;
+  }
+  
+  .success-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+  }
+  .btn-success-primary {
+    background: var(--blue);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    transition: background 0.15s, transform 0.1s;
+    box-shadow: 0 4px 12px rgba(13,89,242,0.25);
+  }
+  .btn-success-primary:hover {
+    background: var(--blue-dk);
+  }
+  .btn-success-primary:active {
+    transform: scale(0.98);
+  }
+  
+  .btn-success-secondary {
+    background: var(--white);
+    color: var(--gray-800);
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    border: 1px solid var(--gray-300);
+    transition: all 0.15s, transform 0.1s;
+  }
+  .btn-success-secondary:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-400);
+  }
+  .btn-success-secondary:active {
+    transform: scale(0.98);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="success-container">
+  <div class="success-card">
+    
+    <!-- Animated Checkmark -->
+    <svg class="checkmark-svg" viewBox="0 0 52 52">
+      <circle class="checkmark-circle" cx="26" cy="26" r="25" />
+      <path class="checkmark-check" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+    </svg>
+    
+    <h1 class="success-title">Order Placed!</h1>
+    <p class="success-subtitle">
+      Thank you for shopping with us! Your order has been placed successfully and is currently being processed. We will email you dynamic updates as your package makes its way to you.
+    </p>
+    
+    <div class="order-info-box">
+      <div class="info-row">
+        <span>Order ID</span>
+        <span>{{ order.order_id }}</span>
+      </div>
+      <div class="info-row">
+        <span>Total Amount</span>
+        <span>₹{{ order.final_price }}</span>
+      </div>
+      <div class="info-row">
+        <span>Payment Method</span>
+        <span>{{ order.payment_method }} (Cash on Delivery)</span>
+      </div>
+      <div class="info-row">
+        <span>Estimated Delivery</span>
+        <span>3 - 5 Business Days</span>
+      </div>
+    </div>
+    
+    <div class="success-actions">
+      <a href="{% url 'orders:detail' order.order_id %}" class="btn-success-primary">View Order Details</a>
+      <a href="{% url 'products:men' %}" class="btn-success-secondary">Continue Shopping</a>
+    </div>
+    
+  </div>
+</div>
+{% endblock %}

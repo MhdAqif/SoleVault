@@ -7,74 +7,489 @@
   <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&display=swap" rel="stylesheet">
   <style>
-    /* Additional premium touches to match shop pages */
+    /* Split hero section */
+    .hero {
+        display: flex !important;
+        min-height: calc(100vh - 95px) !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        background: #f8fafc !important;
+        overflow: hidden !important;
+        position: relative !important;
+        flex-direction: row !important;
+    }
+
+    .hero-left-panel {
+        flex: 1.15 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        padding: 60px 80px !important;
+        background: #f8fafc !important;
+        z-index: 2 !important;
+    }
+
+    .hero-left-content {
+        max-width: 580px !important;
+        text-align: left !important;
+    }
+
+    .hero-badge {
+        display: inline-block !important;
+        font-size: 13px !important;
+        font-weight: 800 !important;
+        letter-spacing: 2px !important;
+        text-transform: uppercase !important;
+        color: #0d59f2 !important;
+        margin-bottom: 24px !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+
     .hero-title {
         font-family: 'Barlow Condensed', sans-serif !important;
-        font-size: 72px !important;
+        font-size: 80px !important;
         font-weight: 900 !important;
-        line-height: 0.92 !important;
-        letter-spacing: -1.5px !important;
+        line-height: 0.95 !important;
+        letter-spacing: -2px !important;
         text-transform: uppercase !important;
-        max-width: 600px !important;
+        color: #0a0a0a !important;
+        margin: 0 0 24px 0 !important;
+        text-shadow: none !important;
     }
-    .hero-badge {
-        background: transparent !important;
-        padding: 0 !important;
-        font-size: 11px !important;
-        font-weight: 700 !important;
-        letter-spacing: 3.5px !important;
-        text-transform: uppercase !important;
-        color: rgba(255,255,255,0.70) !important;
-        margin-bottom: 10px !important;
+
+    .hero-title span {
+        display: block !important;
+        color: #0d59f2 !important;
+        background: none !important;
+        -webkit-text-fill-color: initial !important;
     }
+
     .hero-desc {
-        font-size: 13px !important;
-        color: rgba(255,255,255,0.80) !important;
-        line-height: 1.7 !important;
-        max-width: 280px !important;
-        margin-bottom: 24px !important;
+        font-size: 16px !important;
+        color: #475569 !important;
+        line-height: 1.6 !important;
+        max-width: 480px !important;
+        margin: 0 0 36px 0 !important;
+        text-shadow: none !important;
     }
+
+    .hero-buttons {
+        display: flex !important;
+        gap: 16px !important;
+    }
+
     .hero-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: var(--white) !important;
-        color: var(--blue) !important;
-        padding: 11px 24px !important;
-        font-size: 12px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 14px 36px !important;
+        font-size: 14px !important;
         font-weight: 700 !important;
-        border-radius: 6px !important;
-        letter-spacing: 0.3px !important;
+        border-radius: 8px !important;
         text-transform: none !important;
-        transition: all 0.15s ease !important;
-        margin-top: 0 !important;
-    }
-    .hero-btn:hover {
-        background: #e8f0ff !important;
-        transform: translateY(-1px) !important;
+        transition: all 0.2s ease !important;
+        cursor: pointer !important;
+        text-decoration: none !important;
         box-shadow: none !important;
     }
+
+    .hero-btn.btn-solid {
+        background: #1d4ed8 !important;
+        color: #ffffff !important;
+        border: 1px solid #1d4ed8 !important;
+    }
+
+    .hero-btn.btn-solid:hover {
+        background: #1e40af !important;
+        border-color: #1e40af !important;
+        transform: translateY(-1px) !important;
+    }
+
+    .hero-btn.btn-outline {
+        background: transparent !important;
+        color: #1d4ed8 !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+
+    .hero-btn.btn-outline:hover {
+        background: #f1f5f9 !important;
+        border-color: #1d4ed8 !important;
+        transform: translateY(-1px) !important;
+    }
+
+    /* Right panel styled */
+    .hero-right-panel {
+        flex: 0.85 !important;
+        position: relative !important;
+        z-index: 1 !important;
+        margin-left: -120px !important;
+        padding-left: 120px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .hero-right-panel::before {
+        content: '' !important;
+        position: absolute !important;
+        inset: 0 !important;
+        background: #173870 !important; /* Premium deep blue */
+        clip-path: polygon(15% 0, 100% 0, 100% 100%, 0% 100%) !important;
+        z-index: -1 !important;
+    }
+
+    /* Subtle shoe icon outline watermark inside right panel */
+    .shoe-watermark {
+        position: absolute !important;
+        width: 320px !important;
+        height: 320px !important;
+        opacity: 0.15 !important;
+        color: #ffffff !important;
+        pointer-events: none !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+    }
+    
+    .shoe-watermark svg {
+        width: 100% !important;
+        height: 100% !important;
+        stroke: currentColor !important;
+    }
+
+    /* From $89 badge */
+    .price-tag {
+        position: absolute !important;
+        bottom: 40px !important;
+        right: 40px !important;
+        background: rgba(15, 23, 42, 0.6) !important;
+        backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        padding: 12px 24px !important;
+        border-radius: 12px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        color: #ffffff !important;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .price-lbl {
+        font-size: 10px !important;
+        font-weight: 700 !important;
+        letter-spacing: 1.5px !important;
+        color: rgba(255, 255, 255, 0.6) !important;
+        text-transform: uppercase !important;
+        margin-bottom: 2px !important;
+    }
+
+    .price-val {
+        font-family: 'Barlow Condensed', sans-serif !important;
+        font-size: 32px !important;
+        font-weight: 900 !important;
+        line-height: 1 !important;
+    }
+
+    /* Premium floating high-contrast sneaker image on the right panel */
+    .hero-floating-shoe {
+        max-width: 90% !important;
+        max-height: 80% !important;
+        object-fit: contain !important;
+        z-index: 2 !important;
+        filter: drop-shadow(-15px 25px 40px rgba(0, 0, 0, 0.45)) !important;
+        animation: floatShoe 6s ease-in-out infinite !important;
+        transform: rotate(-12deg) !important;
+        user-select: none !important;
+        pointer-events: none !important;
+        margin-left: -70px !important;
+    }
+
+    @keyframes floatShoe {
+        0%, 100% { transform: translateY(0) rotate(-12deg); }
+        50% { transform: translateY(-18px) rotate(-9deg); }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 991px) {
+        .hero {
+            flex-direction: column !important;
+            min-height: auto !important;
+        }
+        .hero-left-panel {
+            padding: 60px 40px !important;
+        }
+        .hero-right-panel {
+            min-height: 320px !important;
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+            clip-path: none !important;
+        }
+        .hero-title {
+            font-size: 54px !important;
+        }
+    }
+    
+    /* Modern Category cards overlay slide-up hover transitions */
+    .categories {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 24px !important;
+        padding: 0 80px !important;
+        margin-top: 24px !important;
+    }
+
     .cat-card {
-        cursor: pointer;
-        position: relative;
-        border-radius: 12px;
-        overflow: hidden;
+        border-radius: 16px !important;
+        overflow: hidden !important;
+        position: relative !important;
+        height: 480px !important;
+        cursor: pointer !important;
+        border: 1px solid var(--border) !important;
+        background: var(--surface) !important;
     }
+
     .cat-card a {
-        display: block;
-        width: 100%;
-        height: 100%;
+        display: block !important;
+        width: 100% !important;
+        height: 100% !important;
     }
+
+    .cat-card img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        object-position: center !important;
+        transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    .cat-card:hover img {
+        transform: scale(1.08) !important;
+    }
+
+    .cat-card .cat-overlay {
+        position: absolute !important;
+        inset: 0 !important;
+        background: linear-gradient(to top, rgba(10, 10, 10, 0.85) 0%, rgba(10, 10, 10, 0.1) 60%, transparent 100%) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-end !important;
+        padding: 30px !important;
+        transition: background 0.3s ease !important;
+    }
+
+    .cat-card:hover .cat-overlay {
+        background: linear-gradient(to top, rgba(13, 89, 242, 0.8) 0%, rgba(10, 10, 10, 0.2) 60%, transparent 100%) !important;
+    }
+
+    .cat-card .cat-name {
+        font-family: 'Barlow Condensed', sans-serif !important;
+        font-size: 32px !important;
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
+        color: #ffffff !important;
+        letter-spacing: 0.5px !important;
+        margin-bottom: 4px !important;
+        transform: translateY(10px) !important;
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    .cat-card .cat-sub {
+        font-size: 13px !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+        transform: translateY(10px) !important;
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.05s !important;
+        margin-top: 0 !important;
+    }
+
+    .cat-card:hover .cat-name,
+    .cat-card:hover .cat-sub {
+        transform: translateY(0) !important;
+    }
+
+    /* Modern E-commerce Product cards elevation and smooth hover scale zoom */
+    .products {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 24px !important;
+        padding: 0 80px !important;
+        margin-top: 24px !important;
+    }
+
     .product-card {
-        cursor: pointer;
-        transition: transform 0.3s ease;
+        border-radius: 16px !important;
+        overflow: hidden !important;
+        background: var(--card-bg) !important;
+        border: 1px solid var(--border) !important;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        position: relative !important;
+        cursor: pointer !important;
     }
+
     .product-card:hover {
-        transform: translateY(-5px);
+        transform: translateY(-8px) !important;
+        box-shadow: 0 20px 40px rgba(13, 89, 242, 0.06), 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+        border-color: rgba(13, 89, 242, 0.25) !important;
     }
+
     .product-link {
-        display: block;
-        height: 100%;
+        display: block !important;
+        height: 100% !important;
+        text-decoration: none !important;
+    }
+
+    .product-img {
+        width: 100% !important;
+        height: 280px !important;
+        background: #f8fafc !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        overflow: hidden !important;
+        position: relative !important;
+        border-bottom: 1px solid var(--border) !important;
+     }
+
+    .product-img img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    .product-card:hover .product-img img {
+        transform: scale(1.1) rotate(-3deg) !important;
+    }
+
+    .product-info {
+        padding: 20px !important;
+        position: relative !important;
+    }
+
+    .badge-new, .badge-sale {
+        position: absolute !important;
+        top: -15px !important;
+        left: 20px !important;
+        font-size: 10px !important;
+        font-weight: 800 !important;
+        letter-spacing: 1px !important;
+        padding: 4px 12px !important;
+        border-radius: 20px !important;
+        text-transform: uppercase !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.06) !important;
+        margin-bottom: 0 !important;
+    }
+
+    .badge-new {
+        background: #0d59f2 !important;
+        color: #ffffff !important;
+    }
+
+    .badge-sale {
+        background: #e8221a !important;
+        color: #ffffff !important;
+    }
+
+    .product-brand {
+        font-size: 11px !important;
+        font-weight: 700 !important;
+        letter-spacing: 1.5px !important;
+        text-transform: uppercase !important;
+        color: var(--text-muted) !important;
+        margin-bottom: 6px !important;
+    }
+
+    .product-name {
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        color: var(--text) !important;
+        line-height: 1.3 !important;
+        margin-bottom: 10px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .product-price {
+        font-size: 17px !important;
+        font-weight: 800 !important;
+        color: var(--text) !important;
+        font-family: 'Barlow Condensed', sans-serif !important;
+        letter-spacing: 0.5px !important;
+    }
+
+    .product-price .old {
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        text-decoration: line-through !important;
+        color: var(--text-subtle) !important;
+        margin-right: 6px !important;
+    }
+
+    /* Section heading padding modernization */
+    .section-head {
+        padding: 0 80px !important;
+        margin-top: 60px !important;
+        margin-bottom: 12px !important;
+    }
+
+    .section-head h2 {
+        font-family: 'Barlow Condensed', sans-serif !important;
+        font-size: 36px !important;
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        color: var(--text) !important;
+    }
+
+    .section-head p {
+        font-size: 14px !important;
+        color: var(--text-muted) !important;
+        margin-top: 4px !important;
+    }
+
+    /* Trusted Monochromatic Brand Grid */
+    .trusted {
+        margin: 80px 80px 0 !important;
+        border-top: 1px solid var(--border) !important;
+        border-bottom: 1px solid var(--border) !important;
+        padding: 48px 0 !important;
+        text-align: center !important;
+        background: transparent !important;
+    }
+
+    .trusted p {
+        font-size: 12px !important;
+        color: var(--text-muted) !important;
+        font-weight: 700 !important;
+        letter-spacing: 2px !important;
+        text-transform: uppercase !important;
+        margin-bottom: 28px !important;
+    }
+
+    .brand-logos {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 64px !important;
+        flex-wrap: wrap !important;
+    }
+
+    .brand-logo {
+        font-size: 26px !important;
+        font-weight: 900 !important;
+        color: var(--text-subtle) !important;
+        transition: all 0.3s ease !important;
+        cursor: pointer !important;
+        user-select: none !important;
+        font-style: normal !important;
+    }
+
+    .brand-logo:hover {
+        color: var(--blue) !important;
+        transform: scale(1.08) !important;
     }
   </style>
 {% endblock %}
@@ -83,11 +498,35 @@
 
   <!-- HERO -->
   <section class="hero">
-    <div class="hero-content">
-      <span class="hero-badge">2026 Collection</span>
-      <h1 class="hero-title">Elevate Your<span>Step</span></h1>
-      <p class="hero-desc">Experience the ultimate fusion of performance and street luxury. Discover the most exclusive drops and timeless classics.</p>
-      <a href="{% url 'products:men' %}" class="hero-btn">Shop Now</a>
+    <!-- Left Panel (Content) -->
+    <div class="hero-left-panel">
+      <div class="hero-left-content">
+        <span class="hero-badge">2026 Collection</span>
+        <h1 class="hero-title">Elevate Your<span>Step</span></h1>
+        <p class="hero-desc">Exclusive drops and timeless classics &mdash;<br>now 30% off all summer styles.</p>
+        <div class="hero-buttons">
+          <a href="{% url 'products:men' %}" class="hero-btn btn-solid">Shop now</a>
+          <a href="{% url 'products:men' %}?tab=lookbook" class="hero-btn btn-outline">Lookbook</a>
+        </div>
+      </div>
+    </div>
+    <!-- Right Panel (Blue background with diagonal crop and shoe outline) -->
+    <div class="hero-right-panel">
+      <!-- Subtle shoe icon watermark -->
+      <div class="shoe-watermark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1.2" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 12c0 0 1.5-2 4-2s5 3 7 3s4-4.5 6-4.5s2 4.5 1.5 6.5s-2 3.5-3.5 3.5s-5-1-7-1s-4.5 1.5-6 1.5s-2-2.5-2-7z" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M8 10c1-1 3-1.5 5-1.5" stroke-linecap="round"/>
+          <path d="M12 8.5V4.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <!-- Premium floating sneaker image asset -->
+      <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=85" alt="Featured Sneaker Drop" class="hero-floating-shoe">
+      <!-- FROM $89 Badge -->
+      <div class="price-tag">
+        <span class="price-lbl">FROM</span>
+        <span class="price-val">$89</span>
+      </div>
     </div>
   </section>
 
@@ -100,20 +539,20 @@
     <!-- Men -->
     <div class="cat-card">
       <a href="{% url 'products:men' %}">
-        <img src="{% static 'core/images/men.png' %}" alt="Men"/>
+        <img src="https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&q=80" alt="Men"/>
         <div class="cat-overlay">
           <div class="cat-name">Men</div>
-          <div class="cat-sub">Classic and modern menswear</div>
+          <div class="cat-sub">Discover classic and modern footwear</div>
         </div>
       </a>
     </div>
     <!-- Women -->
     <div class="cat-card">
       <a href="{% url 'products:women' %}">
-        <img src="{% static 'core/images/women.png' %}" alt="Women"/>
+        <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800&q=80" alt="Women"/>
         <div class="cat-overlay">
           <div class="cat-name">Women</div>
-          <div class="cat-sub">Elevated styles for her</div>
+          <div class="cat-sub">Elevated sneaker styles for her</div>
         </div>
       </a>
     </div>

@@ -6,7 +6,12 @@ from django.db.models import Q
 from django.views.decorators.http import require_POST
 from django.views.decorators.cache import never_cache  
 from functools import wraps
- 
+from django.db import transaction
+
+# Hoisted Imports
+from products.models import Product, Category, ProductVariant, Brand, Size, ProductImage
+from orders.models import Order
+
 User = get_user_model()
  
  
@@ -88,18 +93,22 @@ def admin_logout(request):
 @admin_required
 def dashboard(request):
     total_users = User.objects.filter(is_staff=False).count()
-    from products.models import Product, Category
     total_products = Product.objects.count()
     total_categories = Category.objects.count()
+
+    total_orders = Order.objects.count()
+    total_revenue = sum(o.final_price for o in Order.objects.filter(status='delivered'))
+    recent_orders = Order.objects.all().order_by('-created_at')[:5]
+    low_stock_count = ProductVariant.objects.filter(stock__lt=5).count()
 
     context = {
         'total_users'      : total_users,
         'total_products'   : total_products,
         'total_categories' : total_categories,
-        'total_orders'     : 0,
-        'total_revenue'    : 0,
-        'recent_orders'    : [],
-        'low_stock_count'  : 0,
+        'total_orders'     : total_orders,
+        'total_revenue'    : total_revenue,
+        'recent_orders'    : recent_orders,
+        'low_stock_count'  : low_stock_count,
         'top_product_count': 0,
     }
     return render(request, 'adminpanel/admin_dashboard.html', context)
@@ -169,8 +178,6 @@ def unblock_user(request, user_id):
 # --- CATEGORY MANAGEMENT ---
 @admin_required
 def category_list_admin(request):
-    from products.models import Category
-    from django.db.models import Q
     query = request.GET.get('q', '')
     categories = Category.objects.all().order_by('-created_at')
     
@@ -189,7 +196,6 @@ def category_list_admin(request):
 
 @admin_required
 def category_add_admin(request):
-    from products.models import Category
     if request.method == 'POST':
         try:
             name = request.POST.get('name', '').strip()
@@ -225,7 +231,6 @@ def category_add_admin(request):
 
 @admin_required
 def category_edit_admin(request, category_id):
-    from products.models import Category
     category = get_object_or_404(Category, id=category_id)
     
     if request.method == 'POST':
@@ -269,7 +274,6 @@ def category_edit_admin(request, category_id):
 @admin_required
 @require_POST
 def category_delete_admin(request, category_id):
-    from products.models import Category
     category = get_object_or_404(Category, id=category_id)
     category.is_active = False
     category.save()
@@ -280,9 +284,6 @@ def category_delete_admin(request, category_id):
 # --- CATALOG MANAGEMENT ---
 @admin_required
 def product_list_admin(request):
-    from products.models import Product, Category, Brand, Size, ProductVariant
-    from django.db.models import Q
-    
     query = request.GET.get('q', '')
     cat_id = request.GET.get('category', '')
     brand_id = request.GET.get('brand', '')
@@ -335,7 +336,6 @@ def product_list_admin(request):
 @admin_required
 def product_add_admin(request):
     try:
-        from products.models import Product, Brand, Category, Size
         brands = Brand.objects.all()
         categories = Category.objects.filter(is_active=True)
         all_sizes = Size.objects.all()
@@ -375,7 +375,6 @@ def product_add_admin(request):
             )
 
             # Save Variants
-            from products.models import ProductVariant
             v_sizes  = request.POST.getlist('v_size[]')
             v_colors = request.POST.getlist('v_color[]')
             v_stocks = request.POST.getlist('v_stock[]')
@@ -389,7 +388,6 @@ def product_add_admin(request):
                         stock=v_stocks[i]
                     )
             
-            from products.models import ProductImage
             for img in cropped_images:
                 ProductImage.objects.create(product=product, image=img)
                 
@@ -411,7 +409,6 @@ def product_add_admin(request):
 @admin_required
 def product_edit_admin(request, product_id):
     try:
-        from products.models import Product, Brand, Category, Size
         product = get_object_or_404(Product, id=product_id)
         brands = Brand.objects.all()
         categories = Category.objects.filter(is_active=True)
@@ -448,7 +445,6 @@ def product_edit_admin(request, product_id):
             product.save()
 
             # Update Variants (Simple approach: delete and recreate)
-            from products.models import ProductVariant
             product.variants.all().delete()
             v_sizes  = request.POST.getlist('v_size[]')
             v_colors = request.POST.getlist('v_color[]')
@@ -463,7 +459,6 @@ def product_edit_admin(request, product_id):
                         stock=v_stocks[i]
                     )
             
-            from products.models import ProductImage
             for img in cropped_images:
                 ProductImage.objects.create(product=product, image=img)
                 
@@ -486,10 +481,189 @@ def product_edit_admin(request, product_id):
 @admin_required
 @require_POST
 def product_delete_admin(request, product_id):
-    from products.models import Product
     product = get_object_or_404(Product, id=product_id)
     product.is_active = False
     product.save()
     messages.success(request, "Product soft deleted successfully.")
     return redirect('adminpanel:product_list')
+
+
+# --- ORDER MANAGEMENT ---
+
+@admin_required
+def order_list_admin(request):
+    """
+    List all orders in the admin panel.
+    - Default sorting: descending order by order date
+    - Search by order ID, customer name, or email
+    - Sort by date (descending/ascending), price (descending/ascending)
+    - Filter by status
+    - Clear functionality
+    - Pagination
+    """
+    query = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', '').strip()
+    sort_order = request.GET.get('sort', '-created_at').strip()
+
+    orders = Order.objects.all()
+
+    # Search
+    if query:
+        orders = orders.filter(
+            Q(order_id__icontains=query) |
+            Q(full_name__icontains=query) |
+            Q(user__email__icontains=query)
+        )
+
+    # Filter
+    if status_filter:
+        orders = orders.filter(status=status_filter)
+
+    # Sort
+    if sort_order == 'date_asc':
+        orders = orders.order_by('created_at')
+    elif sort_order == 'date_desc':
+        orders = orders.order_by('-created_at')
+    elif sort_order == 'price_asc':
+        orders = orders.order_by('final_price')
+    elif sort_order == 'price_desc':
+        orders = orders.order_by('-final_price')
+    else:
+        orders = orders.order_by('-created_at')
+
+    # Pagination: 10 per page
+    paginator = Paginator(orders, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    all_statuses = Order.STATUS_CHOICES
+
+    context = {
+        'page_obj': page_obj,
+        'query': query,
+        'status_filter': status_filter,
+        'sort_order': sort_order,
+        'all_statuses': all_statuses,
+    }
+    return render(request, 'adminpanel/admin_order_list.html', context)
+
+
+@admin_required
+def order_detail_admin(request, order_id):
+    """
+    View details of a specific order.
+    """
+    order = get_object_or_404(Order, id=order_id)
+    all_statuses = Order.STATUS_CHOICES
+    
+    context = {
+        'order': order,
+        'all_statuses': all_statuses,
+    }
+    return render(request, 'adminpanel/admin_order_detail.html', context)
+
+
+@admin_required
+@require_POST
+def order_update_status_admin(request, order_id):
+    """
+    Change order status.
+    """
+
+    order = get_object_or_404(Order, id=order_id)
+    new_status = request.POST.get('status', '').strip()
+
+    valid_statuses = [choice[0] for choice in Order.STATUS_CHOICES]
+    if new_status not in valid_statuses:
+        messages.error(request, "Invalid status choice.")
+        return redirect('adminpanel:order_detail', order_id=order.id)
+
+    old_status = order.status
+    if old_status == new_status:
+        messages.info(request, f"Order status is already '{order.get_status_display()}'.")
+        return redirect('adminpanel:order_detail', order_id=order.id)
+
+    try:
+        with transaction.atomic():
+            order.status = new_status
+            
+            if new_status == 'delivered':
+                order.payment_status = 'paid'
+
+            if new_status in ['cancelled', 'returned'] and old_status not in ['cancelled', 'returned']:
+                for item in order.items.filter(is_cancelled=False):
+                    if item.variant:
+                        item.variant.stock += item.quantity
+                        item.variant.save()
+                
+                if new_status == 'cancelled':
+                    order.cancel_reason = "Cancelled by Administrator"
+                else:
+                    order.return_reason = "Returned by Administrator"
+
+            order.save()
+            messages.success(request, f"Order status successfully updated to '{order.get_status_display()}'.")
+    except Exception as e:
+        messages.error(request, f"Could not update status: {str(e)}")
+
+    return redirect('adminpanel:order_detail', order_id=order.id)
+
+
+# --- INVENTORY MANAGEMENT ---
+
+@admin_required
+def inventory_list_admin(request):
+    """
+    List all product variants for easy stock and inventory management.
+    - Search by product name
+    - Filter by 'low stock' (stock < 5)
+    - Paginate 15 items per page
+    """
+    query = request.GET.get('q', '').strip()
+    low_stock_only = request.GET.get('low_stock', '') == '1'
+
+    variants = ProductVariant.objects.all().select_related('product', 'size').order_by('product__name', 'size__name')
+
+    if query:
+        variants = variants.filter(
+            Q(product__name__icontains=query) |
+            Q(product__brand__name__icontains=query)
+        )
+
+    if low_stock_only:
+        variants = variants.filter(stock__lt=5)
+
+    paginator = Paginator(variants, 15)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'query': query,
+        'low_stock_only': low_stock_only,
+    }
+    return render(request, 'adminpanel/admin_inventory_list.html', context)
+
+
+@admin_required
+@require_POST
+def inventory_update_stock_admin(request, variant_id):
+    """
+    Quickly update stock count for a variant.
+    """
+    variant = get_object_or_404(ProductVariant, id=variant_id)
+    try:
+        new_stock = int(request.POST.get('stock', 0))
+        if new_stock < 0:
+            messages.error(request, "Stock cannot be negative.")
+        else:
+            variant.stock = new_stock
+            variant.save(update_fields=['stock'])
+            messages.success(request, f"Stock updated for {variant.product.name} (Size: {variant.size.name}, Color: {str(variant.color).title()}) to {new_stock}!")
+    except (ValueError, TypeError):
+        messages.error(request, "Invalid stock value.")
+
+    # Redirect back to where we came from, or defaults to inventory list
+    next_url = request.META.get('HTTP_REFERER') or redirect('adminpanel:inventory_list')
+    return redirect(next_url)
  

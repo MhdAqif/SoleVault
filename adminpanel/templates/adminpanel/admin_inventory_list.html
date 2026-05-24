@@ -1,0 +1,378 @@
+{% extends 'adminpanel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Inventory – SoleVault Admin{% endblock %}
+{% block nav_inventory %}active{% endblock %}
+{% block topbar_title %}Inventory{% endblock %}
+{% block topbar_breadcrumb %}Manage product variant stock levels{% endblock %}
+
+{% block content %}
+<style>
+  .admin-inventory-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .title-text {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--black);
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
+    margin: 0;
+  }
+  
+  /* Filter controls */
+  .controls-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-card);
+  }
+  .controls-form {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .search-input-wrap {
+    flex: 1;
+    min-width: 250px;
+  }
+  .control-input {
+    width: 100%;
+    height: 40px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0 14px;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--surface-2);
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+  }
+  .control-input:focus {
+    border-color: var(--blue);
+  }
+  
+  /* Buttons */
+  .btn-submit {
+    height: 40px;
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0 20px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-submit:hover {
+    background: var(--blue-dk);
+  }
+  .btn-clear {
+    height: 40px;
+    background: var(--surface-2);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.15s;
+  }
+  .btn-clear:hover {
+    background: var(--surface-3, var(--surface));
+    color: var(--text);
+  }
+  
+  .low-stock-toggle {
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 6px;
+    border: 1px solid rgba(239,68,68,0.3);
+    background: rgba(239,68,68,0.08);
+    color: #f87171;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .low-stock-toggle:hover { background: rgba(239,68,68,0.15); }
+  .low-stock-toggle.active {
+    background: var(--red);
+    color: white;
+    border-color: var(--red);
+  }
+  
+  /* Table Styles */
+  .table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    margin-bottom: 24px;
+  }
+  .inventory-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+  .inventory-table th {
+    background: var(--surface-2);
+    padding: 13px 18px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-subtle);
+    border-bottom: 1px solid var(--border);
+  }
+  .inventory-table td {
+    padding: 13px 18px;
+    font-size: 13.5px;
+    border-bottom: 1px solid var(--border-subtle, #1e2439);
+    color: var(--text);
+    vertical-align: middle;
+  }
+  .inventory-table tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .product-detail-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .product-thumbnail {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+  .product-name {
+    font-weight: 700;
+    color: var(--text);
+  }
+  .product-brand {
+    font-size: 11.5px;
+    color: var(--text-muted);
+  }
+  
+  .stock-status-badge {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .stock-status-normal { background: rgba(16,185,129,0.12); color: #34d399; }
+  .stock-status-low    { background: rgba(239,68,68,0.12);  color: #f87171; }
+  
+  /* Quick Edit form */
+  .stock-edit-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .stock-number-input {
+    width: 70px;
+    height: 32px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0 8px;
+    font-size: 13px;
+    text-align: center;
+    color: var(--text);
+    background: var(--surface-2);
+    outline: none;
+  }
+  .stock-number-input:focus {
+    border-color: var(--blue);
+  }
+  .btn-update-inline {
+    height: 32px;
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0 12px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-update-inline:hover { background: var(--blue-dark); }
+  
+  /* Pagination */
+  .pagination-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .page-btn {
+    height: 36px;
+    min-width: 36px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .page-btn:hover {
+    background: var(--surface-3, var(--surface));
+    color: var(--text);
+  }
+  .page-btn.active {
+    background: var(--blue);
+    color: white;
+    border-color: var(--blue);
+  }
+</style>
+
+<div class="admin-inventory-container">
+  
+  <div class="header-row">
+    <h2 class="title-text">Inventory & Variant Stock Management</h2>
+  </div>
+
+  <!-- Controls Bar -->
+  <div class="controls-bar">
+    <form method="GET" action="{% url 'adminpanel:inventory_list' %}" class="controls-form">
+      
+      <!-- Search Input -->
+      <div class="search-input-wrap">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search by Product or Brand Name..." class="control-input">
+      </div>
+      
+      <!-- Low Stock Toggle Button -->
+      <div>
+        {% if low_stock_only %}
+          <a href="?low_stock=0{% if query %}&q={{ query }}{% endif %}" class="low-stock-toggle active">
+            ⚠️ Low Stock Alert (ON)
+          </a>
+        {% else %}
+          <a href="?low_stock=1{% if query %}&q={{ query }}{% endif %}" class="low-stock-toggle">
+            ⚠️ Filter Low Stock (< 5)
+          </a>
+        {% endif %}
+      </div>
+      
+      <!-- Buttons -->
+      <div>
+        <button type="submit" class="btn-submit">Search</button>
+        {% if query or low_stock_only %}
+          <a href="{% url 'adminpanel:inventory_list' %}" class="btn-clear">Clear Filters</a>
+        {% endif %}
+      </div>
+      
+    </form>
+  </div>
+
+  <!-- Inventory Table -->
+  <div class="table-card">
+    <table class="inventory-table">
+      <thead>
+        <tr>
+          <th>Product Variant Details</th>
+          <th>Size</th>
+          <th>Color Swatch</th>
+          <th>Stock level</th>
+          <th>Quick Stock adjustment</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for variant in page_obj %}
+          <tr>
+            <td>
+              <div class="product-detail-cell">
+                {% if variant.product.image %}
+                  <img src="{{ variant.product.image.url }}" alt="{{ variant.product.name }}" class="product-thumbnail">
+                {% else %}
+                  <div class="product-thumbnail" style="display:flex; align-items:center; justify-content:center; font-size:18px;">👟</div>
+                {% endif %}
+                <div>
+                  <div class="product-name">{{ variant.product.name }}</div>
+                  <div class="product-brand">{{ variant.product.brand.name|default:"No Brand" }}</div>
+                </div>
+              </div>
+            </td>
+            <td style="font-weight: 700;">{{ variant.size.name }}</td>
+            <td style="text-transform: capitalize;">
+              <span style="display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:6px; background-color:{{ variant.color }}; border:1px solid #ccc; vertical-align:middle;"></span>
+              {{ variant.color }}
+            </td>
+            <td>
+              {% if variant.stock < 5 %}
+                <span class="stock-status-badge stock-status-low">Low Stock: {{ variant.stock }}</span>
+              {% else %}
+                <span class="stock-status-badge stock-status-normal">In Stock: {{ variant.stock }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <form method="POST" action="{% url 'adminpanel:inventory_update_stock' variant.id %}" class="stock-edit-form">
+                {% csrf_token %}
+                <input type="number" name="stock" value="{{ variant.stock }}" min="0" class="stock-number-input">
+                <button type="submit" class="btn-update-inline">Update</button>
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" style="padding:40px; text-align:center; color:var(--gray-500);">
+              <div style="font-size:32px; margin-bottom:12px;">🔍</div>
+              No inventory matches or variants found.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+    <div class="pagination-row">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if low_stock_only %}&low_stock=1{% endif %}" class="page-btn">&lsaquo;</a>
+      {% endif %}
+      
+      {% for num in page_obj.paginator.page_range %}
+        {% if num >= page_obj.number|add:"-3" and num <= page_obj.number|add:"3" %}
+          <a href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if low_stock_only %}&low_stock=1{% endif %}" 
+             class="page-btn {% if num == page_obj.number %}active{% endif %}">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+      
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if low_stock_only %}&low_stock=1{% endif %}" class="page-btn">&rsaquo;</a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

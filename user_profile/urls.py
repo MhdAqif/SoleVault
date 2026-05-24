@@ -10,5 +10,7 @@ urlpatterns = [
     path('address/add/',  views.add_address,    name='add_address'),
     path('address/edit/<int:pk>/', views.edit_address, name='edit_address'),
     path('address/delete/<int:pk>/', views.delete_address, name='delete_address'),
+    path('address/default/<int:pk>/', views.set_default_address, name='set_default_address'),
     path('change-password/', views.change_password, name='change_password'),
+    path('verify-email-otp/', views.verify_email_otp, name='verify_email_otp'),
 ]

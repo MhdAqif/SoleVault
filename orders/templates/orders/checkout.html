@@ -1,0 +1,373 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout – SoleVault{% endblock %}
+
+{% block extra_css %}
+<style>
+  .checkout-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+  .checkout-title {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 24px;
+    color: var(--black);
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
+  }
+  .checkout-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 40px;
+  }
+  .section-card {
+    background: var(--white);
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid var(--gray-200);
+    margin-bottom: 24px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.02);
+  }
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--black);
+    border-bottom: 1px solid var(--gray-200);
+    padding-bottom: 12px;
+  }
+  
+  /* Address Cards */
+  .address-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    margin-bottom: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .address-option:hover {
+    border-color: var(--blue);
+    background: #fafcff;
+  }
+  .address-option.selected {
+    border-color: var(--blue);
+    background: var(--blue-lt);
+    box-shadow: 0 0 0 1px var(--blue);
+  }
+  .address-radio {
+    margin-top: 4px;
+    accent-color: var(--blue);
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+  .address-details {
+    flex: 1;
+    font-size: 13.5px;
+    color: var(--gray-800);
+    line-height: 1.5;
+  }
+  .address-name {
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .address-badge {
+    background: var(--blue);
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+  
+  /* Item Cards */
+  .checkout-items {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .checkout-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .checkout-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .checkout-item-img {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: var(--gray-100);
+  }
+  .checkout-item-info {
+    flex: 1;
+  }
+  .checkout-item-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: 3px;
+  }
+  .checkout-item-meta {
+    font-size: 12px;
+    color: var(--gray-500);
+  }
+  .checkout-item-price {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--black);
+    text-align: right;
+  }
+  
+  /* Totals Breakdown */
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: var(--gray-600);
+    margin-bottom: 12px;
+  }
+  .breakdown-row.discount {
+    color: #10b981;
+    font-weight: 600;
+  }
+  .breakdown-total {
+    border-top: 1px solid var(--gray-200);
+    padding-top: 16px;
+    margin-top: 16px;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--black);
+  }
+  
+  /* Payment Method */
+  .payment-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    border: 1px solid #10b981;
+    background: #ecfdf5;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
+  .payment-icon {
+    font-size: 20px;
+  }
+  .payment-text {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #065f46;
+  }
+  
+  .btn-place-order {
+    display: block;
+    width: 100%;
+    background: var(--blue);
+    color: var(--white);
+    text-align: center;
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 24px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 4px 14px rgba(13,89,242,0.3);
+  }
+  .btn-place-order:hover {
+    background: var(--blue-dk);
+  }
+  .btn-place-order:active {
+    transform: scale(0.98);
+  }
+  
+  .btn-add-address-checkout {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--blue);
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    margin-top: 10px;
+    transition: color 0.15s;
+  }
+  .btn-add-address-checkout:hover {
+    color: var(--blue-dk);
+    text-decoration: underline;
+  }
+  
+  @media (max-width: 900px) {
+    .checkout-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="checkout-container">
+  <h1 class="checkout-title">Checkout</h1>
+  
+  <form method="POST" action="{% url 'orders:checkout' %}" id="checkoutForm">
+    {% csrf_token %}
+    
+    <div class="checkout-grid">
+      
+      <!-- Left Column: Addresses -->
+      <div class="checkout-left">
+        <div class="section-card">
+          <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Delivery Address</span>
+            <a href="{% url 'user_profile:add_address' %}" class="btn-add-address-checkout" style="margin-top:0;">+ Add New Address</a>
+          </div>
+          
+          {% if addresses %}
+            <div class="address-options">
+              {% for address in addresses %}
+                <label class="address-option {% if address == default_address %}selected{% endif %}" id="label-addr-{{ address.id }}">
+                  <input type="radio" name="address_id" value="{{ address.id }}" class="address-radio" 
+                         {% if address == default_address %}checked{% endif %}
+                         onclick="selectAddress('{{ address.id }}')">
+                  
+                  <div class="address-details">
+                    <div class="address-name">
+                      {{ address.full_name }}
+                      {% if address.is_default %}
+                        <span class="address-badge">Default</span>
+                      {% endif %}
+                    </div>
+                    <div>{{ address.address }}</div>
+                    <div>{{ address.city }}, {{ address.district }}</div>
+                    <div>{{ address.state }} - <b>{{ address.pincode }}</b></div>
+                    <div style="margin-top: 6px; color: var(--gray-600); font-weight: 600;">Phone: {{ address.phone }}</div>
+                  </div>
+                  
+                  <a href="{% url 'user_profile:edit_address' address.id %}" 
+                     style="position: absolute; right: 12px; top: 12px; font-size: 11px; color: var(--blue); font-weight: 700; text-decoration: none;"
+                     title="Edit Address">Edit</a>
+                </label>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div style="text-align: center; padding: 30px 10px;">
+              <p style="color: var(--gray-600); margin-bottom: 15px;">No shipping addresses found in your profile.</p>
+              <a href="{% url 'user_profile:add_address' %}" style="display:inline-block; background:var(--blue); color:white; padding:10px 20px; border-radius:6px; font-weight:700; text-decoration:none; font-size:13px;">Add Shipping Address</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Right Column: Order Summary -->
+      <div class="checkout-right">
+        <div class="section-card">
+          <div class="section-title">Order Summary</div>
+          
+          <!-- Items List -->
+          <div class="checkout-items">
+            {% for item in cart_items %}
+              <div class="checkout-item">
+                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="checkout-item-img">
+                <div class="checkout-item-info">
+                  <div class="checkout-item-name">{{ item.product.name }}</div>
+                  <div class="checkout-item-meta">
+                    Size: {{ item.size|default:"Not Available" }} &nbsp;|&nbsp; Color: {{ item.variant.color|default:"Not Available" }}<br>
+                    Qty: <b>{{ item.quantity }}</b>
+                  </div>
+                </div>
+                <div class="checkout-item-price">₹{{ item.total_price }}</div>
+              </div>
+            {% endfor %}
+          </div>
+          
+          <!-- Pricing Math -->
+          <div class="breakdown-row">
+            <span>Subtotal</span>
+            <span>₹{{ subtotal }}</span>
+          </div>
+          {% if total_discount > 0 %}
+            <div class="breakdown-row discount">
+              <span>Savings Discount</span>
+              <span>-₹{{ total_discount }}</span>
+            </div>
+          {% endif %}
+          <div class="breakdown-row">
+            <span>GST (18% included)</span>
+            <span>₹{{ tax|floatformat:2 }}</span>
+          </div>
+          <div class="breakdown-row">
+            <span>Shipping</span>
+            <span>
+              {% if shipping_fee == 0 %}
+                <span style="color:#10b981; font-weight:700; text-transform:uppercase;">FREE</span>
+              {% else %}
+                ₹{{ shipping_fee }}
+              {% endif %}
+            </span>
+          </div>
+          
+          <div class="breakdown-row breakdown-total">
+            <span>Total Payable</span>
+            <span>₹{{ final_price }}</span>
+          </div>
+          
+          <!-- Payment Method info -->
+          <div class="payment-box">
+            <span class="payment-icon">💵</span>
+            <div class="payment-text">Cash on Delivery (COD)</div>
+          </div>
+          
+          {% if addresses %}
+            <button type="submit" class="btn-place-order">PLACE ORDER (₹{{ final_price }})</button>
+          {% else %}
+            <button type="button" class="btn-place-order" style="background:var(--gray-400); cursor:not-allowed;" disabled>ADD ADDRESS TO PLACE ORDER</button>
+          {% endif %}
+          
+          <p style="font-size: 11px; color: var(--gray-500); text-align: center; margin-top: 15px; line-height: 1.4;">
+            By placing your order, you agree to SoleVault's Terms of Use and Privacy Policy.
+          </p>
+        </div>
+      </div>
+      
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function selectAddress(addressId) {
+    // Remove selected class from all labels
+    document.querySelectorAll('.address-option').forEach(function(el) {
+      el.classList.remove('selected');
+    });
+    
+    // Add selected class to chosen label
+    const selectedLabel = document.getElementById('label-addr-' + addressId);
+    if(selectedLabel) {
+      selectedLabel.classList.add('selected');
+    }
+  }
+</script>
+{% endblock %}

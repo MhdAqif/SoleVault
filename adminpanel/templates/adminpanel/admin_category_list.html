@@ -1,67 +1,76 @@
 {% extends 'adminpanel/admin_base.html' %}
 {% load static %}
 
-{% block title %}Manage Categories – SoleVault Admin{% endblock %}
+{% block title %}Categories – SoleVault Admin{% endblock %}
 {% block nav_categories %}active{% endblock %}
+{% block topbar_title %}Categories{% endblock %}
+{% block topbar_breadcrumb %}Manage product categories{% endblock %}
 
 {% block content %}
-<div class="header-split" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-  <h2>Categories</h2>
-  <a href="{% url 'adminpanel:category_add' %}" style="background:#0D59F2; color:white; padding:8px 15px; border-radius:6px; font-weight:600; font-size:13px; text-decoration:none;">+ Add Category</a>
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+  <h2 style="font-size:20px; font-weight:700; color:var(--text); letter-spacing:-0.02em; margin:0;">Categories</h2>
+  <a href="{% url 'adminpanel:category_add' %}" class="btn-primary">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Add Category
+  </a>
 </div>
 
 <!-- Search Bar -->
-<div style="margin-bottom: 20px; display:flex; gap:10px;">
+<div style="margin-bottom:20px; display:flex; gap:10px;">
   <form method="GET" style="display:flex; gap:10px; flex-grow:1;">
-    <input type="text" name="q" value="{{ query }}" placeholder="Search categories..." style="padding:10px; width:100%; max-width:400px; border:1px solid var(--gray-200); border-radius:4px;">
-    <button type="submit" style="background:#0D59F2; color:white; padding:8px 15px; border:none; border-radius:4px; font-weight:600; cursor:pointer;">Search</button>
+    <div style="flex-grow:1; max-width:400px;">
+      <input type="text" name="q" value="{{ query }}" placeholder="Search categories..." style="padding:9px 14px; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; font-size:13.5px; color:var(--text); outline:none; width:100%; transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+    </div>
+    <button type="submit" class="btn-primary" style="padding:9px 16px;">Search</button>
     {% if query %}
-      <a href="{% url 'adminpanel:category_list' %}" style="background:var(--gray-200); color:var(--gray-800); padding:8px 15px; text-decoration:none; border-radius:4px; font-weight:600; display:flex; align-items:center;">Clear</a>
+      <a href="{% url 'adminpanel:category_list' %}" class="btn-secondary">Clear</a>
     {% endif %}
   </form>
 </div>
 
-<div class="user-table-wrap" style="background:#fff; border:1px solid var(--gray-200); border-radius:8px; overflow:hidden;">
-  <table style="width:100%; border-collapse:collapse; text-align:left;">
-    <thead style="background:var(--gray-100); font-size:12px; text-transform:uppercase; color:var(--gray-600);">
+<div class="table-card">
+  <table>
+    <thead>
       <tr>
-        <th style="padding:15px; border-bottom:1px solid var(--gray-200); width:60px;">Image</th>
-        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Name</th>
-        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Gender</th>
-        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Status</th>
-        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Actions</th>
+        <th>Image</th>
+        <th>Name</th>
+        <th>Gender</th>
+        <th>Status</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for category in page_obj %}
       <tr>
-        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">
+        <td>
           {% if category.image %}
-            <img src="{{ category.image.url }}" style="width:40px; height:40px; border-radius:4px; object-fit:cover;">
+            <img src="{{ category.image.url }}" style="width:40px; height:40px; border-radius:6px; object-fit:cover; border:1px solid var(--border);">
           {% else %}
-            <div style="width:40px; height:40px; border-radius:4px; background:#eee;"></div>
+            <div style="width:40px; height:40px; border-radius:6px; background:var(--surface-2); border:1px solid var(--border);"></div>
           {% endif %}
         </td>
-        <td style="padding:15px; border-bottom:1px solid var(--gray-200); font-weight:600;">{{ category.name }}</td>
-        <td style="padding:15px; border-bottom:1px solid var(--gray-200); text-transform:capitalize;">{{ category.gender }}</td>
-        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">
+        <td style="font-weight:600;">{{ category.name }}</td>
+        <td style="text-transform:capitalize; color:var(--text-muted);">{{ category.gender }}</td>
+        <td>
           {% if category.is_active %}
-            <span style="color:#155724; background:#d4edda; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">Active</span>
+            <span class="badge badge-active">Active</span>
           {% else %}
-            <span style="color:#721c24; background:#f8d7da; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">Inactive</span>
+            <span class="badge badge-blocked">Inactive</span>
           {% endif %}
         </td>
-        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">
-          <a href="{% url 'adminpanel:category_edit' category.id %}" style="color:var(--blue); font-weight:600; font-size:13px; margin-right:10px; text-decoration:none;">Edit</a>
-          <form method="POST" action="{% url 'adminpanel:category_delete' category.id %}" style="display:inline;" onsubmit="event.preventDefault(); showCustomConfirm('Do you want to soft delete the category &ldquo;{{ category.name }}&rdquo;?', this, 'Soft Delete', '#e8221a');">
-            {% csrf_token %}
-            <button type="submit" style="background:none; border:none; color:var(--red); font-weight:600; font-size:13px; cursor:pointer;">Delete</button>
-          </form>
+        <td>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <a href="{% url 'adminpanel:category_edit' category.id %}" class="btn-secondary" style="font-size:12px; padding:5px 12px;">Edit</a>
+            <form method="POST" action="{% url 'adminpanel:category_delete' category.id %}" style="display:inline;" onsubmit="event.preventDefault(); showCustomConfirm('Do you want to soft delete the category &ldquo;{{ category.name }}&rdquo;?', this, 'Soft Delete', '#ef4444');">
+              {% csrf_token %}
+              <button type="submit" class="btn-danger" style="font-size:12px; padding:5px 12px;">Delete</button>
+            </form>
+          </div>
         </td>
       </tr>
       {% empty %}
       <tr>
-        <td colspan="5" style="padding:20px; text-align:center; color:var(--gray-600);">No categories found.</td>
+        <td colspan="5" style="padding:40px; text-align:center; color:var(--text-subtle);">No categories found.</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -71,21 +80,19 @@
 {% load custom_filters %}
 <!-- Pagination -->
 {% if page_obj.has_other_pages %}
-<div style="display:flex; justify-content:center; gap:8px; margin-top:30px; margin-bottom:30px;">
+<div style="display:flex; justify-content:center; gap:6px; margin-top:24px;">
   {% if page_obj.has_previous %}
-    <a href="?{% query_transform page=page_obj.previous_page_number %}" style="padding:8px 16px; background:#fff; border:1px solid var(--gray-200); border-radius:6px; text-decoration:none; color:var(--gray-800); font-weight:600; font-size:14px;">Previous</a>
+    <a href="?{% query_transform page=page_obj.previous_page_number %}" class="page-btn">‹</a>
   {% endif %}
-
   {% for num in page_obj.paginator.page_range %}
     {% if page_obj.number == num %}
-      <span style="padding:8px 16px; background:#0D59F2; border:1px solid #0D59F2; border-radius:6px; color:#fff; font-weight:700; font-size:14px;">{{ num }}</span>
+      <span class="page-btn active">{{ num }}</span>
     {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-      <a href="?{% query_transform page=num %}" style="padding:8px 16px; background:#fff; border:1px solid var(--gray-200); border-radius:6px; text-decoration:none; color:var(--gray-800); font-weight:600; font-size:14px;">{{ num }}</a>
+      <a href="?{% query_transform page=num %}" class="page-btn">{{ num }}</a>
     {% endif %}
   {% endfor %}
-
   {% if page_obj.has_next %}
-    <a href="?{% query_transform page=page_obj.next_page_number %}" style="padding:8px 16px; background:#fff; border:1px solid var(--gray-200); border-radius:6px; text-decoration:none; color:var(--gray-800); font-weight:600; font-size:14px;">Next</a>
+    <a href="?{% query_transform page=page_obj.next_page_number %}" class="page-btn">›</a>
   {% endif %}
 </div>
 {% endif %}

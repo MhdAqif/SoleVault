@@ -1,0 +1,490 @@
+/*
+ * SoleVault — Global Dark Mode Override
+ * Injected last so it beats all per-app :root definitions.
+ * Reference palette: dark navy/charcoal like the dashboard image.
+ */
+
+/* ─── CORE VARIABLE OVERRIDES ─────────────────────────────── */
+[data-theme="dark"] {
+  --blue:       #4a8ef5;
+  --blue-dark:  #3a7be0;
+  --blue-dk:    #3a7be0;
+  --blue-lt:    #1a2a4a;
+  --black:      #e8eaf0;
+  --white:      #181c2e;
+  --gray-100:   #1e2235;
+  --gray-200:   #252b40;
+  --gray-400:   #5a6380;
+  --gray-600:   #8892a8;
+  --gray-800:   #c8cfdf;
+  --text:       #e8eaf0;
+  --text-muted: #8892a8;
+  --text-subtle:#5a6380;
+  --muted:      #8892a8;
+  --border:     #252b40;
+  --bg:         #111527;
+  --surface:    #181c2e;
+  --surface-2:  #1e2235;
+  --nav-bg:     #141828;
+  --input-bg:   #1e2235;
+  --card-bg:    #1e2235;
+  --shadow:     rgba(0,0,0,0.50);
+  --sale:       #f59e0b;
+  --red:        #f87171;
+  --purple:     #a78bfa;
+  --purple-lt:  #1e1a35;
+}
+
+/* ─── BODY & HTML ─────────────────────────────────────────── */
+[data-theme="dark"] body {
+  background: #111527;
+  color: #e8eaf0;
+}
+
+/* ─── NAVBAR ─────────────────────────────────────────────── */
+[data-theme="dark"] nav {
+  background: #141828 !important;
+  border-bottom-color: #252b40 !important;
+}
+
+/* ─── ANNOUNCEMENT BAR ───────────────────────────────────── */
+[data-theme="dark"] .announcement {
+  background: #0a46c4;
+}
+
+/* ─── SEARCH INPUT ───────────────────────────────────────── */
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="email"],
+[data-theme="dark"] input[type="password"],
+[data-theme="dark"] input[type="number"],
+[data-theme="dark"] input[type="search"],
+[data-theme="dark"] input[type="tel"],
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background: #1e2235 !important;
+  color: #e8eaf0 !important;
+  border-color: #252b40 !important;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #5a6380 !important;
+}
+
+/* Inline-styled search inputs in navbar */
+[data-theme="dark"] .nav-actions input[type="text"] {
+  background: #1e2235 !important;
+  color: #e8eaf0 !important;
+  border-color: #252b40 !important;
+}
+
+/* ─── FOOTER ─────────────────────────────────────────────── */
+[data-theme="dark"] footer {
+  background: #181c2e !important;
+  border-top-color: #252b40 !important;
+}
+
+/* ─── CARDS / SURFACES ───────────────────────────────────── */
+[data-theme="dark"] .profile-sidebar,
+[data-theme="dark"] .profile-card,
+[data-theme="dark"] .cart-items,
+[data-theme="dark"] .cart-summary,
+[data-theme="dark"] .product-tabs,
+[data-theme="dark"] .tab-content,
+[data-theme="dark"] .similar-grid,
+[data-theme="dark"] .order-card,
+[data-theme="dark"] .order-header,
+[data-theme="dark"] .wishlist-card,
+[data-theme="dark"] .address-card,
+[data-theme="dark"] .checkout-container,
+[data-theme="dark"] .section-card {
+  background: #1e2235 !important;
+  border-color: #252b40 !important;
+  color: #e8eaf0 !important;
+}
+
+/* ─── PRODUCT CARDS ──────────────────────────────────────── */
+[data-theme="dark"] .product-card,
+[data-theme="dark"] .product-card-inner,
+[data-theme="dark"] .product-card-info {
+  background: #1e2235 !important;
+  border-color: #252b40 !important;
+  color: #e8eaf0 !important;
+}
+
+[data-theme="dark"] .product-card-img {
+  background: #252b40 !important;
+}
+
+[data-theme="dark"] .product-card-name {
+  color: #e8eaf0 !important;
+}
+
+[data-theme="dark"] .product-card-price {
+  color: #e8eaf0 !important;
+}
+
+[data-theme="dark"] .product-card-brand {
+  color: #8892a8 !important;
+}
+
+/* ─── GALLERY / PRODUCT DETAIL ───────────────────────────── */
+[data-theme="dark"] .gallery-main,
+[data-theme="dark"] .thumb {
+  background: #252b40 !important;
+}
+
+[data-theme="dark"] .product-title,
+[data-theme="dark"] .product-price-hero {
+  color: #e8eaf0 !important;
+}
+
+[data-theme="dark"] .size-section,
+[data-theme="dark"] .delivery-section,
+[data-theme="dark"] .product-tabs {
+  border-color: #252b40 !important;
+}
+
+[data-theme="dark"] .size-btn {
+  background: #252b40 !important;
+  color: #e8eaf0 !important;
+  border-color: #3a4060 !important;
+}
+
+[data-theme="dark"] .size-btn.active {
+  background: #4a8ef5 !important;
+  color: #fff !important;
+  border-color: #4a8ef5 !important;
+}
+
+[data-theme="dark"] .size-btn.disabled {
+  background: #1a1e2e !important;
+  color: #3a4060 !important;
+}
+
+[data-theme="dark"] .tab-nav-btn {
+  background: #1e2235 !important;
+  color: #8892a8 !important;
+  border-color: #252b40 !important;
+}
+
+[data-theme="dark"] .tab-nav-btn.active {
+  background: #4a8ef5 !important;
+  color: #fff !important;
+}
+
+/* ─── SHOP FILTER SIDEBAR ────────────────────────────────── */
+[data-theme="dark"] .filter-sidebar,
+[data-theme="dark"] .filter-section {
+  background: #1e2235 !important;
+  border-color: #252b40 !important;
+  color: #e8eaf0 !important;
+}
+
+[data-theme="dark"] .filter-section-title {
+  color: #e8eaf0 !important;
+  border-bottom-color: #252b40 !important;
+}
+
+[data-theme="dark"] .filter-label {
+  color: #c8cfdf !important;
+}
+
+[data-theme="dark"] .filter-chip,
+[data-theme="dark"] .filter-tag,
+[data-theme="dark"] .size-filter-btn {
+  background: #252b40 !important;
+  color: #c8cfdf !important;
+  border-color: #3a4060 !important;
+}
+
+[data-theme="dark"] .filter-chip.active,
+[data-theme="dark"] .filter-tag.active,
+[data-theme="dark"] .size-filter-btn.active {
+  background: #4a8ef5 !important;
+  color: #fff !important;
+  border-color: #4a8ef5 !important;
+}
+
+/* ─── RANGE SLIDER ───────────────────────────────────────── */
+[data-theme="dark"] input[type="range"] {
+  accent-color: #4a8ef5;
+}
+
+/* ─── SHOP HERO BANNER ───────────────────────────────────── */
+[data-theme="dark"] .hero-banner {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+/* ─── BREADCRUMB ─────────────────────────────────────────── */
+[data-theme="dark"] .breadcrumb,
+[data-theme="dark"] .breadcrumb-bar {
+  color: #8892a8 !important;
+}
+
+[data-theme="dark"] .breadcrumb a,
+[data-theme="dark"] .breadcrumb-link {
+  color: #c8cfdf !important;
+}
+
+/* ─── SORT / SELECT DROPDOWNS ────────────────────────────── */
+[data-theme="dark"] .sort-select,
+[data-theme="dark"] select {
+  background: #1e2235 !important;
+  color: #e8eaf0 !important;
+  border-color: #252b40 !important;
+}
+
+/* ─── CART PAGE ──────────────────────────────────────────── */
+[data-theme="dark"] .cart-container {
+  color: #e8eaf0 !important;
+}
+
+[data-theme="dark"] .cart-header {
+  color: #e8eaf0 !important;
+}
+
+[data-theme="dark"] .cart-item {
+  border-bottom-color: #252b40 !important;
+}
+
+[data-theme="dark"] .cart-item-title {
+  color: #e8eaf0 !important;
+}
+
+[data-theme="dark"] .cart-item-meta {
+  color: #8892a8 !important;
+}
+
+[data-theme="dark"] .cart-item-price {
+  color: #e8eaf0 !important;
+}
+
+[data-theme="dark"] .summary-title {
+  color: #e8eaf0 !important;
+}
+
+[data-theme="dark"] .summary-row {
+  color: #c8cfdf !important;
+}
+
+[data-theme="dark"] .summary-total {
+  border-top-color: #252b40 !important;
+  color: #e8eaf0 !important;
+}
+
+[data-theme="dark"] .qty-control {
+  border-color: #252b40 !important;
+}
+
+[data-theme="dark"] .qty-btn {
+  background: #252b40 !important;
+  color: #e8eaf0 !important;
+}
+
+[data-theme="dark"] .qty-val,
+[data-theme="dark"] .qty-value {
+  color: #e8eaf0 !important;
+}
+
+/* ─── PROFILE / ADDRESSES ────────────────────────────────── */
+[data-theme="dark"] .profile-layout {
+  color: #e8eaf0;
+}
+
+[data-theme="dark"] .sidebar-header {
+  border-bottom-color: #252b40 !important;
+}
+
+[data-theme="dark"] .sidebar-name,
+[data-theme="dark"] .sidebar-email {
+  color: #e8eaf0 !important;
+}
+
+[data-theme="dark"] .profile-nav-link {
+  color: #8892a8 !important;
+}
+
+[data-theme="dark"] .profile-nav-link:hover,
+[data-theme="dark"] .profile-nav-link.active {
+  color: #4a8ef5 !important;
+  background: #1a2a4a !important;
+}
+
+[data-theme="dark"] .profile-content {
+  background: #1e2235 !important;
+  border-color: #252b40 !important;
+}
+
+[data-theme="dark"] .section-title,
+[data-theme="dark"] .profile-section-title,
+[data-theme="dark"] .card-title {
+  color: #e8eaf0 !important;
+}
+
+[data-theme="dark"] .form-label,
+[data-theme="dark"] label {
+  color: #c8cfdf !important;
+}
+
+/* ─── ORDERS ─────────────────────────────────────────────── */
+[data-theme="dark"] .order-status-badge {
+  border-color: #252b40 !important;
+}
+
+[data-theme="dark"] .order-product-row,
+[data-theme="dark"] .order-item {
+  border-bottom-color: #252b40 !important;
+  color: #e8eaf0 !important;
+}
+
+[data-theme="dark"] .order-summary-box {
+  background: #252b40 !important;
+  border-color: #3a4060 !important;
+}
+
+/* ─── CHECKOUT PAGE ──────────────────────────────────────── */
+[data-theme="dark"] .address-card {
+  background: #1e2235 !important;
+  border-color: #252b40 !important;
+}
+
+[data-theme="dark"] .address-card.selected,
+[data-theme="dark"] .address-card:has(input:checked) {
+  border-color: #4a8ef5 !important;
+  background: #1a2a4a !important;
+}
+
+[data-theme="dark"] .pincode-input {
+  background: #1e2235 !important;
+  color: #e8eaf0 !important;
+  border-color: #252b40 !important;
+}
+
+/* ─── DELIVERY SECTION ───────────────────────────────────── */
+[data-theme="dark"] .delivery-section {
+  background: #1e2235 !important;
+  border-color: #252b40 !important;
+}
+
+[data-theme="dark"] .delivery-badge {
+  background: #1a3a2a !important;
+  color: #6ee7b7 !important;
+  border-color: #2a5a3a !important;
+}
+
+/* ─── PAGINATION ─────────────────────────────────────────── */
+[data-theme="dark"] .pagination-btn,
+[data-theme="dark"] .page-btn {
+  background: #1e2235 !important;
+  color: #c8cfdf !important;
+  border-color: #252b40 !important;
+}
+
+[data-theme="dark"] .pagination-btn.active,
+[data-theme="dark"] .page-btn.active {
+  background: #4a8ef5 !important;
+  color: #fff !important;
+}
+
+/* ─── LOGIN GATE MODAL ───────────────────────────────────── */
+[data-theme="dark"] .login-gate-box {
+  background: #1e2235 !important;
+}
+
+[data-theme="dark"] .login-gate-box h2 {
+  color: #e8eaf0 !important;
+}
+
+[data-theme="dark"] .login-gate-box p {
+  color: #8892a8 !important;
+}
+
+[data-theme="dark"] .lg-btn-login {
+  background: #4a8ef5 !important;
+  color: #fff !important;
+}
+
+[data-theme="dark"] .lg-btn-register {
+  background: #252b40 !important;
+  color: #e8eaf0 !important;
+}
+
+/* ─── ACCOUNTS (LOGIN / SIGNUP) ─────────────────────────── */
+[data-theme="dark"] .form-container,
+[data-theme="dark"] .auth-card,
+[data-theme="dark"] .auth-box,
+[data-theme="dark"] .login-card,
+[data-theme="dark"] .signup-card {
+  background: #1e2235 !important;
+  border-color: #252b40 !important;
+  color: #e8eaf0 !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+}
+
+[data-theme="dark"] .form-title,
+[data-theme="dark"] .auth-title,
+[data-theme="dark"] h1, [data-theme="dark"] h2,
+[data-theme="dark"] h3, [data-theme="dark"] h4,
+[data-theme="dark"] h5, [data-theme="dark"] h6 {
+  color: #e8eaf0;
+}
+
+[data-theme="dark"] p {
+  color: #c8cfdf;
+}
+
+/* ─── BUTTONS ────────────────────────────────────────────── */
+[data-theme="dark"] .btn-primary,
+[data-theme="dark"] .btn-submit,
+[data-theme="dark"] .btn-add-cart {
+  background: #4a8ef5 !important;
+  border-color: #4a8ef5 !important;
+  color: #fff !important;
+}
+
+[data-theme="dark"] .btn-outline,
+[data-theme="dark"] .btn-secondary,
+[data-theme="dark"] .btn-cancel,
+[data-theme="dark"] .btn-change {
+  background: #252b40 !important;
+  border-color: #3a4060 !important;
+  color: #c8cfdf !important;
+}
+
+[data-theme="dark"] .remove-btn {
+  color: #f87171 !important;
+}
+
+/* ─── HOME PAGE ──────────────────────────────────────────── */
+[data-theme="dark"] .featured-grid .product-card {
+  background: #1e2235 !important;
+}
+
+[data-theme="dark"] .category-chip,
+[data-theme="dark"] .category-card {
+  background: #1e2235 !important;
+  border-color: #252b40 !important;
+  color: #e8eaf0 !important;
+}
+
+/* ─── GENERAL DIVIDERS AND SEPARATORS ─────────────────────── */
+[data-theme="dark"] hr,
+[data-theme="dark"] .divider {
+  border-color: #252b40 !important;
+}
+
+/* ─── SCROLLBAR ──────────────────────────────────────────── */
+[data-theme="dark"] ::-webkit-scrollbar {
+  width: 8px;
+  background: #111527;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #252b40;
+  border-radius: 4px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #3a4060;
+}

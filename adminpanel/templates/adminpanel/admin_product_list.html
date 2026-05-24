@@ -1,26 +1,31 @@
 {% extends 'adminpanel/admin_base.html' %}
 {% load static %}
 
-{% block title %}Manage Products – SoleVault Admin{% endblock %}
+{% block title %}Products – SoleVault Admin{% endblock %}
 {% block nav_products %}active{% endblock %}
+{% block topbar_title %}Products{% endblock %}
+{% block topbar_breadcrumb %}Manage your product catalog{% endblock %}
 
 {% block content %}
-<div class="header-split" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-  <h2>Products</h2>
-  <a href="{% url 'adminpanel:product_add' %}" style="background:#0D59F2; color:white; padding:8px 15px; border-radius:6px; font-weight:600; font-size:13px; text-decoration:none;">+ Add Product</a>
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+  <h2 style="font-size:20px; font-weight:700; color:var(--text); letter-spacing:-0.02em; margin:0;">Products</h2>
+  <a href="{% url 'adminpanel:product_add' %}" class="btn-primary">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Add Product
+  </a>
 </div>
 
 <!-- Search and Filter Bar -->
-<div style="margin-bottom: 20px; background:#fff; padding:15px; border-radius:8px; border:1px solid var(--gray-200);">
+<div style="margin-bottom:24px; background:var(--surface); padding:20px; border-radius:12px; border:1px solid var(--border); box-shadow:var(--shadow-card);">
   <form method="GET" style="display:flex; flex-wrap:wrap; gap:15px; align-items:flex-end;">
-    <div style="flex: 2; min-width: 200px;">
-      <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px; color:var(--gray-600); text-transform:uppercase;">Search</label>
-      <input type="text" name="q" value="{{ query }}" placeholder="Name, brand, slug..." style="padding:10px; width:100%; border:1px solid var(--gray-300); border-radius:6px; font-size:14px;">
+    <div style="flex:2; min-width:200px;">
+      <label style="display:block; font-size:11px; font-weight:700; margin-bottom:6px; color:var(--text-subtle); text-transform:uppercase; letter-spacing:0.05em;">Search</label>
+      <input type="text" name="q" value="{{ query }}" placeholder="Name, brand, slug..." style="padding:9px 14px; width:100%; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; font-size:13.5px; color:var(--text); outline:none; transition:border-color 0.15s; box-sizing:border-box;" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
     </div>
     
-    <div style="flex: 1; min-width: 130px;">
-      <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px; color:var(--gray-600); text-transform:uppercase;">Category</label>
-      <select name="category" style="padding:10px; width:100%; border:1px solid var(--gray-300); border-radius:6px; font-size:14px; background:white;">
+    <div style="flex:1; min-width:130px;">
+      <label style="display:block; font-size:11px; font-weight:700; margin-bottom:6px; color:var(--text-subtle); text-transform:uppercase; letter-spacing:0.05em;">Category</label>
+      <select name="category" style="padding:9px 12px; width:100%; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; font-size:13.5px; color:var(--text); outline:none; cursor:pointer; box-sizing:border-box;">
         <option value="">All Categories</option>
         {% for cat in categories %}
           <option value="{{ cat.id }}" {% if cat_id == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }} ({{ cat.gender }})</option>
@@ -28,9 +33,9 @@
       </select>
     </div>
 
-    <div style="flex: 1; min-width: 130px;">
-      <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px; color:var(--gray-600); text-transform:uppercase;">Brand</label>
-      <select name="brand" style="padding:10px; width:100%; border:1px solid var(--gray-300); border-radius:6px; font-size:14px; background:white;">
+    <div style="flex:1; min-width:130px;">
+      <label style="display:block; font-size:11px; font-weight:700; margin-bottom:6px; color:var(--text-subtle); text-transform:uppercase; letter-spacing:0.05em;">Brand</label>
+      <select name="brand" style="padding:9px 12px; width:100%; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; font-size:13.5px; color:var(--text); outline:none; cursor:pointer; box-sizing:border-box;">
         <option value="">All Brands</option>
         {% for b in brands %}
           <option value="{{ b.id }}" {% if brand_id == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
@@ -38,9 +43,9 @@
       </select>
     </div>
 
-    <div style="flex: 0.8; min-width: 100px;">
-      <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px; color:var(--gray-600); text-transform:uppercase;">Size</label>
-      <select name="size" style="padding:10px; width:100%; border:1px solid var(--gray-300); border-radius:6px; font-size:14px; background:white;">
+    <div style="flex:0.8; min-width:100px;">
+      <label style="display:block; font-size:11px; font-weight:700; margin-bottom:6px; color:var(--text-subtle); text-transform:uppercase; letter-spacing:0.05em;">Size</label>
+      <select name="size" style="padding:9px 12px; width:100%; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; font-size:13.5px; color:var(--text); outline:none; cursor:pointer; box-sizing:border-box;">
         <option value="">All Sizes</option>
         {% for s in sizes %}
           <option value="{{ s.id }}" {% if size_id == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
@@ -48,9 +53,9 @@
       </select>
     </div>
 
-    <div style="flex: 1; min-width: 120px;">
-      <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px; color:var(--gray-600); text-transform:uppercase;">Color</label>
-      <select name="color" style="padding:10px; width:100%; border:1px solid var(--gray-300); border-radius:6px; font-size:14px; background:white;">
+    <div style="flex:1; min-width:120px;">
+      <label style="display:block; font-size:11px; font-weight:700; margin-bottom:6px; color:var(--text-subtle); text-transform:uppercase; letter-spacing:0.05em;">Color</label>
+      <select name="color" style="padding:9px 12px; width:100%; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; font-size:13.5px; color:var(--text); outline:none; cursor:pointer; box-sizing:border-box;">
         <option value="">All Colors</option>
         {% for c in colors %}
           <option value="{{ c }}" {% if selected_color == c %}selected{% endif %}>{{ c|title }}</option>
@@ -59,79 +64,82 @@
     </div>
 
     <div style="display:flex; gap:8px;">
-      <button type="submit" style="background:#0D59F2; color:white; padding:10px 20px; border:none; border-radius:6px; font-weight:600; cursor:pointer; font-size:14px;">Filter</button>
-      <a href="{% url 'adminpanel:product_list' %}" style="background:var(--gray-200); color:var(--gray-800); padding:10px 20px; text-decoration:none; border-radius:6px; font-weight:600; font-size:14px; display:inline-flex; align-items:center;">Reset</a>
+      <button type="submit" class="btn-primary" style="padding:9px 20px; font-size:13.5px;">Filter</button>
+      <a href="{% url 'adminpanel:product_list' %}" class="btn-secondary" style="padding:9px 16px; font-size:13.5px; display:inline-flex; align-items:center;">Reset</a>
     </div>
   </form>
 </div>
 
-<div class="user-table-wrap" style="background:#fff; border:1px solid var(--gray-200); border-radius:8px; overflow:hidden;">
-  <table style="width:100%; border-collapse:collapse; text-align:left;">
-    <thead style="background:var(--gray-100); font-size:12px; text-transform:uppercase; color:var(--gray-600);">
+<div class="table-card">
+  <table>
+    <thead>
       <tr>
-        <th style="padding:15px; border-bottom:1px solid var(--gray-200); width:60px;">Image</th>
-        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Product Info</th>
-        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Variants (Size & Color)</th>
-        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Price</th>
-        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Status</th>
-        <th style="padding:15px; border-bottom:1px solid var(--gray-200);">Actions</th>
+        <th>Image</th>
+        <th>Product Info</th>
+        <th>Variants (Size & Color)</th>
+        <th>Price</th>
+        <th>Status</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for product in page_obj %}
       <tr>
-        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">
+        <td>
           {% if product.image %}
-            <img src="{{ product.image.url }}" style="width:50px; height:50px; border-radius:6px; object-fit:cover; border:1px solid var(--gray-200);">
+            <img src="{{ product.image.url }}" style="width:48px; height:48px; border-radius:6px; object-fit:cover; border:1px solid var(--border);">
           {% else %}
-            <div style="width:50px; height:50px; border-radius:6px; background:#eee; border:1px solid var(--gray-200);"></div>
+            <div style="width:48px; height:48px; border-radius:6px; background:var(--surface-2); border:1px solid var(--border);"></div>
           {% endif %}
         </td>
-        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">
-          <div style="font-weight:700; color:var(--gray-900); font-size:14px;">{{ product.name }}</div>
-          <div style="font-size:12px; color:var(--gray-500);">{{ product.brand.name|default:"No Brand" }} | {{ product.category.name|default:"No Category" }}</div>
+        <td>
+          <div style="font-weight:700; color:var(--text); font-size:14px;">{{ product.name }}</div>
+          <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">{{ product.brand.name|default:"No Brand" }} | {{ product.category.name|default:"No Category" }}</div>
         </td>
-        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">
+        <td>
           {% if product.variants.all %}
-            <div style="display:flex; flex-wrap:wrap; gap:5px;">
+            <div style="display:flex; flex-wrap:wrap; gap:6px;">
               {% for variant in product.variants.all %}
-                <span style="background:#f8f9fa; border:1px solid #e9ecef; padding:3px 8px; border-radius:4px; font-size:11px; white-space:nowrap; color:var(--gray-700);">
-                  <strong>{{ variant.size.name }}</strong> | {{ variant.color|title }} | Stock: <strong style="color:{% if variant.stock < 5 %}#dc3545{% else %}#28a745{% endif %};">{{ variant.stock }}</strong>
+                <span style="background:var(--surface-2); border:1px solid var(--border); padding:3px 8px; border-radius:6px; font-size:11px; white-space:nowrap; color:var(--text); display:inline-flex; align-items:center; gap:4px;">
+                  <strong style="color:var(--blue);">{{ variant.size.name }}</strong>
+                  <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:{{ variant.color }}; border:1px solid rgba(255,255,255,0.15);"></span>
+                  {{ variant.color|title }}
+                  | Stock: <strong style="color:{% if variant.stock < 5 %}#f87171{% else %}#34d399{% endif %};">{{ variant.stock }}</strong>
                 </span>
               {% endfor %}
             </div>
           {% else %}
-            <span style="font-size:11px; color:#dc3545; font-style:italic;">No variants added</span>
+            <span style="font-size:12px; color:#f87171; font-style:italic;">No variants added</span>
           {% endif %}
         </td>
-        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">
-          <div style="font-weight:700; color:var(--gray-900);">₹{{ product.price }}</div>
+        <td>
+          <div style="font-weight:700; color:var(--text);">₹{{ product.price }}</div>
           {% if product.original_price %}
-            <div style="font-size:11px; color:var(--gray-400); text-decoration:line-through;">₹{{ product.original_price }}</div>
+            <div style="font-size:11px; color:var(--text-subtle); text-decoration:line-through; margin-top:2px;">₹{{ product.original_price }}</div>
           {% endif %}
         </td>
-        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">
+        <td>
           {% if product.is_active %}
-            <span style="color:#155724; background:#d4edda; padding:4px 10px; border-radius:50px; font-size:10px; font-weight:800; text-transform:uppercase; border:1px solid #c3e6cb;">Active</span>
+            <span class="badge badge-active">Active</span>
           {% else %}
-            <span style="color:#721c24; background:#f8d7da; padding:4px 10px; border-radius:50px; font-size:10px; font-weight:800; text-transform:uppercase; border:1px solid #f5c6cb;">Inactive</span>
+            <span class="badge badge-blocked">Inactive</span>
           {% endif %}
         </td>
-        <td style="padding:15px; border-bottom:1px solid var(--gray-200);">
-          <div style="display:flex; gap:10px;">
-            <a href="{% url 'adminpanel:product_edit' product.id %}" style="color:#0D59F2; text-decoration:none; font-weight:700; font-size:13px;">Edit</a>
-            <form method="POST" action="{% url 'adminpanel:product_delete' product.id %}" style="display:inline;" onsubmit="event.preventDefault(); showCustomConfirm('Do you want to archive/delete the product &ldquo;{{ product.name }}&rdquo;?', this, 'Archive', '#e8221a');">
+        <td>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <a href="{% url 'adminpanel:product_edit' product.id %}" class="btn-secondary" style="font-size:12px; padding:5px 12px;">Edit</a>
+            <form method="POST" action="{% url 'adminpanel:product_delete' product.id %}" style="display:inline;" onsubmit="event.preventDefault(); showCustomConfirm('Do you want to archive/delete the product &ldquo;{{ product.name }}&rdquo;?', this, 'Archive', '#ef4444');">
               {% csrf_token %}
-              <button type="submit" style="background:none; border:none; color:#dc3545; font-weight:700; font-size:13px; cursor:pointer; padding:0;">Delete</button>
+              <button type="submit" class="btn-danger" style="font-size:12px; padding:5px 12px;">Delete</button>
             </form>
           </div>
         </td>
       </tr>
       {% empty %}
       <tr>
-        <td colspan="6" style="padding:40px; text-align:center; color:var(--gray-600);">
+        <td colspan="6" style="padding:48px; text-align:center; color:var(--text-subtle);">
           <div style="font-size:16px; font-weight:600;">No products found</div>
-          <p style="font-size:14px; margin-top:5px; color:var(--gray-400);">Try adjusting your search or filters.</p>
+          <p style="font-size:13px; margin-top:5px; color:var(--text-muted);">Try adjusting your search or filters.</p>
         </td>
       </tr>
       {% endfor %}
@@ -142,21 +150,19 @@
 {% load custom_filters %}
 <!-- Pagination -->
 {% if page_obj.has_other_pages %}
-<div style="display:flex; justify-content:center; gap:8px; margin-top:30px; margin-bottom:30px;">
+<div style="display:flex; justify-content:center; gap:6px; margin-top:24px;">
   {% if page_obj.has_previous %}
-    <a href="?{% query_transform page=page_obj.previous_page_number %}" style="padding:8px 16px; background:#fff; border:1px solid var(--gray-200); border-radius:6px; text-decoration:none; color:var(--gray-800); font-weight:600; font-size:14px;">Previous</a>
+    <a href="?{% query_transform page=page_obj.previous_page_number %}" class="page-btn">‹</a>
   {% endif %}
-
   {% for num in page_obj.paginator.page_range %}
     {% if page_obj.number == num %}
-      <span style="padding:8px 16px; background:#0D59F2; border:1px solid #0D59F2; border-radius:6px; color:#fff; font-weight:700; font-size:14px;">{{ num }}</span>
+      <span class="page-btn active">{{ num }}</span>
     {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-      <a href="?{% query_transform page=num %}" style="padding:8px 16px; background:#fff; border:1px solid var(--gray-200); border-radius:6px; text-decoration:none; color:var(--gray-800); font-weight:600; font-size:14px;">{{ num }}</a>
+      <a href="?{% query_transform page=num %}" class="page-btn">{{ num }}</a>
     {% endif %}
   {% endfor %}
-
   {% if page_obj.has_next %}
-    <a href="?{% query_transform page=page_obj.next_page_number %}" style="padding:8px 16px; background:#fff; border:1px solid var(--gray-200); border-radius:6px; text-decoration:none; color:var(--gray-800); font-weight:600; font-size:14px;">Next</a>
+    <a href="?{% query_transform page=page_obj.next_page_number %}" class="page-btn">›</a>
   {% endif %}
 </div>
 {% endif %}

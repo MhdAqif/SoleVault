@@ -6,6 +6,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}SoleVault{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{% static 'core/images/SoleVault.png' %}" />
   <style>
     *,
     *::before,
@@ -27,12 +28,54 @@
       --gray-800: #333333;
       --red: #e8221a;
       --font: 'Barlow', sans-serif;
+      /* semantic tokens — light defaults */
+      --bg: #ffffff;
+      --surface: #f7f7f7;
+      --surface-2: #eeeeee;
+      --border: #eeeeee;
+      --text: #0a0a0a;
+      --text-muted: #666666;
+      --text-subtle: #aaaaaa;
+      --nav-bg: #ffffff;
+      --input-bg: #ffffff;
+      --card-bg: #ffffff;
+      --shadow: rgba(0,0,0,0.10);
+    }
+
+    /* ── DARK MODE VARIABLES ── */
+    [data-theme="dark"] {
+      --bg: #111527;
+      --surface: #181c2e;
+      --surface-2: #1e2235;
+      --border: #252b40;
+      --text: #e8eaf0;
+      --text-muted: #8892a8;
+      --text-subtle: #5a6380;
+      --nav-bg: #141828;
+      --input-bg: #1e2235;
+      --card-bg: #1e2235;
+      --shadow: rgba(0,0,0,0.50);
+      --white: #181c2e;
+      --black: #e8eaf0;
+      --gray-100: #1e2235;
+      --gray-200: #252b40;
+      --gray-400: #5a6380;
+      --gray-600: #8892a8;
+      --gray-800: #c8cfdf;
+      --blue: #4a8ef5;
+      --blue-dark: #3a7be0;
+      --red: #f87171;
+    }
+
+    /* ── SMOOTH THEME TRANSITION ── */
+    *, *::before, *::after {
+      transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
     }
 
     body {
       font-family: var(--font);
-      background: var(--white);
-      color: var(--black);
+      background: var(--bg);
+      color: var(--text);
       font-size: 14px;
     }
 
@@ -43,13 +86,19 @@
 
     /* ANNOUNCEMENT */
     .announcement {
-      background-color: var(--blue);
-      color: var(--white);
+      background-color: #e8f0ff;
+      color: #0d59f2;
       text-align: center;
       font-size: 12px;
       font-weight: 500;
       letter-spacing: 0.04em;
-      padding: 7px 16px;
+      padding: 8px 16px;
+      border-bottom: 1px solid rgba(13, 89, 242, 0.08);
+    }
+    .announcement a {
+      color: #0d59f2;
+      text-decoration: underline;
+      font-weight: 700;
     }
 
     /* NAVBAR */
@@ -58,52 +107,136 @@
       align-items: center;
       justify-content: space-between;
       padding: 14px 40px;
-      border-bottom: 1px solid var(--gray-200);
-      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      background: var(--nav-bg);
       position: sticky;
       top: 0;
       z-index: 100;
+      /* needed so .nav-links absolute centering is relative to navbar */
+      isolation: isolate;
     }
 
     .logo {
       display: flex;
       align-items: center;
+    }
+    .logo a {
+      display: flex;
+      align-items: center;
       gap: 8px;
+      text-decoration: none;
+    }
+    .logo svg {
+      transition: transform 0.2s ease, stroke 0.2s ease;
+    }
+    .logo-brand {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 23px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--text);
+      transition: color 0.2s ease;
+      display: flex;
+      align-items: center;
+    }
+    .logo a:hover .logo-brand {
+      color: var(--blue) !important;
+    }
+    .logo a:hover svg {
+      transform: scale(1.08) rotate(-4deg);
+      stroke: var(--blue-dk);
     }
 
-    .logo-text {
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--blue);
-      letter-spacing: -0.02em;
-    }
-
+    /* Nav links — always perfectly centered in the bar */
     .nav-links {
       display: flex;
       gap: 28px;
       list-style: none;
       align-items: center;
-    }
-
-    nav.logged-in {
-      position: relative;
-    }
-
-    nav.logged-in .nav-links {
       position: absolute;
       left: 50%;
       transform: translateX(-50%);
     }
 
     .nav-links a {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--gray-800);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
       transition: color .2s;
+      position: relative;
+      padding: 6px 0;
     }
 
     .nav-links a:hover {
       color: var(--blue);
+    }
+
+    .nav-links a.active {
+      color: var(--blue);
+      font-weight: 700;
+    }
+    .nav-links a.active::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--blue);
+      border-radius: 2px;
+    }
+
+    /* ── DARK MODE TOGGLE ── */
+    .dark-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 10px 4px 6px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+      white-space: nowrap;
+      user-select: none;
+    }
+    .dark-toggle:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+    .dark-toggle-track {
+      width: 28px;
+      height: 16px;
+      background: var(--gray-400);
+      border-radius: 8px;
+      position: relative;
+      transition: background 0.25s;
+      flex-shrink: 0;
+    }
+    [data-theme="dark"] .dark-toggle-track {
+      background: var(--blue);
+    }
+    .dark-toggle-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 12px;
+      height: 12px;
+      background: #fff;
+      border-radius: 50%;
+      transition: left 0.25s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    [data-theme="dark"] .dark-toggle-thumb {
+      left: 14px;
+    }
+    .dark-toggle-icon {
+      font-size: 13px;
+      line-height: 1;
     }
 
     .nav-actions {
@@ -116,7 +249,7 @@
       width: 18px;
       height: 18px;
       cursor: pointer;
-      color: var(--gray-800);
+      color: var(--text-muted);
     }
 
     .cart-btn {
@@ -125,7 +258,7 @@
       gap: 5px;
       font-size: 12px;
       font-weight: 600;
-      color: var(--gray-800);
+      color: var(--text);
       cursor: pointer;
     }
 
@@ -148,10 +281,10 @@
     .btn-login {
       font-size: 12px;
       font-weight: 600;
-      color: var(--gray-800);
+      color: var(--text);
       padding: 7px 16px;
       border-radius: 6px;
-      border: 1px solid var(--gray-200);
+      border: 1px solid var(--border);
       transition: border-color .2s, color .2s;
     }
 
@@ -187,11 +320,11 @@
       gap: 6px;
       font-size: 12px;
       font-weight: 600;
-      color: var(--gray-800);
+      color: var(--text);
       cursor: pointer;
       padding: 6px 10px;
       border-radius: 6px;
-      border: 1px solid var(--gray-200);
+      border: 1px solid var(--border);
       transition: border-color .2s;
     }
 
@@ -210,10 +343,10 @@
       position: absolute;
       top: calc(100% + 8px);
       right: 0;
-      background: var(--white);
-      border: 1px solid var(--gray-200);
+      background: var(--card-bg);
+      border: 1px solid var(--border);
       border-radius: 8px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 24px var(--shadow);
       min-width: 140px;
       overflow: hidden;
       z-index: 200;
@@ -232,12 +365,12 @@
       padding: 10px 14px;
       font-size: 12px;
       font-weight: 500;
-      color: var(--gray-800);
+      color: var(--text);
       transition: background .15s;
     }
 
     .dropdown a:hover {
-      background: var(--gray-100);
+      background: var(--surface);
       color: var(--blue);
     }
 
@@ -246,38 +379,39 @@
     }
 
     .dropdown .logout-link:hover {
-      background: #fff5f5;
+      background: var(--surface);
       color: var(--red);
     }
 
     .dropdown-divider {
       height: 1px;
-      background: var(--gray-200);
+      background: var(--border);
       margin: 2px 0;
     }
 
     /* FOOTER */
     footer {
-      background: var(--white);
-      padding: 40px 40px 20px;
-      margin-top: 40px;
-      border-top: 1px solid var(--gray-200);
+      background: var(--surface);
+      padding: 60px 80px 30px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
     }
 
     .footer-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 24px;
-      margin-bottom: 36px;
+      gap: 32px;
+      margin-bottom: 48px;
     }
 
     .footer-col h4 {
-      font-size: 12px;
-      font-weight: 700;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--black);
-      margin-bottom: 12px;
+      letter-spacing: 1px;
+      color: var(--text);
+      margin-bottom: 18px;
     }
 
     .footer-col ul {
@@ -285,58 +419,83 @@
     }
 
     .footer-col ul li {
-      margin-bottom: 7px;
+      margin-bottom: 9px;
     }
 
     .footer-col ul li a {
-      font-size: 12px;
-      color: var(--gray-600);
-      transition: color .2s;
+      font-size: 13px;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+      display: inline-block;
+      text-decoration: none;
     }
 
     .footer-col ul li a:hover {
       color: var(--blue);
+      transform: translateX(4px);
     }
 
     .footer-contact p {
-      font-size: 11px;
-      color: var(--gray-600);
+      font-size: 12px;
+      color: var(--text-muted);
       line-height: 1.6;
     }
 
     .social-icons {
       display: flex;
       gap: 10px;
-      margin-top: 10px;
+      margin-top: 14px;
     }
 
     .social-icon {
-      width: 26px;
-      height: 26px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
-      background: var(--gray-200);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
+      font-size: 12px;
       cursor: pointer;
-      transition: background .2s, color .2s;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
     }
 
     .social-icon:hover {
       background: var(--blue);
       color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(13, 89, 242, 0.15);
     }
 
     .footer-bottom {
-      text-align: center;
-      font-size: 11px;
-      color: var(--gray-400);
-      border-top: 1px solid var(--gray-200);
-      padding-top: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      font-size: 12px;
+      color: var(--text-subtle);
+      border-top: 1px solid var(--border);
+      padding-top: 24px;
+    }
+    .footer-bottom .dark-toggle {
+      padding: 4px 10px 4px 6px;
+      font-size: 10.5px;
     }
   </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    // Apply saved theme BEFORE page paints to avoid flash
+    (function() {
+      const saved = localStorage.getItem('sv-theme');
+      if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    })();
+  </script>
   {% block extra_css %}{% endblock %}
+  <!-- Global dark mode overrides — loaded LAST to win over all per-app CSS -->
+  <link rel="stylesheet" href="{% static 'darkmode.css' %}">
 </head>
 
 <body>
@@ -372,15 +531,22 @@
   <!-- NAVBAR -->
   <nav class="{% if request.user.is_authenticated %}logged-in{% endif %}">
     <div class="logo">
-      <span class="logo-text">
-        <img src="{% static 'core/images/SoleVault.png' %}" alt="SoleVault" style="width:130px; height:50px;">
-      </span>
+      <a href="{% url 'core:home' %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:26px; height:26px;">
+          <path d="M3 12h1m8-7v4M8 10.5C9 9 11 9 12 10.5M4 16c0 0 1-1.5 2.5-1.5s2 1 3.5 1s1.5-2.5 3-2.5s2.5.5 3.5 1s1.5 2 2 3s-.5 1.5-1.5 1.5s-2.5-.5-3.5-.5s-2 1-3.5 1s-3-1.5-4-2.5S5 16 4 16z"/>
+        </svg>
+        <span class="logo-brand">
+          SoleVault
+        </span>
+      </a>
     </div>
 
+    {% if request.resolver_match.view_name not in 'login signup forget_password forget_otp verify_otp reset_password' %}
     <ul class="nav-links">
-      <li><a href="{% url 'core:home' %}">Home</a></li>
-      <li><a href="{% url 'products:men' %}">Men</a></li>
-      <li><a href="{% url 'products:women' %}">Women</a></li>
+      <li><a href="{% url 'products:men' %}" class="{% if request.resolver_match.view_name == 'products:men' %}active{% endif %}">Men</a></li>
+      <li><a href="{% url 'products:women' %}" class="{% if request.resolver_match.view_name == 'products:women' %}active{% endif %}">Women</a></li>
+      <li><a href="{% url 'products:new_drops' %}" class="{% if request.resolver_match.view_name == 'products:new_drops' %}active{% endif %}">New Drops</a></li>
+      <li><a href="{% url 'products:sale' %}" class="{% if request.resolver_match.view_name == 'products:sale' %}active{% endif %}" style="color: #e8221a; font-weight: 700;">Sale</a></li>
     </ul>
 
     <div class="nav-actions">
@@ -399,21 +565,27 @@
       </form>
 
       <!-- Wishlist -->
-      <a href="{% url 'cart:wishlist' %}" style="position:relative; display:flex; align-items:center;">
+      <a href="{% url 'cart:wishlist' %}" style="position:relative; display:flex; align-items:center;" title="Wishlist">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path
             d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
         </svg>
+        {% if wishlist_count > 0 %}
+          <span style="position:absolute; top:-6px; right:-8px; background:var(--red); color:white; font-size:9px; font-weight:700; border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; line-height:1;">{{ wishlist_count }}</span>
+        {% endif %}
       </a>
 
       <!-- Cart -->
-      <a href="{% url 'cart:detail' %}" class="cart-btn">
+      <a href="{% url 'cart:detail' %}" class="cart-btn" style="position:relative;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="9" cy="21" r="1" />
           <circle cx="20" cy="21" r="1" />
           <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
         </svg>
         Cart
+        {% if cart_count > 0 %}
+          <span style="background:var(--blue); color:white; font-size:9.5px; font-weight:700; border-radius:50%; width:16px; height:16px; display:inline-flex; align-items:center; justify-content:center; margin-left:4px; line-height:1;">{{ cart_count }}</span>
+        {% endif %}
       </a>
 
       <!-- User dropdown -->
@@ -430,7 +602,7 @@
       </div>
 
       {% else %}
-      <!-- Not logged in: show Login + Sign Up -->
+      <!-- Not logged in: search + Login + Sign Up only -->
       <!-- Search Form -->
       <form action="{% url 'products:search' %}" method="GET" style="display:flex; align-items:center; position:relative;">
         <input type="text" name="q" placeholder="Search..." style="border:1px solid var(--gray-200); border-radius:40px; padding:6px 12px 6px 30px; font-size:12px; outline:none; width:150px; transition:width 0.3s;" onfocus="this.style.width='200px'" onblur="this.style.width='150px'">
@@ -446,23 +618,27 @@
       {% endif %}
 
     </div>
+    {% endif %}
   </nav>
 
+  {% if request.resolver_match.view_name not in 'login signup forget_password forget_otp verify_otp reset_password' %}
   <!-- ANNOUNCEMENT BAR -->
   <div class="announcement">
-    Our biggest sale—off 30% at all summer shoes
+    Summer sale &mdash; <strong>30% off</strong> all summer shoes &middot; <a href="{% url 'products:men' %}?tab=sale">Shop now</a>
   </div>
+  {% endif %}
   <main>
     {% block content %}{% endblock %}
   </main>
 
+  {% if request.resolver_match.view_name not in 'login signup forget_password forget_otp verify_otp reset_password' %}
   <!-- FOOTER -->
   <footer>
     <div class="footer-grid">
       <div class="footer-col">
         <h4>About SoleVault</h4>
         <ul>
-          <li><a href="#">Our Story</a></li>
+          <li><a href="{% url 'core:about' %}">About Us</a></li>
           <li><a href="#">Philosophy</a></li>
           <li><a href="#">Careers</a></li>
           <li><a href="#">Press</a></li>
@@ -508,24 +684,51 @@
       </div>
     </div>
     <div class="footer-bottom">
-      &copy; 2026 &middot; SoleVault. All rights reserved. The SoleVault name &amp; logo are trademarks.
+      <span>&copy; 2026 &middot; SoleVault. All rights reserved.</span>
+      <button class="dark-toggle" id="darkToggle" onclick="toggleDarkMode()" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <span class="dark-toggle-track"><span class="dark-toggle-thumb"></span></span>
+        <span class="dark-toggle-icon" id="darkToggleIcon">🌙</span>
+      </button>
     </div>
   </footer>
+  {% endif %}
 
   {% block extra_js %}{% endblock %}
   <script>
+    // ── User dropdown ──
     const userMenuBtn = document.querySelector('.user-menu-btn');
     const dropdown = document.querySelector('.dropdown');
+    if (userMenuBtn && dropdown) {
+      userMenuBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        dropdown.classList.toggle('show');
+      });
+      document.addEventListener('click', function () {
+        dropdown.classList.remove('show');
+      });
+    }
 
-    userMenuBtn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      dropdown.classList.toggle('show');
-    });
+    // ── Dark Mode ──
+    function toggleDarkMode() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('sv-theme', 'light');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('sv-theme', 'dark');
+      }
+      updateToggleIcon();
+    }
 
-    // Close when clicking outside
-    document.addEventListener('click', function () {
-      dropdown.classList.remove('show');
-    });
+    function updateToggleIcon() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const icon = document.getElementById('darkToggleIcon');
+      if (icon) icon.textContent = isDark ? '☀️' : '🌙';
+    }
+
+    // Sync icon on load
+    document.addEventListener('DOMContentLoaded', updateToggleIcon);
   </script>
 </body>
 
