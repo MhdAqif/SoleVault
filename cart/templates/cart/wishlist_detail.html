@@ -183,6 +183,26 @@
   .btn-browse:hover {
     background: var(--blue);
   }
+
+  /* ── RESPONSIVE WISHLIST DESIGN ── */
+  @media (max-width: 576px) {
+    .wishlist-section {
+      padding: 30px 0;
+    }
+    .wishlist-header {
+      margin-bottom: 24px;
+    }
+    .wishlist-header h1 {
+      font-size: 26px;
+    }
+    .wishlist-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .wishlist-img-link {
+      height: 200px;
+    }
+  }
 </style>
 {% endblock %}
 

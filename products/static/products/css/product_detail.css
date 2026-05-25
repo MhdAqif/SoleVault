@@ -813,6 +813,29 @@ body {
   .similar-grid {
     grid-template-columns: 1fr;
   }
+  
+  /* Compact mobile buy section */
+  .qty-cart-row {
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+  }
+  .qty-control {
+    width: calc(50% - 6px) !important;
+    flex-grow: 1 !important;
+    justify-content: space-between !important;
+  }
+  .btn-wishlist-hero {
+    width: calc(50% - 6px) !important;
+    flex-grow: 1 !important;
+    justify-content: center !important;
+  }
+  .btn-add-cart {
+    width: 100% !important;
+    order: 2 !important;
+  }
+  .size-grid-product {
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)) !important;
+  }
 }
 
 @keyframes shake {

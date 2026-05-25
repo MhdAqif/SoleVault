@@ -212,26 +212,7 @@
         50% { transform: translateY(-18px) rotate(-9deg); }
     }
 
-    /* Responsive adjustments */
-    @media (max-width: 991px) {
-        .hero {
-            flex-direction: column !important;
-            min-height: auto !important;
-        }
-        .hero-left-panel {
-            padding: 60px 40px !important;
-        }
-        .hero-right-panel {
-            min-height: 320px !important;
-            margin-left: 0 !important;
-            padding-left: 0 !important;
-            clip-path: none !important;
-        }
-        .hero-title {
-            font-size: 54px !important;
-        }
-    }
-    
+
     /* Modern Category cards overlay slide-up hover transitions */
     .categories {
         display: grid !important;
@@ -490,6 +471,131 @@
     .brand-logo:hover {
         color: var(--blue) !important;
         transform: scale(1.08) !important;
+    }
+
+    /* Responsive adjustments — Loaded at the end of the inline style tag to win specificity */
+    @media (max-width: 991px) {
+        .hero {
+            flex-direction: column !important;
+            min-height: auto !important;
+        }
+        .hero-left-panel {
+            padding: 60px 40px !important;
+            justify-content: center !important;
+            text-align: center !important;
+        }
+        .hero-left-content {
+            max-width: 100% !important;
+            text-align: center !important;
+        }
+        .hero-desc {
+            max-width: 100% !important;
+            margin: 0 auto 36px !important;
+        }
+        .hero-buttons {
+            justify-content: center !important;
+        }
+        .hero-right-panel {
+            min-height: 320px !important;
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+            clip-path: none !important;
+        }
+        .hero-title {
+            font-size: clamp(38px, 7vw, 56px) !important;
+        }
+        .hero-floating-shoe {
+            margin-left: 0 !important;
+            max-width: 80% !important;
+        }
+        .categories {
+            padding: 0 40px !important;
+            gap: 16px !important;
+        }
+        .cat-card {
+            height: 360px !important;
+        }
+        .products {
+            grid-template-columns: repeat(2, 1fr) !important;
+            padding: 0 40px !important;
+            gap: 16px !important;
+        }
+        .product-img {
+            height: 220px !important;
+        }
+        .section-head {
+            padding: 0 40px !important;
+            margin-top: 48px !important;
+        }
+        .trusted {
+            margin: 60px 40px 0 !important;
+            padding: 36px 0 !important;
+        }
+        .brand-logos {
+            gap: 40px !important;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .categories {
+            grid-template-columns: 1fr !important;
+        }
+        .cat-card {
+            height: 300px !important;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .hero-left-panel {
+            padding: 40px 20px !important;
+        }
+        .hero-title {
+            font-size: 38px !important;
+        }
+        .hero-buttons {
+            flex-direction: column !important;
+            gap: 12px !important;
+            width: 100% !important;
+        }
+        .hero-btn {
+            width: 100% !important;
+        }
+        .categories {
+            padding: 0 20px !important;
+        }
+        .cat-card {
+            height: 240px !important;
+        }
+        .cat-overlay {
+            padding: 18px !important;
+        }
+        .cat-name {
+            font-size: 24px !important;
+        }
+        .products {
+            grid-template-columns: 1fr !important;
+            padding: 0 20px !important;
+        }
+        .product-img {
+            height: 260px !important;
+        }
+        .section-head {
+            padding: 0 20px !important;
+            margin-top: 36px !important;
+        }
+        .section-head h2 {
+            font-size: 28px !important;
+        }
+        .trusted {
+            margin: 40px 20px 0 !important;
+            padding: 28px 0 !important;
+        }
+        .brand-logos {
+            gap: 24px !important;
+        }
+        .brand-logo {
+            font-size: 20px !important;
+        }
     }
   </style>
 {% endblock %}

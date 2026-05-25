@@ -686,3 +686,102 @@ body {
   color: var(--text-muted);
   transform: scale(1.05);
 }
+
+/* ═══════════════════════════════
+   RESPONSIVE DESIGN UPGRADES
+   ═══════════════════════════════ */
+.btn-filter-toggle {
+  display: none;
+  align-items: center;
+  background: var(--white);
+  border: 1px solid var(--border-dark);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-filter-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-filter-toggle.active {
+  background: var(--accent);
+  color: #fff !important;
+  border-color: var(--accent);
+}
+
+@media (max-width: 991px) {
+  .btn-filter-toggle {
+    display: inline-flex;
+  }
+  .shop-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 0 20px 40px;
+  }
+  .sidebar {
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .sidebar.active {
+    display: flex;
+    animation: filterSlideDown 0.3s ease forwards;
+  }
+  .hero-banner {
+    margin: 16px 20px 24px;
+    height: 300px;
+  }
+  .hero-content {
+    padding: 0 30px;
+  }
+  .hero-title {
+    font-size: 54px;
+  }
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @keyframes filterSlideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@media (max-width: 576px) {
+  .hero-banner {
+    height: 220px;
+    margin: 10px 10px 20px;
+    border-radius: 12px;
+  }
+  .hero-title {
+    font-size: 36px;
+  }
+  .hero-desc {
+    display: none;
+  }
+  .products-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .btn-filter-toggle {
+    justify-content: center;
+  }
+  .sort-select {
+    width: 100%;
+    text-align-last: center;
+  }
+  .product-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .product-img-wrap {
+    height: 240px;
+  }
+}

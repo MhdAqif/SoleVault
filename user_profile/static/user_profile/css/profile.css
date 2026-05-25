@@ -398,6 +398,51 @@
   border-radius: 6px;
   text-decoration: none;
   font-weight: 600;
-
   text-align: center;   /* ✅ THIS FIXES TEXT */
+}
+
+/* ── RESPONSIVE PROFILE DESIGN ── */
+@media (max-width: 768px) {
+  .profile-layout {
+    flex-direction: column;
+    padding: 0 20px 40px;
+    gap: 24px;
+  }
+  .profile-sidebar {
+    width: 100%;
+  }
+  .sidebar-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 18px 16px;
+  }
+  .sidebar-link {
+    padding: 8px 14px;
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    flex-grow: 1;
+    justify-content: center;
+  }
+  .sidebar-link.active {
+    background-color: #f0f5ff;
+    border-color: var(--blue, #0D59F2);
+  }
+  .profile-card {
+    padding: 24px 20px 30px;
+  }
+  .edit-fields-row {
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+  .photo-row {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+  }
+  .photo-actions {
+    width: 100%;
+  }
 }

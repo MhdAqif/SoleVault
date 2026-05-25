@@ -140,6 +140,48 @@
     color: var(--text-subtle, #aaa);
     padding: 6px 14px 2px;
   }
+
+  /* ── RESPONSIVE PROFILE SIDEBAR & LAYOUT ── */
+  @media (max-width: 768px) {
+    .profile-layout {
+      flex-direction: column !important;
+      padding: 0 16px 40px !important;
+      gap: 24px !important;
+    }
+    .profile-sidebar {
+      width: 100% !important;
+      position: static !important;
+      padding: 16px 0 !important;
+    }
+    .sidebar-header {
+      padding: 0 16px 12px !important;
+      margin-bottom: 8px !important;
+    }
+    .sidebar-nav {
+      flex-direction: row !important;
+      flex-wrap: wrap !important;
+      gap: 6px !important;
+      padding: 0 10px !important;
+    }
+    .sidebar-section-label,
+    .sidebar-divider {
+      display: none !important;
+    }
+    .sidebar-link {
+      padding: 8px 12px !important;
+      flex-grow: 1 !important;
+      justify-content: center !important;
+    }
+    .sidebar-link.disabled {
+      display: none !important;
+    }
+    .profile-main {
+      width: 100% !important;
+    }
+    .breadcrumb-bar {
+      padding: 10px 16px !important;
+    }
+  }
 </style>
 {% endblock %}
 

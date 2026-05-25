@@ -366,3 +366,15 @@
 .btn-addr-update:hover {
   background-color: #1558d6;
 }
+
+/* ── RESPONSIVE ADDRESS DESIGN ── */
+@media (max-width: 576px) {
+  .address-card {
+    width: 100% !important;
+  }
+  .addr-row {
+    flex-direction: column !important;
+    gap: 12px !important;
+    margin-bottom: 12px !important;
+  }
+}
