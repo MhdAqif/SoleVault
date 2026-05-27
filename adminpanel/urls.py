@@ -36,4 +36,24 @@ urlpatterns = [
     # Inventory
     path('inventory/', views.inventory_list_admin, name='inventory_list'),
     path('inventory/<int:variant_id>/update-stock/', views.inventory_update_stock_admin, name='inventory_update_stock'),
+
+    # Coupons
+    path('coupons/', views.coupon_list_admin, name='coupon_list'),
+    path('coupons/add/', views.coupon_add_admin, name='coupon_add'),
+    path('coupons/<int:coupon_id>/delete/', views.coupon_delete_admin, name='coupon_delete'),
+
+    # Offers
+    path('offers/', views.offer_list_admin, name='offer_list'),
+    path('offers/product/add/', views.product_offer_add_admin, name='product_offer_add'),
+    path('offers/product/<int:offer_id>/delete/', views.product_offer_delete_admin, name='product_offer_delete'),
+    path('offers/category/add/', views.category_offer_add_admin, name='category_offer_add'),
+    path('offers/category/<int:offer_id>/delete/', views.category_offer_delete_admin, name='category_offer_delete'),
+
+    # Returns Reject Flow
+    path('orders/<int:order_id>/reject-return/', views.order_reject_return_admin, name='order_reject_return'),
+
+    # Sales Reports & Downloads
+    path('sales-report/', views.sales_report_admin, name='sales_report'),
+    path('sales-report/pdf/', views.sales_report_pdf, name='sales_report_pdf'),
+    path('sales-report/excel/', views.sales_report_excel, name='sales_report_excel'),
 ]

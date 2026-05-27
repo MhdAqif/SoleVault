@@ -159,7 +159,14 @@
       </div>
       <div class="info-row">
         <span>Payment Method</span>
-        <span>{{ order.payment_method }} (Cash on Delivery)</span>
+        <span>
+          {{ order.payment_method }}
+          {% if order.payment_method == 'COD' %}
+            (Cash on Delivery)
+          {% elif order.payment_method == 'Razorpay' %}
+            (Online Payment)
+          {% endif %}
+        </span>
       </div>
       <div class="info-row">
         <span>Estimated Delivery</span>

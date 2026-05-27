@@ -36,9 +36,7 @@ class CartItem(models.Model):
 
     @property
     def total_price(self):
-        price = self.product.price
-        if self.product.original_price and self.product.original_price > self.product.price:
-            pass # Use discounted price
+        price = self.product.offer_price
         return price * self.quantity
 
 

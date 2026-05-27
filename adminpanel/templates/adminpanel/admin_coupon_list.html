@@ -1,0 +1,81 @@
+{% extends 'adminpanel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Coupons – SoleVault Admin{% endblock %}
+{% block nav_coupons %}active{% endblock %}
+{% block topbar_title %}Coupons{% endblock %}
+{% block topbar_breadcrumb %}Marketing / Coupons{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+  <h2 style="font-size: 20px; font-weight: 700; color: var(--text); margin: 0;">All Promotional Coupons</h2>
+  <a href="{% url 'adminpanel:coupon_add' %}" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background-color: var(--blue); color: #fff; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 13.5px; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--blue-dark)'" onmouseout="this.style.backgroundColor='var(--blue)'">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Create Coupon
+  </a>
+</div>
+
+<div style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+  <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px; color: var(--text);">
+    <thead>
+      <tr style="background: rgba(0, 0, 0, 0.02); border-bottom: 1px solid var(--border); font-weight: 600; color: var(--text-muted);">
+        <th style="padding: 16px 20px;">Code</th>
+        <th style="padding: 16px 20px;">Type</th>
+        <th style="padding: 16px 20px;">Value</th>
+        <th style="padding: 16px 20px;">Min Spend</th>
+        <th style="padding: 16px 20px;">Max Discount</th>
+        <th style="padding: 16px 20px;">Validity Range</th>
+        <th style="padding: 16px 20px;">Status</th>
+        <th style="padding: 16px 20px; text-align: right;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for coupon in coupons %}
+      <tr style="border-bottom: 1px solid var(--border); transition: background-color 0.15s;" onmouseover="this.style.backgroundColor='rgba(0,0,0,0.01)'" onmouseout="this.style.backgroundColor='transparent'">
+        <td style="padding: 16px 20px; font-weight: 700; color: var(--blue);">
+          🎟️ {{ coupon.code }}
+        </td>
+        <td style="padding: 16px 20px; text-transform: capitalize;">
+          {{ coupon.get_discount_type_display }}
+        </td>
+        <td style="padding: 16px 20px; font-weight: 600;">
+          {% if coupon.discount_type == 'percentage' %}{{ coupon.discount_value }}%{% else %}₹{{ coupon.discount_value }}{% endif %}
+        </td>
+        <td style="padding: 16px 20px;">
+          ₹{{ coupon.min_spend }}
+        </td>
+        <td style="padding: 16px 20px;">
+          {% if coupon.max_discount %}₹{{ coupon.max_discount }}{% else %}<span style="color: var(--text-muted);">No Limit</span>{% endif %}
+        </td>
+        <td style="padding: 16px 20px; font-size: 12.5px; color: var(--text-muted);">
+          {{ coupon.valid_from|date:"M d, Y H:i" }} – {{ coupon.valid_to|date:"M d, Y H:i" }}
+        </td>
+        <td style="padding: 16px 20px;">
+          {% if coupon.active %}
+            <span style="display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 9999px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 11px; font-weight: 700;">Active</span>
+          {% else %}
+            <span style="display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 9999px; background: rgba(239, 68, 68, 0.15); color: #ef4444; font-size: 11px; font-weight: 700;">Disabled</span>
+          {% endif %}
+        </td>
+        <td style="padding: 16px 20px; text-align: right;">
+          <form method="POST" action="{% url 'adminpanel:coupon_delete' coupon.id %}" style="display: inline;" onsubmit="event.preventDefault(); showCustomConfirm('Are you sure you want to permanently delete this coupon?', this, 'Delete', '#ef4444');">
+            {% csrf_token %}
+            <button type="submit" style="background: none; border: none; padding: 0; color: #ef4444; font-weight: 600; cursor: pointer; font-size: 13px;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+              Delete
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="8" style="padding: 40px; text-align: center; color: var(--text-muted);">
+          No coupons created yet. Click "Create Coupon" to start.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

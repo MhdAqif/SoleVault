@@ -10,6 +10,7 @@ class Order(models.Model):
         ('out_for_delivery', 'Out for Delivery'),
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
+        ('return_requested', 'Return Requested'),
         ('returned', 'Returned'),
     ]
     
@@ -35,6 +36,11 @@ class Order(models.Model):
     payment_method = models.CharField(max_length=50, default='COD')
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    # Razorpay Details
+    razorpay_order_id = models.CharField(max_length=100, blank=True, null=True)
+    razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
+    razorpay_signature = models.CharField(max_length=255, blank=True, null=True)
     
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
     discount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
@@ -83,3 +89,43 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity} x {self.product_name} ({self.size}/{self.color}) in {self.order.order_id}"
+
+class Coupon(models.Model):
+    DISCOUNT_TYPE_CHOICES = [
+        ('percentage', 'Percentage'),
+        ('fixed', 'Fixed Amount'),
+    ]
+
+    code = models.CharField(max_length=50, unique=True)
+    discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPE_CHOICES)
+    discount_value = models.DecimalField(max_digits=10, decimal_places=2)
+    min_spend = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    max_discount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    active = models.BooleanField(default=True)
+    valid_from = models.DateTimeField()
+    valid_to = models.DateTimeField()
+
+    def __str__(self):
+        return f"{self.code} ({self.get_discount_type_display()}: {self.discount_value})"
+
+    def is_valid(self, subtotal):
+        from django.utils import timezone
+        now = timezone.now()
+        if not self.active:
+            return False, "This coupon is no longer active."
+        if now < self.valid_from or now > self.valid_to:
+            return False, "This coupon has expired."
+        if subtotal < self.min_spend:
+            return False, f"Minimum spend of ₹{self.min_spend} is required to apply this coupon."
+        return True, ""
+
+    def calculate_discount(self, subtotal):
+        if self.discount_type == 'fixed':
+            return min(self.discount_value, subtotal)
+        elif self.discount_type == 'percentage':
+            import decimal
+            discount = subtotal * (self.discount_value / decimal.Decimal('100.00'))
+            if self.max_discount:
+                discount = min(discount, self.max_discount)
+            return discount
+        return decimal.Decimal('0.00')

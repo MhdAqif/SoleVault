@@ -13,4 +13,9 @@ urlpatterns = [
     path('address/default/<int:pk>/', views.set_default_address, name='set_default_address'),
     path('change-password/', views.change_password, name='change_password'),
     path('verify-email-otp/', views.verify_email_otp, name='verify_email_otp'),
+    path('coupons/', views.user_coupons, name='coupons'),
+    path('wallet/', views.user_wallet, name='wallet'),
+    path('wallet/topup/init/', views.wallet_topup_init, name='wallet_topup_init'),
+    path('wallet/topup/verify/', views.wallet_topup_verify, name='wallet_topup_verify'),
+    path('referral/', views.user_referral, name='referral'),
 ]

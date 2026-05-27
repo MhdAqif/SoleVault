@@ -174,7 +174,6 @@
       <div class="pf-field">
         <label class="pf-label">Gender <span>*</span></label>
         <select name="gender" required class="pf-select" style="max-width:240px;">
-          <option value="unisex" {% if category.gender == 'unisex' %}selected{% endif %}>Unisex</option>
           <option value="men"    {% if category.gender == 'men'    %}selected{% endif %}>Men</option>
           <option value="women"  {% if category.gender == 'women'  %}selected{% endif %}>Women</option>
         </select>

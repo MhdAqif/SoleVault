@@ -458,6 +458,14 @@
       <div style="margin-top:4px;">This order has been cancelled. {% if order.cancel_reason %}Reason: "<i>{{ order.cancel_reason }}</i>"{% endif %}</div>
     </div>
   </div>
+{% elif order.status == 'return_requested' %}
+  <div class="status-alert returned" style="background:#fffbeb; border-color:#fef3c7; color:#b45309;">
+    <div style="font-size:18px;">⏳</div>
+    <div>
+      <div style="font-weight:700;">Return Requested</div>
+      <div style="margin-top:4px;">Return request submitted and awaiting administrator approval. {% if order.return_reason %}Reason: "<i>{{ order.return_reason }}</i>"{% endif %}</div>
+    </div>
+  </div>
 {% elif order.status == 'returned' %}
   <div class="status-alert returned">
     <div style="font-size:18px;">↩️</div>
@@ -540,12 +548,33 @@
   <!-- Payment Info -->
   <div class="info-block">
     <div class="block-title">Payment & Status</div>
-    <div class="info-line"><strong>Payment Method:</strong> &nbsp;{{ order.payment_method }} (Cash on Delivery)</div>
+    <div class="info-line"><strong>Payment Method:</strong> &nbsp;
+      {{ order.payment_method }}
+      {% if order.payment_method == 'COD' %}
+        (Cash on Delivery)
+      {% elif order.payment_method == 'Razorpay' %}
+        (Online Payment)
+      {% endif %}
+    </div>
     <div class="info-line"><strong>Payment Status:</strong> &nbsp;<span style="text-transform:uppercase; font-weight:700;">{{ order.payment_status }}</span></div>
     <div class="info-line"><strong>Order Status:</strong> &nbsp;<span class="status-pill status-{{ order.status }}">{{ order.get_status_display }}</span></div>
-    <div class="info-line" style="margin-top: 10px; font-size: 11.5px; color: var(--gray-500); line-height: 1.4;">
-      For Cash on Delivery orders, payment is gathered in cash upon physical package delivery by our shipping associate.
-    </div>
+    
+    {% if order.payment_method == 'COD' %}
+      <div class="info-line" style="margin-top: 10px; font-size: 11.5px; color: var(--gray-500); line-height: 1.4;">
+        For Cash on Delivery orders, payment is gathered in cash upon physical package delivery by our shipping associate.
+      </div>
+    {% elif order.payment_method == 'Razorpay' and order.payment_status == 'pending' or order.payment_method == 'Razorpay' and order.payment_status == 'failed' %}
+      {% if order.status != 'cancelled' %}
+        <div style="margin-top: 16px;">
+          <a href="{% url 'orders:payment_page' order.order_id %}" class="btn-invoice-download" style="display: inline-block; background: #10b981; box-shadow: 0 4px 10px rgba(16,185,129,0.25); text-align: center; text-transform: uppercase;">⚡ Retry Payment</a>
+          <div style="margin-top: 8px; font-size: 11px; color: #b45309; font-weight: 600;">Your items are reserved! Please complete payment to process your order.</div>
+        </div>
+      {% endif %}
+    {% elif order.payment_method == 'Razorpay' and order.payment_status == 'paid' %}
+      <div class="info-line" style="margin-top: 10px; font-size: 11.5px; color: #10b981; font-weight: 600; line-height: 1.4;">
+        ✓ Paid online. Your transaction is fully secure and verified.
+      </div>
+    {% endif %}
   </div>
   
 </div>

@@ -244,29 +244,29 @@
       <div class="sidebar-divider"></div>
       <span class="sidebar-section-label">More</span>
 
-      <!-- My Wallet (coming soon) -->
-      <span class="sidebar-link disabled">
+      <!-- My Wallet -->
+      <a href="{% url 'user_profile:wallet' %}" class="sidebar-link {% block active_wallet %}{% endblock %}">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M16 14h2"/></svg>
         </span>
         My Wallet
-      </span>
+      </a>
 
-      <!-- My Coupon (coming soon) -->
-      <span class="sidebar-link disabled">
+      <!-- My Coupons -->
+      <a href="{% url 'user_profile:coupons' %}" class="sidebar-link {% block active_coupons %}{% endblock %}">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24"><path d="M20 12V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6l2 2-2 2v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4l-2-2 2-2z"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
         </span>
         My Coupon
-      </span>
+      </a>
 
-      <!-- Referral (coming soon) -->
-      <span class="sidebar-link disabled">
+      <!-- Referral Code -->
+      <a href="{% url 'user_profile:referral' %}" class="sidebar-link {% block active_referral %}{% endblock %}">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         </span>
         Referral Code
-      </span>
+      </a>
 
       <div class="sidebar-divider"></div>
       <span class="sidebar-section-label">Security</span>

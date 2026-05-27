@@ -5,10 +5,9 @@ class Category(models.Model):
     GENDER_CHOICES = [
         ('men',   'Men'),
         ('women', 'Women'),
-        ('unisex','Unisex'),
     ]
     name   = models.CharField(max_length=100)
-    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='unisex')
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='men')
     slug   = models.SlugField(unique=True)
     image  = models.ImageField(upload_to='categories/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
@@ -78,6 +77,28 @@ class Product(models.Model):
         return None
 
     @property
+    def active_offer_percentage(self):
+        """Returns the highest active offer discount percentage."""
+        discount_pct = 0
+        # Check product offer
+        if hasattr(self, 'product_offer') and self.product_offer.is_active:
+            discount_pct = max(discount_pct, self.product_offer.discount_percentage)
+        # Check category offer
+        if self.category and hasattr(self.category, 'category_offer') and self.category.category_offer.is_active:
+            discount_pct = max(discount_pct, self.category.category_offer.discount_percentage)
+        return discount_pct
+
+    @property
+    def offer_price(self):
+        """Returns the selling price after applying the highest active offer discount between ProductOffer and CategoryOffer."""
+        discount_pct = self.active_offer_percentage
+        if discount_pct > 0:
+            import decimal
+            discount_multiplier = decimal.Decimal(str(100 - discount_pct)) / decimal.Decimal('100.00')
+            return (self.price * discount_multiplier).quantize(decimal.Decimal('0.01'))
+        return self.price
+
+    @property
     def is_in_stock(self):
         """Return True if at least one variant is in stock."""
         return self.variants.filter(stock__gt=0).exists()
@@ -109,3 +130,23 @@ class ProductVariant(models.Model):
 
     def __str__(self):
         return f'{self.product.name} | {self.size} | {self.color}'
+
+
+class ProductOffer(models.Model):
+    product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name='product_offer')
+    discount_percentage = models.PositiveIntegerField()
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Offer: {self.product.name} – {self.discount_percentage}%"
+
+
+class CategoryOffer(models.Model):
+    category = models.OneToOneField(Category, on_delete=models.CASCADE, related_name='category_offer')
+    discount_percentage = models.PositiveIntegerField()
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Offer: {self.category.name} – {self.discount_percentage}%"

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - SoleVault{% endblock %}
+
+{% block content %}
+<div class="info-container" style="background: var(--surface); color: var(--text); min-height: 80vh; padding: 60px 20px;">
+  
+  <!-- Hero Header -->
+  <div class="info-hero" style="max-width: 900px; margin: 0 auto 50px auto; text-align: center;">
+    <span style="font-size: 40px; display: block; margin-bottom: 15px;">{{ icon|default:"🏷️" }}</span>
+    <h1 style="font-size: 38px; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 16px 0; background: linear-gradient(135deg, #0D59F2, #4a8ef5); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+      {{ heading }}
+    </h1>
+    <p style="font-size: 15px; color: var(--text-muted); line-height: 1.7; max-width: 650px; margin: 0 auto;">
+      {{ subheading }}
+    </p>
+  </div>
+
+  <!-- Content Block -->
+  <div style="max-width: 800px; margin: 0 auto 60px auto; background: var(--surface-2, #fafafa); border: 1px solid var(--border); border-radius: 16px; padding: 40px 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.01);">
+    <div class="info-body-content" style="font-size: 14.5px; color: var(--text); line-height: 1.8;">
+      {{ content_html|safe }}
+    </div>
+  </div>
+
+  <!-- Back Link -->
+  <div style="text-align: center;">
+    <a href="{% url 'core:home' %}" style="font-size: 13.5px; font-weight: 600; color: var(--text-muted); text-decoration: none; transition: color 0.15s;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--text-muted)'">
+      ← Return to Homepage
+    </a>
+  </div>
+
+</div>
+{% endblock %}

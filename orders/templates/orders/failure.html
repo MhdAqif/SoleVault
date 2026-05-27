@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment Failed – SoleVault{% endblock %}
+
+{% block extra_css %}
+<style>
+  .failure-container {
+    max-width: 600px;
+    margin: 60px auto;
+    padding: 0 20px;
+    text-align: center;
+  }
+  .failure-card {
+    background: var(--white);
+    padding: 50px 40px;
+    border-radius: 16px;
+    border: 1px solid var(--gray-200);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+  }
+  
+  /* Animated Cross SVG */
+  .cross-svg {
+    width: 80px;
+    height: 80px;
+    display: block;
+    margin: 0 auto 24px;
+  }
+  .cross-circle {
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    stroke-width: 2;
+    stroke-miterlimit: 10;
+    stroke: #ef4444;
+    fill: none;
+    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+  }
+  .cross-line1 {
+    transform-origin: 50% 50%;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    stroke-width: 3;
+    stroke: #ef4444;
+    fill: none;
+    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards;
+  }
+  .cross-line2 {
+    transform-origin: 50% 50%;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    stroke-width: 3;
+    stroke: #ef4444;
+    fill: none;
+    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+  }
+  @keyframes stroke {
+    100% { stroke-dashoffset: 0; }
+  }
+  
+  .failure-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #ef4444;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: -0.3px;
+  }
+  .failure-subtitle {
+    font-size: 14px;
+    color: var(--gray-600);
+    line-height: 1.6;
+    margin-bottom: 30px;
+  }
+  
+  .order-info-box {
+    background: #fef2f2;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+    border: 1px dashed #fca5a5;
+    text-align: left;
+  }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13.5px;
+    color: var(--gray-700);
+    margin-bottom: 10px;
+  }
+  .info-row:last-child {
+    margin-bottom: 0;
+  }
+  .info-row span:first-child {
+    font-weight: 600;
+  }
+  .info-row span:last-child {
+    color: var(--black);
+    font-weight: 700;
+  }
+  
+  .failure-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+  }
+  .btn-failure-primary {
+    background: #ef4444;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    transition: background 0.15s, transform 0.1s;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+  }
+  .btn-failure-primary:hover {
+    background: #dc2626;
+  }
+  .btn-failure-primary:active {
+    transform: scale(0.98);
+  }
+  
+  .btn-failure-secondary {
+    background: var(--white);
+    color: var(--gray-800);
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    border: 1px solid var(--gray-300);
+    transition: all 0.15s, transform 0.1s;
+  }
+  .btn-failure-secondary:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-400);
+  }
+  .btn-failure-secondary:active {
+    transform: scale(0.98);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="failure-container">
+  <div class="failure-card">
+    
+    <!-- Animated Cross (Error) SVG -->
+    <svg class="cross-svg" viewBox="0 0 52 52">
+      <circle class="cross-circle" cx="26" cy="26" r="25" />
+      <path class="cross-line1" d="M16 16l20 20" />
+      <path class="cross-line2" d="M36 16L16 36" />
+    </svg>
+    
+    <h1 class="failure-title">Payment Failed!</h1>
+    <p class="failure-subtitle">
+      Oops! Your transaction could not be processed. {{ error_msg }}
+    </p>
+    
+    <div class="order-info-box">
+      <div class="info-row">
+        <span>Order ID</span>
+        <span>{{ order.order_id }}</span>
+      </div>
+      <div class="info-row">
+        <span>Total Amount</span>
+        <span>₹{{ order.final_price }}</span>
+      </div>
+      <div class="info-row">
+        <span>Payment Method</span>
+        <span>Online Payment (Razorpay)</span>
+      </div>
+      <div class="info-row">
+        <span>Failure Reason</span>
+        <span style="color: #ef4444;">Verification Failed / Declined</span>
+      </div>
+    </div>
+    
+    <div class="failure-actions">
+      <a href="{% url 'orders:payment_page' order.order_id %}" class="btn-failure-primary">⚡ RETRY PAYMENT</a>
+      <a href="{% url 'orders:detail' order.order_id %}" class="btn-failure-secondary">View Order</a>
+    </div>
+    
+  </div>
+</div>
+{% endblock %}

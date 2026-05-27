@@ -1,0 +1,141 @@
+{% extends 'user_profile/base_profile.html' %}
+{% load static %}
+
+{% block title %}Secure Wallet Top-up – SoleVault{% endblock %}
+
+{% block active_wallet %}active{% endblock %}
+
+{% block profile_content %}
+<div class="profile-card" style="padding: 50px 30px; text-align: center; max-width: 600px; margin: 0 auto;">
+  
+  <!-- Security Badge -->
+  <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #10b981; font-weight: 700; background: #ecfdf5; padding: 6px 14px; border-radius: 30px; margin-bottom: 24px;">
+    🛡️ SECURE 256-BIT SSL ENCRYPTED TRANSACTION
+  </div>
+
+  <!-- Loading State -->
+  <div id="payment-loading-state">
+    <div style="width: 90px; height: 90px; margin: 0 auto 30px; position: relative; display: flex; align-items: center; justify-content: center;">
+      <div style="border: 4px solid var(--border, #e8e8e8); border-top: 4px solid var(--blue, #0d59f2); border-radius: 50%; width: 80px; height: 80px; animation: spin 1.2s linear infinite;"></div>
+      <span style="position: absolute; font-size: 28px; animation: pulse 1.8s ease-in-out infinite;">🔒</span>
+    </div>
+    
+    <h3 style="font-size: 20px; font-weight: 800; color: var(--text, #111); margin-bottom: 8px;" id="status-heading">Initiating Secure Gateway</h3>
+    <p style="font-size: 13px; color: var(--text-muted, #777); line-height: 1.6; margin-bottom: 30px;" id="status-desc">
+      We are opening your Razorpay secure deposit portal. Please do not refresh, close, or navigate away.
+    </p>
+  </div>
+
+  <!-- Idle State -->
+  <div id="payment-idle-state" style="display: none; margin-bottom: 30px;">
+    <div style="width: 90px; height: 90px; margin: 0 auto 30px; position: relative; display: flex; align-items: center; justify-content: center;">
+      <span style="font-size: 48px; animation: pulse 2.5s infinite;">💳</span>
+    </div>
+    <h3 style="font-size: 20px; font-weight: 800; color: var(--text, #111); margin-bottom: 8px;">Top-up Session Paused</h3>
+    <p style="font-size: 13px; color: var(--text-muted, #777); line-height: 1.6; margin-bottom: 30px;">
+      Your top-up session was closed or timed out. Click below to re-initiate secure payment.
+    </p>
+    <button id="pay-button" style="display: block; width: 100%; background: var(--blue, #0d59f2); color: white; padding: 14px; border-radius: 8px; font-size: 14.5px; font-weight: 700; border: none; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+      DEPOSIT ₹{{ amount }} SECURELY NOW
+    </button>
+  </div>
+
+  <!-- Transaction Details Card -->
+  <div style="background: var(--surface-2, #fafafa); border: 1px solid var(--border, #e8e8e8); border-radius: 12px; padding: 20px; text-align: left; margin-bottom: 30px;">
+    <div style="font-size: 11px; font-weight: 700; color: var(--blue, #0d59f2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Deposit Details</div>
+    
+    <div style="display: flex; justify-content: space-between; font-size: 13.5px; margin-bottom: 8px;">
+      <span style="font-weight: 600; color: var(--text-muted, #777);">Transaction Type</span>
+      <span style="font-weight: 700; color: var(--text, #111);">Wallet Top-Up</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 13.5px; margin-bottom: 8px;">
+      <span style="font-weight: 600; color: var(--text-muted, #777);">Account Email</span>
+      <span style="font-weight: 700; color: var(--text, #111);">{{ user.email }}</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 13.5px; border-top: 1px solid var(--border, #e8e8e8); padding-top: 8px; margin-top: 8px;">
+      <span style="font-weight: 700; color: var(--text, #111);">Total Deposit Amount</span>
+      <span style="font-weight: 800; color: #10b981; font-size: 15px;">₹{{ amount }}</span>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div>
+    <a href="{% url 'user_profile:wallet' %}" style="font-size: 13px; color: var(--text-muted, #777); text-decoration: none;" onmouseover="this.style.color='var(--text, #111)'" onmouseout="this.style.color='var(--text-muted, #777)'">
+      ← Cancel Deposit and Return
+    </a>
+  </div>
+
+  <!-- Hidden Verification Form -->
+  <form id="payment-form" action="{% url 'user_profile:wallet_topup_verify' %}" method="POST" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+    <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+    <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+  </form>
+
+</div>
+
+<style>
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.1); opacity: 1; }
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  var options = {
+    "key": "{{ razorpay_key_id }}",
+    "amount": "{{ amount_paisa }}",
+    "currency": "INR",
+    "name": "SoleVault",
+    "description": "Wallet Top-up",
+    "order_id": "{{ razorpay_order_id }}",
+    "handler": function (response) {
+      document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+      document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+      document.getElementById('razorpay_signature').value = response.razorpay_signature;
+      
+      document.getElementById('status-heading').innerText = "Verifying Deposit";
+      document.getElementById('status-desc').innerText = "Securing signature validation from payment networks...";
+      document.getElementById('payment-idle-state').style.display = 'none';
+      document.getElementById('payment-loading-state').style.display = 'block';
+      
+      document.getElementById('payment-form').submit();
+    },
+    "prefill": {
+      "name": "{{ user.get_full_name|default:'' }}",
+      "email": "{{ user.email }}",
+      "contact": "{{ user.phone_number|default:'' }}"
+    },
+    "theme": {
+      "color": "#0D59F2"
+    },
+    "modal": {
+      "ondismiss": function () {
+        document.getElementById('payment-idle-state').style.display = 'block';
+        document.getElementById('payment-loading-state').style.display = 'none';
+      }
+    }
+  };
+
+  var rzp1 = new Razorpay(options);
+
+  window.onload = function() {
+    rzp1.open();
+  };
+
+  document.getElementById('pay-button').onclick = function (e) {
+    rzp1.open();
+    document.getElementById('payment-idle-state').style.display = 'none';
+    document.getElementById('payment-loading-state').style.display = 'block';
+    e.preventDefault();
+  };
+</script>
+{% endblock %}

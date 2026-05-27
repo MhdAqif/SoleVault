@@ -1,0 +1,143 @@
+{% extends 'adminpanel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Promotional Offers – SoleVault Admin{% endblock %}
+{% block nav_offers %}active{% endblock %}
+{% block topbar_title %}Promotional Offers{% endblock %}
+{% block topbar_breadcrumb %}Marketing / Offers{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 30px; align-items: start;">
+
+  <!-- Left: Offers Tables -->
+  <div>
+    <!-- Product Offers -->
+    <div style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.02); margin-bottom: 30px;">
+      <div style="padding: 16px 20px; border-bottom: 1px solid var(--border); background: rgba(0, 0, 0, 0.01); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 15px; font-weight: 700; color: var(--text); margin: 0;">Product-Specific Offers</h3>
+        <span style="font-size: 12px; color: var(--text-muted);">{{ product_offers.count }} active</span>
+      </div>
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px; color: var(--text);">
+        <thead>
+          <tr style="background: rgba(0, 0, 0, 0.02); border-bottom: 1px solid var(--border); font-weight: 600; color: var(--text-muted);">
+            <th style="padding: 12px 20px;">Product Name</th>
+            <th style="padding: 12px 20px;">Standard Price</th>
+            <th style="padding: 12px 20px;">Offer Discount</th>
+            <th style="padding: 12px 20px;">Effective Price</th>
+            <th style="padding: 12px 20px; text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for offer in product_offers %}
+          <tr style="border-bottom: 1px solid var(--border);" onmouseover="this.style.backgroundColor='rgba(0,0,0,0.01)'" onmouseout="this.style.backgroundColor='transparent'">
+            <td style="padding: 12px 20px; font-weight: 600;">{{ offer.product.name }}</td>
+            <td style="padding: 12px 20px;">₹{{ offer.product.price }}</td>
+            <td style="padding: 12px 20px; color: #10b981; font-weight: 700;">🔥 {{ offer.discount_percentage }}% Off</td>
+            <td style="padding: 12px 20px; font-weight: 700;">₹{{ offer.product.offer_price }}</td>
+            <td style="padding: 12px 20px; text-align: right;">
+              <form method="POST" action="{% url 'adminpanel:product_offer_delete' offer.id %}" style="display: inline;" onsubmit="event.preventDefault(); showCustomConfirm('Remove this offer?', this, 'Delete', '#ef4444');">
+                {% csrf_token %}
+                <button type="submit" style="background: none; border: none; padding: 0; color: #ef4444; font-weight: 600; cursor: pointer; font-size: 13px;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+                  Remove
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" style="padding: 30px; text-align: center; color: var(--text-muted);">
+              No product-specific offers active.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Category Offers -->
+    <div style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+      <div style="padding: 16px 20px; border-bottom: 1px solid var(--border); background: rgba(0, 0, 0, 0.01); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 15px; font-weight: 700; color: var(--text); margin: 0;">Category-Wide Offers</h3>
+        <span style="font-size: 12px; color: var(--text-muted);">{{ category_offers.count }} active</span>
+      </div>
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px; color: var(--text);">
+        <thead>
+          <tr style="background: rgba(0, 0, 0, 0.02); border-bottom: 1px solid var(--border); font-weight: 600; color: var(--text-muted);">
+            <th style="padding: 12px 20px;">Category</th>
+            <th style="padding: 12px 20px;">Offer Discount</th>
+            <th style="padding: 12px 20px; text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for offer in category_offers %}
+          <tr style="border-bottom: 1px solid var(--border);" onmouseover="this.style.backgroundColor='rgba(0,0,0,0.01)'" onmouseout="this.style.backgroundColor='transparent'">
+            <td style="padding: 12px 20px; font-weight: 600;">📁 {{ offer.category.name }}</td>
+            <td style="padding: 12px 20px; color: #10b981; font-weight: 700;">🔥 {{ offer.discount_percentage }}% Off</td>
+            <td style="padding: 12px 20px; text-align: right;">
+              <form method="POST" action="{% url 'adminpanel:category_offer_delete' offer.id %}" style="display: inline;" onsubmit="event.preventDefault(); showCustomConfirm('Remove this category offer?', this, 'Delete', '#ef4444');">
+                {% csrf_token %}
+                <button type="submit" style="background: none; border: none; padding: 0; color: #ef4444; font-weight: 600; cursor: pointer; font-size: 13px;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+                  Remove
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3" style="padding: 30px; text-align: center; color: var(--text-muted);">
+              No category-wide offers active.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Right: Add Offer Sidebars -->
+  <div>
+    <!-- Add Product Offer Form -->
+    <div style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); margin-bottom: 30px;">
+      <h3 style="font-size: 14.5px; font-weight: 700; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 0; margin-bottom: 15px;">Add Product Offer</h3>
+      <form method="POST" action="{% url 'adminpanel:product_offer_add' %}">
+        {% csrf_token %}
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">Select Product</label>
+          <select name="product_id" required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); font-size: 13px; outline: none;">
+            {% for prod in products %}
+              <option value="{{ prod.id }}">{{ prod.name }} (₹{{ prod.price }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">Discount Percentage (%)</label>
+          <input type="number" name="discount_percentage" required min="1" max="100" placeholder="e.g. 20" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); font-size: 13px; outline: none;">
+        </div>
+        <button type="submit" style="width: 100%; padding: 10px; background-color: var(--blue); color: #fff; border: none; border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--blue-dark)'" onmouseout="this.style.backgroundColor='var(--blue)'">Apply Offer</button>
+      </form>
+    </div>
+
+    <!-- Add Category Offer Form -->
+    <div style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+      <h3 style="font-size: 14.5px; font-weight: 700; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 0; margin-bottom: 15px;">Add Category Offer</h3>
+      <form method="POST" action="{% url 'adminpanel:category_offer_add' %}">
+        {% csrf_token %}
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">Select Category</label>
+          <select name="category_id" required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); font-size: 13px; outline: none;">
+            {% for cat in categories %}
+              <option value="{{ cat.id }}">{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">Discount Percentage (%)</label>
+          <input type="number" name="discount_percentage" required min="1" max="100" placeholder="e.g. 15" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); font-size: 13px; outline: none;">
+        </div>
+        <button type="submit" style="width: 100%; padding: 10px; background-color: var(--blue); color: #fff; border: none; border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--blue-dark)'" onmouseout="this.style.backgroundColor='var(--blue)'">Apply Offer</button>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -820,33 +820,33 @@
         <h4>About SoleVault</h4>
         <ul>
           <li><a href="{% url 'core:about' %}">About Us</a></li>
-          <li><a href="#">Philosophy</a></li>
-          <li><a href="#">Careers</a></li>
-          <li><a href="#">Press</a></li>
+          <li><a href="{% url 'core:philosophy' %}">Philosophy</a></li>
+          <li><a href="{% url 'core:careers' %}">Careers</a></li>
+          <li><a href="{% url 'core:press' %}">Press</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>Customer Care</h4>
         <ul>
-          <li><a href="#">Contact</a></li>
-          <li><a href="#">Shipping &amp; Returns</a></li>
-          <li><a href="#">FAQ</a></li>
-          <li><a href="#">Size Guide</a></li>
+          <li><a href="{% url 'core:contact' %}">Contact</a></li>
+          <li><a href="{% url 'core:shipping_returns' %}">Shipping &amp; Returns</a></li>
+          <li><a href="{% url 'core:faq' %}">FAQ</a></li>
+          <li><a href="{% url 'core:size_guide' %}">Size Guide</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>Information</h4>
         <ul>
-          <li><a href="#">Privacy Policy</a></li>
-          <li><a href="#">Terms &amp; Conditions</a></li>
-          <li><a href="#">Order Tracking</a></li>
+          <li><a href="{% url 'core:privacy' %}">Privacy Policy</a></li>
+          <li><a href="{% url 'core:terms' %}">Terms &amp; Conditions</a></li>
+          <li><a href="{% url 'user_profile:profile' %}">Order Tracking</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>News</h4>
         <ul>
-          <li><a href="#">Blog</a></li>
-          <li><a href="#">Lookbook</a></li>
+          <li><a href="{% url 'core:blog' %}">Blog</a></li>
+          <li><a href="{% url 'core:lookbook' %}">Lookbook</a></li>
         </ul>
       </div>
       <div class="footer-col footer-contact">
@@ -858,9 +858,25 @@
           info@solevault.com
         </p>
         <div class="social-icons">
-          <div class="social-icon">T</div>
-          <div class="social-icon">f</div>
-          <div class="social-icon">in</div>
+          <div class="social-icon" title="Instagram">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px;">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+            </svg>
+          </div>
+          <div class="social-icon" title="Facebook">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px;">
+              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+            </svg>
+          </div>
+          <div class="social-icon" title="LinkedIn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px;">
+              <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+              <rect x="2" y="9" width="4" height="12"></rect>
+              <circle cx="4" cy="4" r="2"></circle>
+            </svg>
+          </div>
         </div>
       </div>
     </div>

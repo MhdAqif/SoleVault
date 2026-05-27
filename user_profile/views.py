@@ -230,3 +230,156 @@ def verify_email_otp(request):
             messages.error(request, "Invalid OTP. Please try again.")
 
     return render(request, 'user_profile/verify_email_otp.html', {'new_email': new_email})
+
+@login_required
+def user_coupons(request):
+    from django.utils import timezone
+    from orders.models import Coupon
+    now = timezone.now()
+    active_coupons = Coupon.objects.filter(
+        active=True,
+        valid_from__lte=now,
+        valid_to__gte=now
+    )
+    return render(request, 'user_profile/coupons.html', {
+        'coupons': active_coupons
+    })
+
+@login_required
+def user_wallet(request):
+    from .models import Wallet
+    wallet, created = Wallet.objects.get_or_create(user=request.user)
+    transactions = wallet.transactions.all().order_by('-created_at')
+    return render(request, 'user_profile/wallet.html', {
+        'wallet': wallet,
+        'transactions': transactions
+    })
+
+
+@login_required
+def user_referral(request):
+    import uuid
+    user = request.user
+    if not user.referral_code:
+        new_user_ref = f"SV-REF-{uuid.uuid4().hex[:6].upper()}"
+        while user.__class__.objects.filter(referral_code=new_user_ref).exists():
+            new_user_ref = f"SV-REF-{uuid.uuid4().hex[:6].upper()}"
+        user.referral_code = new_user_ref
+        user.save()
+    
+    # Construct full referral link
+    base_url = request.build_absolute_uri('/signup/')
+    referral_link = f"{base_url}?ref={user.referral_code}"
+    
+    return render(request, 'user_profile/referral.html', {
+        'referral_code': user.referral_code,
+        'referral_link': referral_link,
+    })
+
+
+@login_required
+def wallet_topup_init(request):
+    import razorpay
+    import decimal
+    from django.conf import settings
+    
+    if request.method != 'POST':
+        return redirect('user_profile:wallet')
+        
+    amount_str = request.POST.get('amount', '').strip()
+    try:
+        amount = decimal.Decimal(amount_str)
+        if amount <= 0:
+            messages.error(request, "Amount must be greater than zero.")
+            return redirect('user_profile:wallet')
+    except (ValueError, decimal.InvalidOperation):
+        messages.error(request, "Please enter a valid deposit amount.")
+        return redirect('user_profile:wallet')
+        
+    # Initialize Razorpay client
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    
+    # Amount in paisa
+    amount_paisa = int(amount * 100)
+    
+    try:
+        razorpay_order = client.order.create({
+            'amount': amount_paisa,
+            'currency': 'INR',
+            'payment_capture': 1
+        })
+        
+        # Save amount and Razorpay order ID in session
+        request.session['topup_amount'] = str(amount)
+        request.session['topup_razorpay_order_id'] = razorpay_order['id']
+        
+        context = {
+            'razorpay_order_id': razorpay_order['id'],
+            'razorpay_key_id': settings.RAZORPAY_KEY_ID,
+            'amount': amount,
+            'amount_paisa': amount_paisa,
+            'user': request.user,
+        }
+        return render(request, 'user_profile/wallet_payment.html', context)
+        
+    except Exception as e:
+        messages.error(request, f"Failed to initialize payment gateway: {str(e)}")
+        return redirect('user_profile:wallet')
+
+
+@login_required
+def wallet_topup_verify(request):
+    import razorpay
+    import decimal
+    from django.conf import settings
+    from django.db import transaction
+    from .models import Wallet, WalletTransaction
+    
+    if request.method != 'POST':
+        return redirect('user_profile:wallet')
+        
+    razorpay_payment_id = request.POST.get('razorpay_payment_id')
+    razorpay_order_id = request.POST.get('razorpay_order_id')
+    razorpay_signature = request.POST.get('razorpay_signature')
+    
+    session_order_id = request.session.get('topup_razorpay_order_id')
+    amount_str = request.session.get('topup_amount')
+    
+    if not session_order_id or not amount_str or razorpay_order_id != session_order_id:
+        messages.error(request, "Session expired or transaction mismatch.")
+        return redirect('user_profile:wallet')
+        
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    
+    try:
+        # Verify payment signature
+        client.utility.verify_payment_signature({
+            'razorpay_order_id': razorpay_order_id,
+            'razorpay_payment_id': razorpay_payment_id,
+            'razorpay_signature': razorpay_signature
+        })
+        
+        # Atomically credit wallet
+        amount = decimal.Decimal(amount_str)
+        with transaction.atomic():
+            wallet, created = Wallet.objects.get_or_create(user=request.user)
+            wallet.balance += amount
+            wallet.save()
+            
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                transaction_type='credit',
+                amount=amount,
+                description=f"Deposited funds via Razorpay (Ref: {razorpay_payment_id})"
+            )
+            
+        # Clear sessions
+        request.session.pop('topup_amount', None)
+        request.session.pop('topup_razorpay_order_id', None)
+        
+        messages.success(request, f"Successfully deposited ₹{amount:.2f} to your wallet!")
+        
+    except Exception as e:
+        messages.error(request, "Payment signature verification failed. Deposit unsuccessful.")
+        
+    return redirect('user_profile:wallet')

@@ -87,6 +87,7 @@
   .status-out_for_delivery { background: rgba(168,85,247,0.12);  color: #c084fc; }
   .status-delivered        { background: var(--green-soft);  color: var(--green); }
   .status-cancelled        { background: var(--red-soft);   color: var(--red); }
+  .status-return_requested { background: rgba(245,158,11,0.12); color: #f59e0b; }
   .status-returned         { background: rgba(156,163,175,0.12); color: #9ca3af; }
   
   /* Product row list */
@@ -290,15 +291,56 @@
           Current Status: &nbsp;<span class="status-pill status-{{ order.status }}">{{ order.get_status_display }}</span>
         </div>
         
-        <form method="POST" action="{% url 'adminpanel:order_update_status' order.id %}">
-          {% csrf_token %}
-          <select name="status" class="status-select">
-            {% for st in all_statuses %}
-              <option value="{{ st.0 }}" {% if order.status == st.0 %}selected{% endif %}>{{ st.1 }}</option>
-            {% endfor %}
-          </select>
-          <button type="submit" class="btn-update-status">Update Status</button>
-        </form>
+        {% if order.status == 'return_requested' %}
+          <div style="display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px;">
+            <form method="POST" action="{% url 'adminpanel:order_update_status' order.id %}" onsubmit="event.preventDefault(); showCustomConfirm('Are you sure you want to ACCEPT this return request? This will restore stock levels and credit the wallet balance with ₹{{ order.final_price }}.', this, 'Accept Return', '#10b981');">
+              {% csrf_token %}
+              <input type="hidden" name="status" value="returned">
+              <button type="submit" style="width: 100%; height: 40px; background: #10b981; color: white; border: none; border-radius: var(--radius-btn); font-weight: 700; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                Accept Return & Refund
+              </button>
+            </form>
+            <form method="POST" action="{% url 'adminpanel:order_reject_return' order.id %}" onsubmit="event.preventDefault(); showCustomConfirm('Are you sure you want to REJECT this return request?', this, 'Reject Return', '#ef4444');">
+              {% csrf_token %}
+              <button type="submit" style="width: 100%; height: 40px; background: #ef4444; color: white; border: none; border-radius: var(--radius-btn); font-weight: 700; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                Reject Return Request
+              </button>
+            </form>
+          </div>
+        {% else %}
+          <form method="POST" action="{% url 'adminpanel:order_update_status' order.id %}">
+            {% csrf_token %}
+            <select name="status" class="status-select">
+              {% for st in all_statuses %}
+                <option value="{{ st.0 }}" {% if order.status == st.0 %}selected{% endif %}>{{ st.1 }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn-update-status">Update Status</button>
+          </form>
+        {% endif %}
+      </div>
+      
+      <!-- Payment Info -->
+      <div class="card-block">
+        <h3 class="card-title">Payment Details</h3>
+        <div style="font-size:13.5px; line-height:1.6; color: var(--text-muted);">
+          <div style="margin-bottom:8px; display:flex; justify-content:space-between;">
+            <span>Payment Mode:</span>
+            <strong style="color:var(--text);">{{ order.payment_method }}</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Payment Status:</span>
+            <span class="status-pill {% if order.payment_status == 'paid' %}status-delivered{% elif order.payment_status == 'pending' %}status-processing{% else %}status-cancelled{% endif %}" style="font-size:10px; padding: 2px 8px;">
+              {{ order.get_payment_status_display|upper }}
+            </span>
+          </div>
+          {% if order.razorpay_payment_id %}
+            <div style="margin-top:12px; border-top:1px solid var(--border); padding-top:10px; font-size:12px; word-break:break-all;">
+              <span style="color: var(--text-muted); display:block; margin-bottom:2px;">Razorpay Ref:</span>
+              <code style="color:var(--blue); font-weight:700; background: var(--surface-2); padding: 2px 6px; border-radius: 4px; display:block; border:1px solid var(--border);">{{ order.razorpay_payment_id }}</code>
+            </div>
+          {% endif %}
+        </div>
       </div>
       
       <!-- Customer Info -->

@@ -1,0 +1,343 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Secure Checkout – SoleVault{% endblock %}
+
+{% block extra_css %}
+<style>
+  .payment-container {
+    max-width: 600px;
+    margin: 60px auto;
+    padding: 0 20px;
+    text-align: center;
+  }
+  .payment-card {
+    background: var(--white);
+    padding: 50px 40px;
+    border-radius: 16px;
+    border: 1px solid var(--gray-200);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+  }
+  
+  /* Pulse and spin animations */
+  .spinner-box {
+    width: 90px;
+    height: 90px;
+    margin: 0 auto 30px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .spinner-circle {
+    border: 4px solid var(--gray-100);
+    border-top: 4px solid var(--blue);
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    animation: spin 1.2s linear infinite;
+  }
+  .spinner-lock {
+    position: absolute;
+    font-size: 28px;
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.1); opacity: 1; }
+  }
+
+  .status-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--black);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: -0.3px;
+  }
+  .status-subtitle {
+    font-size: 13.5px;
+    color: var(--gray-600);
+    line-height: 1.6;
+    margin-bottom: 30px;
+  }
+  
+  .payment-summary {
+    background: #fafbfe;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+    border: 1px solid #e1e7f5;
+    text-align: left;
+  }
+  .summary-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13.5px;
+    color: var(--gray-700);
+    margin-bottom: 8px;
+  }
+  .summary-row:last-child {
+    margin-bottom: 0;
+    padding-top: 8px;
+    border-top: 1px solid var(--gray-200);
+  }
+  .summary-row span:first-child {
+    font-weight: 600;
+  }
+  .summary-row span:last-child {
+    color: var(--black);
+    font-weight: 700;
+  }
+
+  .security-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #10b981;
+    font-weight: 700;
+    background: #ecfdf5;
+    padding: 6px 14px;
+    border-radius: 30px;
+    margin-bottom: 24px;
+  }
+
+  .btn-pay-now {
+    display: block;
+    width: 100%;
+    background: var(--blue);
+    color: white;
+    text-align: center;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(13,89,242,0.25);
+  }
+  .btn-pay-now:hover {
+    background: var(--blue-dk);
+  }
+  .btn-pay-now:active {
+    transform: scale(0.98);
+  }
+
+  .btn-cancel {
+    display: inline-block;
+    color: var(--gray-600);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    margin-top: 16px;
+    transition: color 0.15s;
+  }
+  .btn-cancel:hover {
+    color: var(--black);
+    text-decoration: underline;
+  }
+
+  /* Key/Placeholder Warning Styles */
+  .warning-box {
+    background: #fffbeb;
+    border: 1px solid #fef3c7;
+    border-radius: 10px;
+    padding: 24px;
+    text-align: left;
+    margin-bottom: 30px;
+  }
+  .warning-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #b45309;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .warning-desc {
+    font-size: 12.5px;
+    color: #78350f;
+    line-height: 1.5;
+  }
+  .warning-desc code {
+    background: #fef3c7;
+    color: #92400e;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-weight: 700;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="payment-container">
+  <div class="payment-card">
+    
+    <!-- Security Indicator -->
+    <div class="security-badge">
+      🛡️ 256-BIT SSL ENCRYPTED GATEWAY
+    </div>
+
+    <!-- Active Loading State -->
+    <div id="payment-loading-state" {% if error_msg %}style="display:none;"{% endif %}>
+      <div class="spinner-box">
+        <div class="spinner-circle"></div>
+        <span class="spinner-lock">🔒</span>
+      </div>
+      
+      <h1 class="status-title" id="status-heading">Initiating Payment</h1>
+      <p class="status-subtitle" id="status-desc">
+        We are opening your secure payment session. Please do not refresh, close this window, or press back.
+      </p>
+    </div>
+
+    <!-- Idle / Manual State (when modal is closed) -->
+    <div id="payment-idle-state" style="display: none; margin-bottom: 30px;">
+      <div class="spinner-box" style="animation: none;">
+        <span class="spinner-lock" style="font-size: 48px; animation: pulse 2.5s infinite;">💳</span>
+      </div>
+      <h1 class="status-title" style="color: var(--black);">Payment Pending</h1>
+      <p class="status-subtitle">
+        Your payment session was paused or closed. Don't worry, your cart items are reserved! Click below to complete your secure payment.
+      </p>
+      <button id="pay-button" class="btn-pay-now">PAY SECURELY NOW (₹{{ order.final_price }})</button>
+    </div>
+
+    <!-- Error State (e.g. placeholder keys warning) -->
+    {% if error_msg %}
+      <div class="warning-box">
+        <div class="warning-title">
+          ⚠️ Action Required: Setup Razorpay Keys
+        </div>
+        <div class="warning-desc">
+          The payment gateway could not be loaded because <b>placeholder credentials</b> are currently active in your configuration.
+          <br><br>
+          To make real mock test payments:
+          <ol style="margin-top: 8px; padding-left: 20px;">
+            <li style="margin-bottom: 5px;">Get your test credentials from the <a href="https://dashboard.razorpay.com" target="_blank" style="color:#b45309; font-weight:700; text-decoration:underline;">Razorpay Dashboard</a>.</li>
+            <li style="margin-bottom: 5px;">Open the <code>.env</code> file at the root of the project.</li>
+            <li>Replace <code>RAZORPAY_KEY_ID</code> and <code>RAZORPAY_KEY_SECRET</code> with your keys.</li>
+          </ol>
+          <hr style="border: 0; border-top: 1px solid #fde68a; margin: 15px 0;">
+          <div style="font-size: 11.5px; color:#92400e;">
+            <b>Technical Error Detail:</b><br>
+            <code>{{ error_msg }}</code>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Order Summary Details -->
+    <div class="payment-summary">
+      <div class="summary-title">Billing Information</div>
+      <div class="summary-row">
+        <span>Order Reference</span>
+        <span>{{ order.order_id }}</span>
+      </div>
+      <div class="summary-row">
+        <span>Customer Name</span>
+        <span>{{ order.full_name }}</span>
+      </div>
+      <div class="summary-row">
+        <span>Contact Phone</span>
+        <span>{{ order.phone }}</span>
+      </div>
+      <div class="summary-row">
+        <span>Total Payable</span>
+        <span style="color: var(--blue); font-size: 15px;">₹{{ order.final_price }}</span>
+      </div>
+    </div>
+
+    <!-- Navigation / Actions -->
+    <div>
+      <a href="{% url 'orders:detail' order.order_id %}" class="btn-cancel">
+        ← Cancel and View Order Details
+      </a>
+    </div>
+
+    <!-- Hidden Form for Signature Verification -->
+    <form id="payment-form" action="{% url 'orders:payment_verify' %}" method="POST" style="display: none;">
+      {% csrf_token %}
+      <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+      <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+      <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+      <input type="hidden" name="order_id" value="{{ order.order_id }}">
+    </form>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if not error_msg %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  var options = {
+    "key": "{{ razorpay_key_id }}",
+    "amount": "{{ amount }}",
+    "currency": "INR",
+    "name": "SoleVault",
+    "description": "Order {{ order.order_id }} Payment",
+    "image": "{% static 'core/images/logo.png' %}", // will fall back gracefully if missing
+    "order_id": "{{ razorpay_order_id }}",
+    "handler": function (response) {
+      // Set values and submit
+      document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+      document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+      document.getElementById('razorpay_signature').value = response.razorpay_signature;
+      
+      // Update UI to verifying state
+      document.getElementById('status-heading').innerText = "Verifying Payment";
+      document.getElementById('status-desc').innerText = "Communicating with Razorpay servers. Cryptographic security check in progress...";
+      document.getElementById('payment-idle-state').style.display = 'none';
+      document.getElementById('payment-loading-state').style.display = 'block';
+      
+      document.getElementById('payment-form').submit();
+    },
+    "prefill": {
+      "name": "{{ order.full_name }}",
+      "email": "{{ order.user.email }}",
+      "contact": "{{ order.phone }}"
+    },
+    "theme": {
+      "color": "#0D59F2"
+    },
+    "modal": {
+      "ondismiss": function () {
+        document.getElementById('payment-idle-state').style.display = 'block';
+        document.getElementById('payment-loading-state').style.display = 'none';
+      }
+    }
+  };
+
+  var rzp1 = new Razorpay(options);
+
+  window.onload = function() {
+    // Automatically open the checkout window
+    rzp1.open();
+  };
+
+  document.getElementById('pay-button').onclick = function (e) {
+    rzp1.open();
+    document.getElementById('payment-idle-state').style.display = 'none';
+    document.getElementById('payment-loading-state').style.display = 'block';
+    e.preventDefault();
+  };
+</script>
+{% endif %}
+{% endblock %}

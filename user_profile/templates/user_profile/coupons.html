@@ -1,0 +1,97 @@
+{% extends 'user_profile/base_profile.html' %}
+{% load static %}
+
+{% block title %}My Coupons - SoleVault{% endblock %}
+
+{% block active_coupons %}active{% endblock %}
+
+{% block profile_content %}
+<div class="profile-card" style="padding: 40px 30px;">
+  
+  <div style="margin-bottom: 30px; border-bottom: 1px solid var(--border, #f0f0f0); padding-bottom: 15px;">
+    <h3 style="font-size: 20px; font-weight: 800; color: var(--text, #111); text-transform: uppercase; letter-spacing: -0.3px; margin: 0 0 6px 0;">Available Coupons</h3>
+    <p style="font-size: 13px; color: var(--text-muted, #777); margin: 0;">Copy any code below to apply special discounts during checkout!</p>
+  </div>
+
+  {% if coupons %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+      {% for coupon in coupons %}
+        <div style="background: var(--surface-2, #fafafa); border: 1px solid var(--border, #e8e8e8); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; transition: box-shadow 0.2s, border-color 0.2s; position: relative; overflow: hidden;" class="coupon-card" onmouseover="this.style.borderColor='var(--blue, #0D59F2)'; this.style.boxShadow='0 4px 12px rgba(13,89,242,0.06)';" onmouseout="this.style.borderColor='var(--border, #e8e8e8)'; this.style.boxShadow='none'">
+          
+          <!-- Decorative Dashed Cutouts representing physical coupon ticket -->
+          <div style="position: absolute; left: -8px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; border-radius: 50%; background: var(--card-bg, #fff); border-right: 1px solid var(--border, #e8e8e8);"></div>
+          <div style="position: absolute; right: -8px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; border-radius: 50%; background: var(--card-bg, #fff); border-left: 1px solid var(--border, #e8e8e8);"></div>
+          
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+              <span style="display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; background: rgba(13,89,242,0.08); font-size: 18px;">🎟️</span>
+              <span style="font-size: 11px; font-weight: 700; color: #10b981; background: #ecfdf5; padding: 2px 8px; border-radius: 20px; text-transform: uppercase;">Active</span>
+            </div>
+            
+            <h4 style="font-size: 16px; font-weight: 700; color: var(--text, #111); margin: 0 0 6px 0;">
+              {% if coupon.discount_type == 'percentage' %}
+                {{ coupon.discount_value|floatformat:0 }}% Off Entire Order
+              {% else %}
+                ₹{{ coupon.discount_value }} Off Entire Order
+              {% endif %}
+            </h4>
+            
+            <p style="font-size: 12px; color: var(--text-muted, #666); line-height: 1.5; margin: 0 0 16px 0;">
+              Save {% if coupon.discount_type == 'percentage' %}{{ coupon.discount_value|floatformat:0 }}%{% else %}₹{{ coupon.discount_value }}{% endif %} off your order when checkout threshold spend is met.
+            </p>
+          </div>
+          
+          <div style="border-top: 1px dashed var(--border, #e8e8e8); padding-top: 14px; margin-top: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-muted, #777); margin-bottom: 12px;">
+              <span>Min. Spend: <b>₹{{ coupon.min_spend|floatformat:0 }}</b></span>
+              {% if coupon.max_discount %}
+                <span>Max. Disc: <b>₹{{ coupon.max_discount|floatformat:0 }}</b></span>
+              {% endif %}
+            </div>
+            
+            <div style="display: flex; gap: 8px; width: 100%;">
+              <div style="flex: 1; border: 1px dashed var(--blue, #0D59F2); background: rgba(13,89,242,0.02); color: var(--blue, #0D59F2); padding: 8px 12px; border-radius: 6px; font-family: monospace; font-size: 13.5px; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                {{ coupon.code }}
+              </div>
+              <button type="button" onclick="copyCouponCode('{{ coupon.code }}', this)" style="background: var(--blue, #0D59F2); border: none; color: white; border-radius: 6px; padding: 0 14px; cursor: pointer; transition: background 0.15s; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 4px;" class="btn-copy">
+                Copy
+              </button>
+            </div>
+            
+            <div style="margin-top: 12px; font-size: 10.5px; color: var(--text-muted, #999); text-align: left;">
+              Expires: {{ coupon.valid_to|date:"M d, Y" }}
+            </div>
+          </div>
+          
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="text-align: center; padding: 40px 20px;">
+      <span style="font-size: 40px; display: block; margin-bottom: 15px;">🎟️</span>
+      <h4 style="font-size: 15px; font-weight: 700; color: var(--text, #111); margin-bottom: 6px;">No Coupons Available</h4>
+      <p style="font-size: 12.5px; color: var(--text-muted, #777); max-width: 320px; margin: 0 auto;">There are no active discount coupons available in your profile right now. Check back soon for exciting drops!</p>
+    </div>
+  {% endif %}
+
+</div>
+
+<script>
+  function copyCouponCode(code, buttonElement) {
+    // Copy to clipboard
+    navigator.clipboard.writeText(code).then(function() {
+      // Micro-interaction Feedback
+      const originalText = buttonElement.innerText;
+      buttonElement.innerText = "Copied!";
+      buttonElement.style.background = "#10b981"; // change to emerald green
+      
+      setTimeout(function() {
+        buttonElement.innerText = originalText;
+        buttonElement.style.background = ""; // revert
+      }, 1500);
+    }).catch(function(err) {
+      console.error('Could not copy text: ', err);
+    });
+  }
+</script>
+{% endblock %}

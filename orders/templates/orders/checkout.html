@@ -218,6 +218,61 @@
     text-decoration: underline;
   }
   
+  /* Payment Selector Styles */
+  .payment-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+    margin-bottom: 24px;
+  }
+  .payment-method-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--white);
+  }
+  .payment-method-option:hover {
+    border-color: var(--blue);
+    background: #fafcff;
+  }
+  .payment-method-option.selected {
+    border-color: var(--blue);
+    background: var(--blue-lt);
+    box-shadow: 0 0 0 1px var(--blue);
+  }
+  .payment-method-radio {
+    accent-color: var(--blue);
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    margin-top: 0;
+  }
+  .payment-method-details {
+    flex: 1;
+    text-align: left;
+  }
+  .payment-method-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--black);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .payment-method-desc {
+    font-size: 11.5px;
+    color: var(--gray-500);
+    margin-top: 2px;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+  
   @media (max-width: 900px) {
     .checkout-grid {
       grid-template-columns: 1fr;
@@ -288,7 +343,7 @@
           <div class="checkout-items">
             {% for item in cart_items %}
               <div class="checkout-item">
-                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="checkout-item-img">
+                <img src="{% if item.product.image %}{{ item.product.image.url }}{% else %}/static/images/placeholder.jpg{% endif %}" alt="{{ item.product.name }}" class="checkout-item-img">
                 <div class="checkout-item-info">
                   <div class="checkout-item-name">{{ item.product.name }}</div>
                   <div class="checkout-item-meta">
@@ -312,6 +367,32 @@
               <span>-₹{{ total_discount }}</span>
             </div>
           {% endif %}
+          
+          <!-- Coupon Application Section -->
+          <div class="coupon-section" style="border-top: 1px solid var(--gray-200); border-bottom: 1px solid var(--gray-200); padding: 16px 0; margin: 16px 0;">
+            {% if coupon %}
+              <div style="display: flex; justify-content: space-between; align-items: center; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 10px 14px; border-radius: 8px;">
+                <div>
+                  <span style="font-size: 14px; font-weight: 700; color: #065f46;">🎟️ {{ coupon.code }}</span>
+                  <span style="font-size: 11px; color: #047857; display: block; margin-top: 2px;">Applied successfully (Saved ₹{{ coupon_discount|floatformat:2 }})</span>
+                </div>
+                <button type="button" onclick="handleCouponAction('remove')" style="background: none; border: none; color: #ef4444; font-weight: 700; font-size: 12px; cursor: pointer; text-decoration: underline; text-transform: uppercase;">[Remove]</button>
+              </div>
+            {% else %}
+              <div style="display: flex; gap: 8px; margin: 0; padding: 0;">
+                <input type="text" id="couponCodeInput" placeholder="ENTER COUPON CODE" style="flex: 1; padding: 10px 12px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px; font-weight: 700; text-transform: uppercase; outline: none; transition: border-color 0.15s;" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--gray-300)'">
+                <button type="button" onclick="handleCouponAction('apply')" style="background: var(--blue); color: white; border: none; padding: 10px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background 0.15s; letter-spacing: 0.5px;">APPLY</button>
+              </div>
+            {% endif %}
+          </div>
+
+          {% if coupon_discount > 0 %}
+            <div class="breakdown-row discount" style="color: #10b981; font-weight: 700;">
+              <span>Coupon Discount ({{ coupon.code }})</span>
+              <span>-₹{{ coupon_discount|floatformat:2 }}</span>
+            </div>
+          {% endif %}
+          
           <div class="breakdown-row">
             <span>GST (18% included)</span>
             <span>₹{{ tax|floatformat:2 }}</span>
@@ -332,10 +413,44 @@
             <span>₹{{ final_price }}</span>
           </div>
           
-          <!-- Payment Method info -->
-          <div class="payment-box">
-            <span class="payment-icon">💵</span>
-            <div class="payment-text">Cash on Delivery (COD)</div>
+          <!-- Payment Method Selector -->
+          <div class="section-title" style="margin-top: 24px; border-bottom: none; padding-bottom: 0; margin-bottom: 12px; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px;">Select Payment Method</div>
+          <div class="payment-methods">
+            <!-- Cash on Delivery -->
+            <label class="payment-method-option selected" id="label-pay-cod">
+              <input type="radio" name="payment_method" value="COD" class="payment-method-radio" checked onclick="selectPaymentMethod('COD')">
+              <div class="payment-method-details">
+                <div class="payment-method-title">
+                  <span>💵</span> Cash on Delivery (COD)
+                </div>
+                <div class="payment-method-desc">Pay with cash when your package is delivered.</div>
+              </div>
+            </label>
+            
+            <!-- Online Payment -->
+            <label class="payment-method-option" id="label-pay-online">
+              <input type="radio" name="payment_method" value="Razorpay" class="payment-method-radio" onclick="selectPaymentMethod('Razorpay')">
+              <div class="payment-method-details">
+                <div class="payment-method-title">
+                  <span>💳</span> Online Payment (Razorpay)
+                </div>
+                <div class="payment-method-desc">UPI, Credit/Debit Cards, NetBanking, and Wallets.</div>
+              </div>
+            </label>
+
+            <!-- Wallet Payment -->
+            <label class="payment-method-option {% if wallet_balance < final_price %}disabled-wallet{% endif %}" id="label-pay-wallet" {% if wallet_balance < final_price %}style="opacity: 0.6; cursor: not-allowed;"{% endif %}>
+              <input type="radio" name="payment_method" value="Wallet" class="payment-method-radio" {% if wallet_balance < final_price %}disabled{% else %}onclick="selectPaymentMethod('Wallet')"{% endif %}>
+              <div class="payment-method-details">
+                <div class="payment-method-title" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span>💼 Wallet (Balance: ₹{{ wallet_balance|floatformat:2 }})</span>
+                  {% if wallet_balance < final_price %}
+                    <span style="font-size: 11px; color: var(--red, #ef4444); font-weight: 700; background: #fee2e2; padding: 2px 8px; border-radius: 4px;">Insufficient Balance</span>
+                  {% endif %}
+                </div>
+                <div class="payment-method-desc">Deduct directly from your SoleVault Wallet balance.</div>
+              </div>
+            </label>
           </div>
           
           {% if addresses %}
@@ -357,6 +472,37 @@
 
 {% block extra_js %}
 <script>
+  function handleCouponAction(action) {
+    const tempForm = document.createElement('form');
+    tempForm.method = 'POST';
+    if (action === 'apply') {
+      const code = document.getElementById('couponCodeInput').value.trim();
+      if (!code) {
+        alert('Please enter a coupon code.');
+        return;
+      }
+      tempForm.action = "{% url 'orders:apply_coupon' %}";
+      
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'coupon_code';
+      input.value = code;
+      tempForm.appendChild(input);
+    } else {
+      tempForm.action = "{% url 'orders:remove_coupon' %}";
+    }
+    
+    // Add CSRF token
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = '{{ csrf_token }}';
+    tempForm.appendChild(csrfInput);
+    
+    document.body.appendChild(tempForm);
+    tempForm.submit();
+  }
+
   function selectAddress(addressId) {
     // Remove selected class from all labels
     document.querySelectorAll('.address-option').forEach(function(el) {
@@ -367,6 +513,37 @@
     const selectedLabel = document.getElementById('label-addr-' + addressId);
     if(selectedLabel) {
       selectedLabel.classList.add('selected');
+    }
+  }
+
+  function selectPaymentMethod(method) {
+    // Remove selected class from all payment options
+    document.getElementById('label-pay-cod').classList.remove('selected');
+    document.getElementById('label-pay-online').classList.remove('selected');
+    const walletLabel = document.getElementById('label-pay-wallet');
+    if (walletLabel) {
+      walletLabel.classList.remove('selected');
+    }
+    
+    const submitBtn = document.querySelector('.btn-place-order');
+    
+    if (method === 'COD') {
+      document.getElementById('label-pay-cod').classList.add('selected');
+      if (submitBtn && submitBtn.getAttribute('disabled') === null) {
+        submitBtn.innerHTML = 'PLACE ORDER (₹{{ final_price }})';
+      }
+    } else if (method === 'Razorpay') {
+      document.getElementById('label-pay-online').classList.add('selected');
+      if (submitBtn && submitBtn.getAttribute('disabled') === null) {
+        submitBtn.innerHTML = 'PROCEED TO PAY (₹{{ final_price }})';
+      }
+    } else if (method === 'Wallet') {
+      if (walletLabel) {
+        walletLabel.classList.add('selected');
+      }
+      if (submitBtn && submitBtn.getAttribute('disabled') === null) {
+        submitBtn.innerHTML = 'PAY VIA WALLET (₹{{ final_price }})';
+      }
     }
   }
 </script>

@@ -1,0 +1,118 @@
+{% extends 'user_profile/base_profile.html' %}
+{% load static %}
+
+{% block title %}My Wallet - SoleVault{% endblock %}
+
+{% block active_wallet %}active{% endblock %}
+
+{% block profile_content %}
+<div class="profile-card" style="padding: 40px 30px;">
+  
+  <div style="margin-bottom: 30px; border-bottom: 1px solid var(--border, #f0f0f0); padding-bottom: 15px;">
+    <h3 style="font-size: 20px; font-weight: 800; color: var(--text, #111); text-transform: uppercase; letter-spacing: -0.3px; margin: 0 0 6px 0;">My Wallet Balance</h3>
+    <p style="font-size: 13px; color: var(--text-muted, #777); margin: 0;">Use your wallet balance to place orders instantly at checkout or receive direct refunds!</p>
+  </div>
+
+  <!-- Wallet Balance Display Hero Card -->
+  <div style="background: linear-gradient(135deg, #111827 0%, #1f2937 100%); color: white; border-radius: 16px; padding: 30px; margin-bottom: 35px; box-shadow: 0 10px 25px rgba(31, 41, 55, 0.12); position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.08);">
+    
+    <!-- Decorative Metallic/Glass Circles -->
+    <div style="position: absolute; right: -30px; top: -30px; width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle, rgba(13,89,242,0.15) 0%, rgba(255,255,255,0) 70%);"></div>
+    <div style="position: absolute; left: 40%; bottom: -40px; width: 100px; height: 100px; border-radius: 50%; background: radial-gradient(circle, rgba(16,185,129,0.1) 0%, rgba(255,255,255,0) 70%);"></div>
+
+    <div style="display: flex; justify-content: space-between; align-items: start; position: relative; z-index: 2;">
+      <div>
+        <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #9ca3af; display: block; margin-bottom: 8px;">Current Balance</span>
+        <h2 style="font-size: 42px; font-weight: 900; letter-spacing: -1px; margin: 0; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+          ₹{{ wallet.balance }}
+        </h2>
+      </div>
+      <div style="background: rgba(255,255,255,0.08); padding: 10px; border-radius: 12px; font-size: 24px;">
+        💳
+      </div>
+    </div>
+
+    <div style="margin-top: 25px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; position: relative; z-index: 2; font-size: 12px; color: #9ca3af;">
+      <span>Account Holder: <b>{{ request.user.get_full_name|default:request.user.email }}</b></span>
+      <span>Last Updated: <b>{{ wallet.updated_at|date:"M d, Y, h:i A" }}</b></span>
+    </div>
+  </div>
+
+  <!-- Add Funds Section -->
+  <div style="background: var(--surface-2, #fafafa); border: 1px solid var(--border, #e8e8e8); border-radius: 12px; padding: 24px; margin-bottom: 35px; box-shadow: 0 4px 15px rgba(0,0,0,0.01);">
+    <h4 style="font-size: 14px; font-weight: 800; text-transform: uppercase; color: var(--text, #111); margin: 0 0 15px 0; letter-spacing: -0.2px;">Add Money to Wallet</h4>
+    
+    <form method="POST" action="{% url 'user_profile:wallet_topup_init' %}" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+      {% csrf_token %}
+      <div style="position: relative; flex: 1; min-width: 160px;">
+        <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--text-muted, #777); font-size: 15px;">₹</span>
+        <input type="number" name="amount" id="depositAmount" required min="1" value="500" style="width: 100%; padding: 12px 14px 12px 28px; border: 1px solid var(--border, #e8e8e8); border-radius: 8px; font-size: 15px; font-weight: 700; background: var(--surface, #ffffff); color: var(--text, #111); outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--blue, #0d59f2)'" onblur="this.style.borderColor='var(--border, #e8e8e8)'">
+      </div>
+      
+      <div style="display: flex; gap: 6px;">
+        <button type="button" onclick="setDepositAmount(500)" style="padding: 10px 14px; border: 1px solid var(--border, #e8e8e8); border-radius: 8px; background: var(--surface, #ffffff); color: var(--text, #111); font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.15s;" onmouseover="this.style.background='var(--surface-2, #fafafa)'" onmouseout="this.style.background='var(--surface, #ffffff)'">+ 500</button>
+        <button type="button" onclick="setDepositAmount(1000)" style="padding: 10px 14px; border: 1px solid var(--border, #e8e8e8); border-radius: 8px; background: var(--surface, #ffffff); color: var(--text, #111); font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.15s;" onmouseover="this.style.background='var(--surface-2, #fafafa)'" onmouseout="this.style.background='var(--surface, #ffffff)'">+ 1000</button>
+        <button type="button" onclick="setDepositAmount(2000)" style="padding: 10px 14px; border: 1px solid var(--border, #e8e8e8); border-radius: 8px; background: var(--surface, #ffffff); color: var(--text, #111); font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.15s;" onmouseover="this.style.background='var(--surface-2, #fafafa)'" onmouseout="this.style.background='var(--surface, #ffffff)'">+ 2000</button>
+      </div>
+
+      <button type="submit" style="padding: 12px 24px; background: var(--blue, #0d59f2); color: #ffffff; border: none; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+        Proceed to Pay
+      </button>
+    </form>
+  </div>
+
+  <script>
+    function setDepositAmount(val) {
+      document.getElementById('depositAmount').value = val;
+    }
+  </script>
+
+  <!-- Wallet Ledger Transactions -->
+  <div>
+    <h4 style="font-size: 15px; font-weight: 800; text-transform: uppercase; color: var(--text, #111); margin: 0 0 20px 0; letter-spacing: -0.2px;">Transaction History</h4>
+
+    {% if transactions %}
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for tx in transactions %}
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: var(--surface-2, #fafafa); border: 1px solid var(--border, #e8e8e8); border-radius: 10px; transition: transform 0.15s;" onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='none'">
+            <div style="display: flex; align-items: center; gap: 15px;">
+              
+              <!-- Icon representation for Credit/Debit -->
+              {% if tx.transaction_type == 'credit' %}
+                <span style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: #ecfdf5; color: #10b981; font-size: 16px; font-weight: bold;">↓</span>
+              {% else %}
+                <span style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: #fef2f2; color: #ef4444; font-size: 16px; font-weight: bold;">↑</span>
+              {% endif %}
+
+              <div>
+                <span style="font-size: 13.5px; font-weight: 700; color: var(--text, #111); display: block; margin-bottom: 3px;">
+                  {{ tx.description }}
+                </span>
+                <span style="font-size: 11px; color: var(--text-muted, #888);">
+                  {{ tx.created_at|date:"M d, Y • h:i A" }}
+                  {% if tx.order %}
+                    • Linked to <a href="{% url 'orders:detail' tx.order.order_id %}" style="color: var(--blue, #0d59f2); font-weight: 700; text-decoration: none;">Order #{{ tx.order.order_id }}</a>
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+            
+            <div style="text-align: right;">
+              <span style="font-size: 15px; font-weight: 800; {% if tx.transaction_type == 'credit' %}color: #10b981;{% else %}color: #ef4444;{% endif %}">
+                {% if tx.transaction_type == 'credit' %}+{% else %}-{% endif %} ₹{{ tx.amount }}
+              </span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="text-align: center; padding: 40px 20px; border: 1px dashed var(--border, #e8e8e8); border-radius: 12px;">
+        <span style="font-size: 32px; display: block; margin-bottom: 12px;">💼</span>
+        <h5 style="font-size: 14px; font-weight: 700; color: var(--text, #111); margin-bottom: 4px;">No Transactions Yet</h5>
+        <p style="font-size: 12px; color: var(--text-muted, #777); max-width: 320px; margin: 0 auto;">Your wallet transaction ledger is currently empty. Refunds for cancelled or returned orders will automatically appear here!</p>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

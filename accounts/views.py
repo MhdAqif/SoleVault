@@ -85,7 +85,8 @@ def signup(request):
 
         return redirect('verify_otp')
 
-    return render(request, 'accounts/signup.html')
+    ref_code = request.GET.get('ref', '')
+    return render(request, 'accounts/signup.html', {'ref_code': ref_code})
 
 
 def user_login(request):
@@ -136,15 +137,53 @@ def verify_otp(request):
         if entered_otp == actual_otp:
             data = request.session.get('signup_data')
 
-            CustomUser.objects.create(
-                username=data['email'],
-                email=data['email'],
-                first_name=data['first_name'],
-                last_name=data['last_name'],
-                phone_number=data['phone'],
-                referral_code=data['referral'],
-                password=make_password(data['password'])
-            )
+            import uuid
+            import decimal
+            from django.db import transaction
+            from user_profile.models import Wallet, WalletTransaction
+
+            with transaction.atomic():
+                new_user_ref = f"SV-REF-{uuid.uuid4().hex[:6].upper()}"
+                while CustomUser.objects.filter(referral_code=new_user_ref).exists():
+                    new_user_ref = f"SV-REF-{uuid.uuid4().hex[:6].upper()}"
+
+                new_user = CustomUser.objects.create(
+                    username=data['email'],
+                    email=data['email'],
+                    first_name=data['first_name'],
+                    last_name=data['last_name'],
+                    phone_number=data['phone'],
+                    referral_code=new_user_ref,
+                    password=make_password(data['password'])
+                )
+
+                ref_code_entered = data.get('referral', '').strip() if data.get('referral') else ''
+                if ref_code_entered:
+                    referrer = CustomUser.objects.filter(referral_code=ref_code_entered).first()
+                    if referrer:
+                        # Credit Referrer with ₹200
+                        ref_wallet, _ = Wallet.objects.get_or_create(user=referrer)
+                        ref_wallet_decimal = decimal.Decimal(str(ref_wallet.balance))
+                        ref_wallet.balance = ref_wallet_decimal + decimal.Decimal('200.00')
+                        ref_wallet.save()
+                        WalletTransaction.objects.create(
+                            wallet=ref_wallet,
+                            transaction_type='credit',
+                            amount=decimal.Decimal('200.00'),
+                            description=f"Referral bonus for inviting {new_user.email}"
+                        )
+
+                        # Credit Referee (new user) with ₹100
+                        new_wallet, _ = Wallet.objects.get_or_create(user=new_user)
+                        new_wallet_decimal = decimal.Decimal(str(new_wallet.balance))
+                        new_wallet.balance = new_wallet_decimal + decimal.Decimal('100.00')
+                        new_wallet.save()
+                        WalletTransaction.objects.create(
+                            wallet=new_wallet,
+                            transaction_type='credit',
+                            amount=decimal.Decimal('100.00'),
+                            description="Signup referral bonus"
+                        )
 
             messages.success(request, "OTP verified successfully! Please login.")
 
