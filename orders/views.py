@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_POST
+from django.views.decorators.cache import never_cache
 from django.http import HttpResponse, JsonResponse
 from django.db import transaction
 from django.db.models import Q
@@ -20,6 +21,7 @@ from reportlab.lib import colors
 import io
 
 @login_required(login_url='/login/')
+@never_cache
 def checkout_page(request):
     try:
         cart = Cart.objects.get(user=request.user)
@@ -58,7 +60,7 @@ def checkout_page(request):
             decimal_subtotal = decimal.Decimal(str(subtotal))
             valid, _ = coupon.is_valid(decimal_subtotal)
             if valid:
-                coupon_discount = float(coupon.calculate_discount(decimal_subtotal))
+                coupon_discount = float(coupon.calculate_discount(decimal_subtotal, cart_items=cart_items))
             else:
                 # Remove invalid coupon if conditions are no longer met
                 request.session.pop('coupon_code', None)
@@ -212,6 +214,7 @@ def checkout_page(request):
     return render(request, 'orders/checkout.html', context)
 
 @login_required(login_url='/login/')
+@never_cache
 def payment_page(request, order_id):
     order = get_object_or_404(Order, order_id=order_id, user=request.user)
     

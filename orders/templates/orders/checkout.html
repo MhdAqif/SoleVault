@@ -472,6 +472,12 @@
 
 {% block extra_js %}
 <script>
+  window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+      window.location.reload();
+    }
+  });
+
   function handleCouponAction(action) {
     const tempForm = document.createElement('form');
     tempForm.method = 'POST';

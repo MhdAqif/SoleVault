@@ -194,7 +194,7 @@
     </div>
 
     <!-- Active Loading State -->
-    <div id="payment-loading-state" {% if error_msg %}style="display:none;"{% endif %}>
+    <div id="payment-loading-state" style="display:none;">
       <div class="spinner-box">
         <div class="spinner-circle"></div>
         <span class="spinner-lock">🔒</span>
@@ -207,7 +207,7 @@
     </div>
 
     <!-- Idle / Manual State (when modal is closed) -->
-    <div id="payment-idle-state" style="display: none; margin-bottom: 30px;">
+    <div id="payment-idle-state" style="margin-bottom: 30px; {% if error_msg %}display:none;{% endif %}">
       <div class="spinner-box" style="animation: none;">
         <span class="spinner-lock" style="font-size: 48px; animation: pulse 2.5s infinite;">💳</span>
       </div>
@@ -287,13 +287,19 @@
 {% if not error_msg %}
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
+  window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+      window.location.reload();
+    }
+  });
+
   var options = {
     "key": "{{ razorpay_key_id }}",
     "amount": "{{ amount }}",
     "currency": "INR",
     "name": "SoleVault",
     "description": "Order {{ order.order_id }} Payment",
-    "image": "{% static 'core/images/logo.png' %}", // will fall back gracefully if missing
+    "image": "{% static 'core/images/SoleVault.png' %}",
     "order_id": "{{ razorpay_order_id }}",
     "handler": function (response) {
       // Set values and submit
@@ -328,15 +334,26 @@
   var rzp1 = new Razorpay(options);
 
   window.onload = function() {
-    // Automatically open the checkout window
-    rzp1.open();
+    // Automatically attempt to open the checkout window
+    try {
+      rzp1.open();
+    } catch(err) {
+      console.warn("Auto-open blocked by browser policies. Waiting for user click.", err);
+    }
   };
 
   document.getElementById('pay-button').onclick = function (e) {
-    rzp1.open();
-    document.getElementById('payment-idle-state').style.display = 'none';
-    document.getElementById('payment-loading-state').style.display = 'block';
     e.preventDefault();
+    try {
+      rzp1.open();
+      document.getElementById('status-heading').innerText = "Opening Payment Session";
+      document.getElementById('status-desc').innerText = "We are opening your secure payment session. Please do not refresh or close this window.";
+      document.getElementById('payment-idle-state').style.display = 'none';
+      document.getElementById('payment-loading-state').style.display = 'block';
+    } catch(err) {
+      alert("Failed to open Razorpay gateway. Please check your network connection or contact support.");
+      console.error(err);
+    }
   };
 </script>
 {% endif %}

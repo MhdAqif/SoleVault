@@ -54,6 +54,14 @@
     font-weight: 700;
     margin-bottom: 5px;
   }
+  .cart-item-link {
+    color: var(--black);
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+  }
+  .cart-item-link:hover {
+    color: var(--blue);
+  }
   .cart-item-meta {
     font-size: 13px;
     color: var(--gray-600);
@@ -298,9 +306,15 @@
     <div class="cart-items">
       {% for item in cart.items.all %}
       <div class="cart-item">
-        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="cart-item-img">
+        <a href="{% url 'products:detail' item.product.slug %}">
+          <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="cart-item-img">
+        </a>
         <div class="cart-item-details">
-          <div class="cart-item-title">{{ item.product.name }}</div>
+          <div class="cart-item-title">
+            <a href="{% url 'products:detail' item.product.slug %}" class="cart-item-link">
+              {{ item.product.name }}
+            </a>
+          </div>
           <div class="cart-item-meta">
             Size: {{ item.size|default:"Not Available" }}<br>
             Color: {{ item.variant.color|default:"Not Available" }}

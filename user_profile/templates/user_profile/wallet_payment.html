@@ -14,7 +14,7 @@
   </div>
 
   <!-- Loading State -->
-  <div id="payment-loading-state">
+  <div id="payment-loading-state" style="display: none;">
     <div style="width: 90px; height: 90px; margin: 0 auto 30px; position: relative; display: flex; align-items: center; justify-content: center;">
       <div style="border: 4px solid var(--border, #e8e8e8); border-top: 4px solid var(--blue, #0d59f2); border-radius: 50%; width: 80px; height: 80px; animation: spin 1.2s linear infinite;"></div>
       <span style="position: absolute; font-size: 28px; animation: pulse 1.8s ease-in-out infinite;">🔒</span>
@@ -27,7 +27,7 @@
   </div>
 
   <!-- Idle State -->
-  <div id="payment-idle-state" style="display: none; margin-bottom: 30px;">
+  <div id="payment-idle-state" style="margin-bottom: 30px;">
     <div style="width: 90px; height: 90px; margin: 0 auto 30px; position: relative; display: flex; align-items: center; justify-content: center;">
       <span style="font-size: 48px; animation: pulse 2.5s infinite;">💳</span>
     </div>
@@ -128,14 +128,26 @@
   var rzp1 = new Razorpay(options);
 
   window.onload = function() {
-    rzp1.open();
+    // Automatically attempt to open the checkout window
+    try {
+      rzp1.open();
+    } catch(err) {
+      console.warn("Auto-open blocked by browser policies. Waiting for user click.", err);
+    }
   };
 
   document.getElementById('pay-button').onclick = function (e) {
-    rzp1.open();
-    document.getElementById('payment-idle-state').style.display = 'none';
-    document.getElementById('payment-loading-state').style.display = 'block';
     e.preventDefault();
+    try {
+      rzp1.open();
+      document.getElementById('status-heading').innerText = "Opening Secure Gateway";
+      document.getElementById('status-desc').innerText = "We are opening your Razorpay secure deposit portal. Please do not refresh or close this window.";
+      document.getElementById('payment-idle-state').style.display = 'none';
+      document.getElementById('payment-loading-state').style.display = 'block';
+    } catch(err) {
+      alert("Failed to open Razorpay gateway. Please check your network connection or contact support.");
+      console.error(err);
+    }
   };
 </script>
 {% endblock %}
