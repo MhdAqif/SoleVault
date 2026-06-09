@@ -108,7 +108,7 @@
         {% for cat in categories %}
         <a href="?{% query_transform category=cat.slug page=1 %}"
            class="{% if active_category == cat.slug %}active{% endif %}">
-          {{ cat.name }} ({% if cat.gender == 'men' %}Men{% else %}Women{% endif %})
+          {{ cat.name }}
         </a>
         {% endfor %}
       </div>

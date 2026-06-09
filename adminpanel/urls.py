@@ -51,6 +51,8 @@ urlpatterns = [
 
     # Returns Reject Flow
     path('orders/<int:order_id>/reject-return/', views.order_reject_return_admin, name='order_reject_return'),
+    path('orders/<int:order_id>/item/<int:item_id>/approve-return/', views.order_item_approve_return_admin, name='order_item_approve_return'),
+    path('orders/<int:order_id>/item/<int:item_id>/reject-return/', views.order_item_reject_return_admin, name='order_item_reject_return'),
 
     # Sales Reports & Downloads
     path('sales-report/', views.sales_report_admin, name='sales_report'),

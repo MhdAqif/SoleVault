@@ -2,12 +2,7 @@ from django.db import models
 
 
 class Category(models.Model):
-    GENDER_CHOICES = [
-        ('men',   'Men'),
-        ('women', 'Women'),
-    ]
     name   = models.CharField(max_length=100)
-    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='men')
     slug   = models.SlugField(unique=True)
     image  = models.ImageField(upload_to='categories/', blank=True, null=True)
     is_active = models.BooleanField(default=True)

@@ -516,18 +516,7 @@
   </div>
 {% endif %}
 
-<!-- 3. Return Block (Delivered only) -->
-{% if order.status == 'delivered' %}
-  <div class="return-block">
-    <div class="block-title" style="color:var(--gray-800); border-bottom-color:var(--gray-200);">Return Order Request</div>
-    <form method="POST" action="{% url 'orders:return_order' order.order_id %}" onsubmit="showConfirmModal(event, this, 'REQUEST RETURN', 'Are you sure you want to return this entire order?', 'return')">
-      {% csrf_token %}
-      <label style="display:block; font-size:12.5px; font-weight:600; color:var(--gray-700); margin-bottom:6px;">Return Reason (Mandatory):</label>
-      <textarea name="return_reason" placeholder="Please specify why you are returning this order (e.g. Incorrect size, Defective item, etc.)" class="return-textarea" required></textarea>
-      <button type="submit" class="btn-order-return">REQUEST RETURN</button>
-    </form>
-  </div>
-{% endif %}
+
 
 <!-- 4. Shipping vs Payment Grid -->
 <div class="detail-grid">
@@ -608,6 +597,21 @@
               Cancelled. {% if item.cancel_reason %}Reason: "<i>{{ item.cancel_reason }}</i>"{% endif %}
             </div>
           {% endif %}
+          
+          {% if item.return_status != 'none' %}
+            <div style="margin-top: 8px; font-size: 12px; font-weight: 700;">
+              {% if item.return_status == 'requested' %}
+                <span style="color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">⏳ Return Requested</span>
+              {% elif item.return_status == 'approved' %}
+                <span style="color: #065f46; background: #d1fae5; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">✓ Return Approved</span>
+              {% elif item.return_status == 'rejected' %}
+                <span style="color: #991b1b; background: #fee2e2; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">❌ Return Rejected</span>
+              {% endif %}
+              {% if item.return_reason %}
+                <div style="font-weight: normal; color: var(--gray-600); margin-top: 4px; font-style: italic;">Reason: "{{ item.return_reason }}"</div>
+              {% endif %}
+            </div>
+          {% endif %}
         </div>
         
         <!-- Individual cancellation option (Only if order is pending/processing and item is not already cancelled) -->
@@ -621,6 +625,22 @@
                 <label style="display:block; font-size:10.5px; font-weight:600; color:var(--gray-700); margin-bottom:4px;">Cancellation Reason (Optional):</label>
                 <input type="text" name="cancel_reason" placeholder="e.g. Changed my mind" class="cancel-input">
                 <button type="submit" class="btn-item-cancel" style="display:block; width:100%;">Confirm Cancel</button>
+              </form>
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Individual return option (Only if order is delivered and item is not cancelled/returned) -->
+        {% if order.status == 'delivered' and not item.is_cancelled and item.return_status == 'none' %}
+          <div style="text-align: right;">
+            <button class="btn-order-return" id="btn-toggle-return-{{ item.id }}" onclick="toggleReturnForm('{{ item.id }}')" style="padding: 6px 12px; font-size: 11px;">Return Item</button>
+            
+            <div class="return-box" id="return-box-{{ item.id }}" style="display:none; text-align: left; width: 180px; margin-top:8px;">
+              <form method="POST" action="{% url 'orders:return_item' order.order_id item.id %}" onsubmit="showConfirmModal(event, this, 'RETURN ITEM', 'Are you sure you want to return this item?', 'return')">
+                {% csrf_token %}
+                <label style="display:block; font-size:10.5px; font-weight:600; color:var(--gray-700); margin-bottom:4px;">Return Reason (Mandatory):</label>
+                <input type="text" name="return_reason" placeholder="e.g. Defective item" class="cancel-input" required>
+                <button type="submit" class="btn-order-return" style="display:block; width:100%; padding: 6px 12px; font-size: 11px;">Confirm Return</button>
               </form>
             </div>
           </div>
@@ -743,6 +763,20 @@
       box.style.display = 'none';
       btn.textContent = 'Cancel Item';
       btn.style.background = '#dc2626';
+    }
+  }
+
+  function toggleReturnForm(itemId) {
+    const box = document.getElementById('return-box-' + itemId);
+    const btn = document.getElementById('btn-toggle-return-' + itemId);
+    if(box.style.display === 'none') {
+      box.style.display = 'block';
+      btn.textContent = 'Close';
+      btn.style.background = '#4b5563';
+    } else {
+      box.style.display = 'none';
+      btn.textContent = 'Return Item';
+      btn.style.background = '';
     }
   }
 </script>

@@ -71,6 +71,149 @@
     color: #ef4444 !important;
   }
 }
+
+/* Leaderboard Section Styles */
+.leaderboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+.leaderboard-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  transition: transform var(--transition);
+}
+.leaderboard-card:hover {
+  transform: translateY(-2px);
+}
+.leaderboard-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--blue);
+  margin-top: 0;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.leaderboard-list::-webkit-scrollbar {
+  width: 4px;
+}
+.leaderboard-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.leaderboard-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+.leaderboard-list::-webkit-scrollbar-thumb:hover {
+  background: var(--text-subtle);
+}
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-btn);
+  transition: all var(--transition);
+}
+.leaderboard-item:hover {
+  background: var(--surface-3);
+  border-color: var(--border);
+  transform: translateX(4px);
+}
+.leaderboard-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.leaderboard-rank {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.rank-gold {
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  color: #000;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.35);
+}
+.rank-silver {
+  background: linear-gradient(135deg, #e0e0e0, #9e9e9e);
+  color: #000;
+  box-shadow: 0 0 10px rgba(224, 224, 224, 0.3);
+}
+.rank-bronze {
+  background: linear-gradient(135deg, #d2b48c, #8b5a2b);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(210, 180, 140, 0.3);
+}
+.rank-default {
+  background: var(--surface-3);
+  color: var(--text-muted);
+}
+.leaderboard-details {
+  min-width: 0;
+}
+.leaderboard-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.leaderboard-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.leaderboard-value {
+  text-align: right;
+  flex-shrink: 0;
+}
+.leaderboard-sales {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--green);
+}
+.leaderboard-qty-pill {
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--blue-soft);
+  color: var(--blue);
+  padding: 1px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-left: 4px;
+}
+.leaderboard-empty {
+  text-align: center;
+  padding: 30px;
+  color: var(--text-subtle);
+  font-size: 13px;
+}
 </style>
 {% endblock %}
 
@@ -157,89 +300,107 @@
 </div>
 
 <!-- Top 10 Best Sellers Block -->
-<div style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.01);">
+<div style="margin-bottom: 30px;">
   <h3 style="font-size: 15px; font-weight: 700; color: var(--text); margin-top: 0; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">🏆 Top 10 Best Sellers</h3>
   
-  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; align-items: start;">
+  <div class="leaderboard-grid">
     
-    <!-- Top Products -->
-    <div>
-      <h4 style="font-size: 13.5px; font-weight: 700; color: var(--blue); margin-top: 0; margin-bottom: 12px;">Top Products</h4>
-      <div style="max-height: 350px; overflow-y: auto;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px;">
-          <thead>
-            <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--text-muted); font-weight: 600;">
-              <th style="padding: 8px 4px;">Product</th>
-              <th style="padding: 8px 4px;">Qty</th>
-              <th style="padding: 8px 4px; text-align: right;">Sales</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for item in top_products %}
-            <tr style="border-bottom: 1px solid var(--border);">
-              <td style="padding: 8px 4px; font-weight: 600;">{{ item.product__name|truncatechars:20 }}</td>
-              <td style="padding: 8px 4px;">{{ item.total_qty }}</td>
-              <td style="padding: 8px 4px; text-align: right; font-weight: 700; color: #10b981;">₹{{ item.total_sales|floatformat:0 }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="3" style="padding: 20px; text-align: center; color: var(--text-muted);">No sales data</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
+    <!-- Top Products Card -->
+    <div class="leaderboard-card">
+      <h4 class="leaderboard-card-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+        Top Products
+      </h4>
+      <div class="leaderboard-list">
+        {% for item in top_products %}
+        <div class="leaderboard-item">
+          <div class="leaderboard-info">
+            <div class="leaderboard-rank {% if forloop.counter == 1 %}rank-gold{% elif forloop.counter == 2 %}rank-silver{% elif forloop.counter == 3 %}rank-bronze{% else %}rank-default{% endif %}">
+              {{ forloop.counter }}
+            </div>
+            <div class="leaderboard-details">
+              <div class="leaderboard-name" title="{{ item.product__name }}">{{ item.product__name }}</div>
+              <div class="leaderboard-meta">
+                Sold: <span class="leaderboard-qty-pill">{{ item.total_qty }} pcs</span>
+              </div>
+            </div>
+          </div>
+          <div class="leaderboard-value">
+            <div class="leaderboard-sales">₹{{ item.total_sales|floatformat:0 }}</div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="leaderboard-empty">No products sales data</div>
+        {% endfor %}
       </div>
     </div>
 
-    <!-- Top Categories -->
-    <div>
-      <h4 style="font-size: 13.5px; font-weight: 700; color: var(--blue); margin-top: 0; margin-bottom: 12px;">Top Categories</h4>
-      <div style="max-height: 350px; overflow-y: auto;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px;">
-          <thead>
-            <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--text-muted); font-weight: 600;">
-              <th style="padding: 8px 4px;">Category</th>
-              <th style="padding: 8px 4px;">Qty</th>
-              <th style="padding: 8px 4px; text-align: right;">Sales</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for item in top_categories %}
-            <tr style="border-bottom: 1px solid var(--border);">
-              <td style="padding: 8px 4px; font-weight: 600;">📁 {{ item.product__category__name }}</td>
-              <td style="padding: 8px 4px;">{{ item.total_qty }}</td>
-              <td style="padding: 8px 4px; text-align: right; font-weight: 700; color: #10b981;">₹{{ item.total_sales|floatformat:0 }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="3" style="padding: 20px; text-align: center; color: var(--text-muted);">No sales data</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
+    <!-- Top Categories Card -->
+    <div class="leaderboard-card">
+      <h4 class="leaderboard-card-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </svg>
+        Top Categories
+      </h4>
+      <div class="leaderboard-list">
+        {% for item in top_categories %}
+        <div class="leaderboard-item">
+          <div class="leaderboard-info">
+            <div class="leaderboard-rank {% if forloop.counter == 1 %}rank-gold{% elif forloop.counter == 2 %}rank-silver{% elif forloop.counter == 3 %}rank-bronze{% else %}rank-default{% endif %}">
+              {{ forloop.counter }}
+            </div>
+            <div class="leaderboard-details">
+              <div class="leaderboard-name" title="{{ item.product__category__name }}">{{ item.product__category__name }}</div>
+              <div class="leaderboard-meta">
+                Sold: <span class="leaderboard-qty-pill">{{ item.total_qty }} pcs</span>
+              </div>
+            </div>
+          </div>
+          <div class="leaderboard-value">
+            <div class="leaderboard-sales">₹{{ item.total_sales|floatformat:0 }}</div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="leaderboard-empty">No category sales data</div>
+        {% endfor %}
       </div>
     </div>
 
-    <!-- Top Brands -->
-    <div>
-      <h4 style="font-size: 13.5px; font-weight: 700; color: var(--blue); margin-top: 0; margin-bottom: 12px;">Top Brands</h4>
-      <div style="max-height: 350px; overflow-y: auto;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px;">
-          <thead>
-            <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--text-muted); font-weight: 600;">
-              <th style="padding: 8px 4px;">Brand</th>
-              <th style="padding: 8px 4px;">Qty</th>
-              <th style="padding: 8px 4px; text-align: right;">Sales</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for item in top_brands %}
-            <tr style="border-bottom: 1px solid var(--border);">
-              <td style="padding: 8px 4px; font-weight: 600;">🏷️ {{ item.product__brand__name }}</td>
-              <td style="padding: 8px 4px;">{{ item.total_qty }}</td>
-              <td style="padding: 8px 4px; text-align: right; font-weight: 700; color: #10b981;">₹{{ item.total_sales|floatformat:0 }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="3" style="padding: 20px; text-align: center; color: var(--text-muted);">No sales data</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
+    <!-- Top Brands Card -->
+    <div class="leaderboard-card">
+      <h4 class="leaderboard-card-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+          <line x1="7" y1="7" x2="7.01" y2="7"/>
+        </svg>
+        Top Brands
+      </h4>
+      <div class="leaderboard-list">
+        {% for item in top_brands %}
+        <div class="leaderboard-item">
+          <div class="leaderboard-info">
+            <div class="leaderboard-rank {% if forloop.counter == 1 %}rank-gold{% elif forloop.counter == 2 %}rank-silver{% elif forloop.counter == 3 %}rank-bronze{% else %}rank-default{% endif %}">
+              {{ forloop.counter }}
+            </div>
+            <div class="leaderboard-details">
+              <div class="leaderboard-name" title="{{ item.product__brand__name }}">{{ item.product__brand__name }}</div>
+              <div class="leaderboard-meta">
+                Sold: <span class="leaderboard-qty-pill">{{ item.total_qty }} pcs</span>
+              </div>
+            </div>
+          </div>
+          <div class="leaderboard-value">
+            <div class="leaderboard-sales">₹{{ item.total_sales|floatformat:0 }}</div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="leaderboard-empty">No brand sales data</div>
+        {% endfor %}
       </div>
     </div>
 

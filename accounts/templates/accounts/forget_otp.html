@@ -31,6 +31,12 @@
 
     </form>
 
+    <div style="margin-top: 25px; font-size: 13.5px; color: var(--text-muted);">
+      Didn't receive the OTP? 
+      <span id="otp-timer-container" style="font-weight: 700; color: var(--text);">Resend in <span id="otp-countdown">60</span>s</span>
+      <a id="resend-otp-btn" href="{% url 'resend_otp' %}" style="display: none; font-weight: 700; color: var(--blue); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--blue-dark)'" onmouseout="this.style.color='var(--blue)'">Resend OTP</a>
+    </div>
+
     {% if messages %}
     <div style="margin-top: 20px;" class="alert-container">
       {% for message in messages %}
@@ -69,5 +75,41 @@
   setTimeout(() => {
     document.querySelectorAll('.alert-box').forEach(el => el.remove());
   }, 4000);
+
+  // OTP resend timer
+  (function() {
+    const countdownEl = document.getElementById('otp-countdown');
+    const timerContainer = document.getElementById('otp-timer-container');
+    const resendBtn = document.getElementById('resend-otp-btn');
+    
+    let timerExpiry = localStorage.getItem('otp_timer_expiry');
+    let now = Date.now();
+    
+    if (!timerExpiry || now > parseInt(timerExpiry)) {
+      timerExpiry = now + 60000;
+      localStorage.setItem('otp_timer_expiry', timerExpiry);
+    }
+    
+    function updateTimer() {
+      let now = Date.now();
+      let timeLeft = Math.ceil((parseInt(timerExpiry) - now) / 1000);
+      
+      if (timeLeft <= 0) {
+        timerContainer.style.display = 'none';
+        resendBtn.style.display = 'inline';
+      } else {
+        timerContainer.style.display = 'inline';
+        resendBtn.style.display = 'none';
+        countdownEl.textContent = timeLeft;
+        setTimeout(updateTimer, 1000);
+      }
+    }
+    
+    updateTimer();
+    
+    resendBtn.addEventListener('click', function() {
+      localStorage.setItem('otp_timer_expiry', Date.now() + 60000);
+    });
+  })();
 </script>
 {% endblock %}
