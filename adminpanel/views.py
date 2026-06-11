@@ -267,7 +267,6 @@ def category_add_admin(request):
         try:
             name = request.POST.get('name', '').strip()
             slug = request.POST.get('slug', '').strip()
-            gender = request.POST.get('gender')
             image = request.FILES.get('image')
             is_active = request.POST.get('is_active') == 'on'
             
@@ -286,7 +285,7 @@ def category_add_admin(request):
                 return redirect('adminpanel:category_add')
                 
             Category.objects.create(
-                name=name, slug=slug, gender=gender, image=image, is_active=is_active
+                name=name, slug=slug, image=image, is_active=is_active
             )
             messages.success(request, f"Category {name} created successfully!")
             return redirect('adminpanel:category_list')
@@ -304,7 +303,6 @@ def category_edit_admin(request, category_id):
         try:
             name = request.POST.get('name', '').strip()
             slug = request.POST.get('slug', '').strip()
-            gender = request.POST.get('gender')
             is_active = request.POST.get('is_active') == 'on'
             
             if not name or not slug:
@@ -323,7 +321,6 @@ def category_edit_admin(request, category_id):
             
             category.name = name
             category.slug = slug
-            category.gender = gender
             category.is_active = is_active
             
             if request.FILES.get('image'):
@@ -1218,4 +1215,121 @@ def sales_report_excel(request):
         ])
         
     return response
+
+@admin_required
+@require_POST
+def order_item_approve_return_admin(request, order_id, item_id):
+    from orders.models import Order, OrderItem
+    order = get_object_or_404(Order, id=order_id)
+    item = get_object_or_404(OrderItem, id=item_id, order=order)
+
+    if item.return_status != 'requested':
+        messages.error(request, "This item does not have a pending return request.")
+        return redirect('adminpanel:order_detail', order_id=order.id)
+
+    old_final_price = order.final_price
+    try:
+        with transaction.atomic():
+            item.return_status = 'approved'
+            item.save()
+
+            # Restore variant stock
+            if item.variant:
+                item.variant.stock += item.quantity
+                item.variant.save()
+
+            import decimal
+            # Recalculate order totals based on remaining non-cancelled and non-returned items
+            active_items = order.items.filter(is_cancelled=False).exclude(return_status='approved')
+            if active_items.exists():
+                new_subtotal = sum(i.item_total for i in active_items)
+                
+                new_discount = decimal.Decimal('0.00')
+                for i in active_items:
+                    if i.product and i.product.original_price and i.product.original_price > i.product.price:
+                        savings = (i.product.original_price - i.product.price) * i.quantity
+                        new_discount += decimal.Decimal(str(savings))
+
+                decimal_subtotal = decimal.Decimal(str(new_subtotal))
+                discounted_sub = decimal_subtotal - new_discount
+                new_tax = discounted_sub * decimal.Decimal('0.18') / decimal.Decimal('1.18')
+                new_shipping = decimal.Decimal('0.00') if discounted_sub >= decimal.Decimal('3000.00') else decimal.Decimal('99.00')
+                new_final = discounted_sub + new_shipping
+
+                order.subtotal = new_subtotal
+                order.discount = new_discount
+                order.tax = new_tax
+                order.shipping_fee = new_shipping
+                order.final_price = new_final
+
+                # Check if all active non-cancelled items are returned/approved
+                pending_returns = order.items.filter(is_cancelled=False, return_status='requested')
+                if pending_returns.exists():
+                    order.status = 'return_requested'
+                else:
+                    order.status = 'delivered'
+                order.save()
+            else:
+                # All items returned/approved
+                order.status = 'returned'
+                order.subtotal = decimal.Decimal('0.00')
+                order.discount = decimal.Decimal('0.00')
+                order.tax = decimal.Decimal('0.00')
+                order.shipping_fee = decimal.Decimal('0.00')
+                order.final_price = decimal.Decimal('0.00')
+                order.save()
+
+            # Refund to user's wallet if already paid!
+            if order.payment_status == 'paid':
+                refund_amount = decimal.Decimal(str(old_final_price)) - decimal.Decimal(str(order.final_price))
+                if refund_amount > decimal.Decimal('0.00'):
+                    from user_profile.models import Wallet, WalletTransaction
+                    wallet_obj, _ = Wallet.objects.get_or_create(user=order.user)
+                    wallet_decimal = decimal.Decimal(str(wallet_obj.balance))
+                    wallet_obj.balance = wallet_decimal + refund_amount
+                    wallet_obj.save()
+                    
+                    WalletTransaction.objects.create(
+                        wallet=wallet_obj,
+                        transaction_type='credit',
+                        amount=refund_amount,
+                        description=f"Refund for returned item: {item.product_name}",
+                        order=order
+                    )
+                    messages.success(request, f"Approved return for {item.product_name} successfully. ₹{refund_amount} refunded to user's Wallet.")
+                else:
+                    messages.success(request, f"Approved return for {item.product_name} successfully.")
+            else:
+                messages.success(request, f"Approved return for {item.product_name} successfully.")
+    except Exception as e:
+        messages.error(request, f"Could not approve return: {str(e)}")
+
+    return redirect('adminpanel:order_detail', order_id=order.id)
+
+@admin_required
+@require_POST
+def order_item_reject_return_admin(request, order_id, item_id):
+    from orders.models import Order, OrderItem
+    order = get_object_or_404(Order, id=order_id)
+    item = get_object_or_404(OrderItem, id=item_id, order=order)
+
+    if item.return_status != 'requested':
+        messages.error(request, "This item does not have a pending return request.")
+        return redirect('adminpanel:order_detail', order_id=order.id)
+
+    try:
+        with transaction.atomic():
+            item.return_status = 'rejected'
+            item.save()
+
+            pending_returns = order.items.filter(is_cancelled=False, return_status='requested')
+            if not pending_returns.exists() and order.status == 'return_requested':
+                order.status = 'delivered'
+                order.save()
+
+            messages.success(request, f"Rejected return request for {item.product_name} successfully.")
+    except Exception as e:
+        messages.error(request, f"Could not reject return request: {str(e)}")
+
+    return redirect('adminpanel:order_detail', order_id=order.id)
  

@@ -28,7 +28,7 @@
       <select name="category" style="padding:9px 12px; width:100%; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; font-size:13.5px; color:var(--text); outline:none; cursor:pointer; box-sizing:border-box;">
         <option value="">All Categories</option>
         {% for cat in categories %}
-          <option value="{{ cat.id }}" {% if cat_id == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }} ({{ cat.gender }})</option>
+          <option value="{{ cat.id }}" {% if cat_id == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
         {% endfor %}
       </select>
     </div>

@@ -295,7 +295,7 @@
         <div class="section-card">
           <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
             <span>Delivery Address</span>
-            <a href="{% url 'user_profile:add_address' %}" class="btn-add-address-checkout" style="margin-top:0;">+ Add New Address</a>
+            <a href="{% url 'user_profile:add_address' %}?next={% url 'orders:checkout' %}" id="btnAddAddressCheckout" class="btn-add-address-checkout" style="margin-top:0;">+ Add New Address</a>
           </div>
           
           {% if addresses %}
@@ -319,16 +319,27 @@
                     <div style="margin-top: 6px; color: var(--gray-600); font-weight: 600;">Phone: {{ address.phone }}</div>
                   </div>
                   
-                  <a href="{% url 'user_profile:edit_address' address.id %}" 
+                  <a href="{% url 'user_profile:edit_address' address.id %}?next={% url 'orders:checkout' %}" 
+                     class="btn-edit-address-checkout"
+                     data-id="{{ address.id }}"
+                     data-full-name="{{ address.full_name }}"
+                     data-phone="{{ address.phone }}"
+                     data-address="{{ address.address }}"
+                     data-city="{{ address.city }}"
+                     data-district="{{ address.district }}"
+                     data-state="{{ address.state }}"
+                     data-pincode="{{ address.pincode }}"
+                     data-landmark="{{ address.landmark|default:'' }}"
+                     data-is-default="{% if address.is_default %}true{% else %}false{% endif %}"
                      style="position: absolute; right: 12px; top: 12px; font-size: 11px; color: var(--blue); font-weight: 700; text-decoration: none;"
                      title="Edit Address">Edit</a>
                 </label>
               {% endfor %}
             </div>
           {% else %}
-            <div style="text-align: center; padding: 30px 10px;">
+            <div style="text-align: center; padding: 30px 10px;" id="noAddressesPlaceholder">
               <p style="color: var(--gray-600); margin-bottom: 15px;">No shipping addresses found in your profile.</p>
-              <a href="{% url 'user_profile:add_address' %}" style="display:inline-block; background:var(--blue); color:white; padding:10px 20px; border-radius:6px; font-weight:700; text-decoration:none; font-size:13px;">Add Shipping Address</a>
+              <a href="{% url 'user_profile:add_address' %}?next={% url 'orders:checkout' %}" style="display:inline-block; background:var(--blue); color:white; padding:10px 20px; border-radius:6px; font-weight:700; text-decoration:none; font-size:13px;">Add Shipping Address</a>
             </div>
           {% endif %}
         </div>
@@ -468,6 +479,67 @@
     </div>
   </form>
 </div>
+
+<!-- Address Modal -->
+<div id="checkoutAddressModal" style="display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); justify-content: center; align-items: center;">
+  <div style="background-color: var(--white); border-radius: 12px; border: 1px solid var(--gray-200); width: 90%; max-width: 500px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative;">
+    <span onclick="hideAddressModal()" style="position: absolute; right: 20px; top: 15px; font-size: 24px; font-weight: 700; cursor: pointer; color: var(--gray-500);">&times;</span>
+    <h3 id="checkoutAddressModalTitle" style="font-size: 16px; font-weight: 800; margin-bottom: 20px; color: var(--black); text-transform: uppercase;">Add Shipping Address</h3>
+    
+    <form id="checkoutAddressModalForm" method="POST" action="">
+      {% csrf_token %}
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div>
+          <label style="display: block; font-size: 11px; font-weight: 700; margin-bottom: 6px; color: var(--black);">Full Name *</label>
+          <input type="text" name="full_name" required style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px; background: var(--white); color: var(--black);">
+        </div>
+        <div>
+          <label style="display: block; font-size: 11px; font-weight: 700; margin-bottom: 6px; color: var(--black);">Mobile Number *</label>
+          <input type="text" name="phone" required style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px; background: var(--white); color: var(--black);">
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 11px; font-weight: 700; margin-bottom: 6px; color: var(--black);">Address *</label>
+        <textarea name="address" required style="width: 100%; height: 60px; padding: 10px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px; font-family: inherit; resize: none; background: var(--white); color: var(--black);"></textarea>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div>
+          <label style="display: block; font-size: 11px; font-weight: 700; margin-bottom: 6px; color: var(--black);">City *</label>
+          <input type="text" name="city" required style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px; background: var(--white); color: var(--black);">
+        </div>
+        <div>
+          <label style="display: block; font-size: 11px; font-weight: 700; margin-bottom: 6px; color: var(--black);">District *</label>
+          <input type="text" name="district" required style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px; background: var(--white); color: var(--black);">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div>
+          <label style="display: block; font-size: 11px; font-weight: 700; margin-bottom: 6px; color: var(--black);">State *</label>
+          <input type="text" name="state" required style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px; background: var(--white); color: var(--black);">
+        </div>
+        <div>
+          <label style="display: block; font-size: 11px; font-weight: 700; margin-bottom: 6px; color: var(--black);">Pin Code *</label>
+          <input type="text" name="pincode" required style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px; background: var(--white); color: var(--black);">
+        </div>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; font-size: 11px; font-weight: 700; margin-bottom: 6px; color: var(--black);">Landmark (Optional)</label>
+        <input type="text" name="landmark" style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px; background: var(--white); color: var(--black);">
+      </div>
+
+      <div style="margin-bottom: 25px; display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" name="is_default" id="checkout_modal_address_is_default" style="accent-color: var(--blue); width: 16px; height: 16px;">
+        <label for="checkout_modal_address_is_default" style="font-size: 13px; font-weight: 600; cursor: pointer; color: var(--black);">Set as default address</label>
+      </div>
+
+      <button type="submit" style="width: 100%; padding: 12px; background-color: var(--blue); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px;">Save Address</button>
+    </form>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -552,5 +624,72 @@
       }
     }
   }
+
+  // Address Modal Logic
+  const checkoutAddressModal = document.getElementById('checkoutAddressModal');
+  const checkoutAddressModalForm = document.getElementById('checkoutAddressModalForm');
+  const checkoutAddressModalTitle = document.getElementById('checkoutAddressModalTitle');
+
+  function showAddAddressModal() {
+    checkoutAddressModalTitle.textContent = 'Add Shipping Address';
+    checkoutAddressModalForm.action = "{% url 'user_profile:add_address' %}?next={% url 'orders:checkout' %}";
+    checkoutAddressModalForm.reset();
+    document.getElementById('checkout_modal_address_is_default').checked = false;
+    checkoutAddressModal.style.display = 'flex';
+  }
+
+  function hideAddressModal() {
+    checkoutAddressModal.style.display = 'none';
+  }
+
+  // Intercept "+ Add New Address" click to show modal
+  const btnAddAddressCheckout = document.getElementById('btnAddAddressCheckout');
+  if (btnAddAddressCheckout) {
+    btnAddAddressCheckout.addEventListener('click', function(e) {
+      e.preventDefault();
+      showAddAddressModal();
+    });
+  }
+
+  // Intercept the placeholder Add Shipping Address button
+  const noAddressesPlaceholderLink = document.querySelector('#noAddressesPlaceholder a');
+  if (noAddressesPlaceholderLink) {
+    noAddressesPlaceholderLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      showAddAddressModal();
+    });
+  }
+
+  // Intercept Edit links to show modal and populate
+  document.addEventListener('click', function(e) {
+    const editBtn = e.target.closest('.btn-edit-address-checkout');
+    if (editBtn) {
+      e.preventDefault();
+      
+      const addrId = editBtn.dataset.id;
+      checkoutAddressModalTitle.textContent = 'Edit Shipping Address';
+      checkoutAddressModalForm.action = `/user-profile/address/edit/${addrId}/?next={% url 'orders:checkout' %}`;
+      
+      // Populate fields
+      checkoutAddressModalForm.elements['full_name'].value = editBtn.dataset.fullName || '';
+      checkoutAddressModalForm.elements['phone'].value = editBtn.dataset.phone || '';
+      checkoutAddressModalForm.elements['address'].value = editBtn.dataset.address || '';
+      checkoutAddressModalForm.elements['city'].value = editBtn.dataset.city || '';
+      checkoutAddressModalForm.elements['district'].value = editBtn.dataset.district || '';
+      checkoutAddressModalForm.elements['state'].value = editBtn.dataset.state || '';
+      checkoutAddressModalForm.elements['pincode'].value = editBtn.dataset.pincode || '';
+      checkoutAddressModalForm.elements['landmark'].value = editBtn.dataset.landmark || '';
+      checkoutAddressModalForm.elements['is_default'].checked = editBtn.dataset.isDefault === 'true';
+      
+      checkoutAddressModal.style.display = 'flex';
+    }
+  });
+
+  // Close modal when clicking outside of the content card
+  window.addEventListener('click', function(e) {
+    if (e.target === checkoutAddressModal) {
+      hideAddressModal();
+    }
+  });
 </script>
 {% endblock %}

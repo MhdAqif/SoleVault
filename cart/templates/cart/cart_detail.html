@@ -305,7 +305,7 @@
     <!-- Items -->
     <div class="cart-items">
       {% for item in cart.items.all %}
-      <div class="cart-item">
+      <div class="cart-item" id="cart-item-{{ item.id }}">
         <a href="{% url 'products:detail' item.product.slug %}">
           <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="cart-item-img">
         </a>
@@ -321,23 +321,23 @@
           </div>
           <div class="cart-actions">
             
-            <form method="POST" action="{% url 'cart:update' item.id %}" style="display:inline;">
+            <form class="cart-update-form" data-item-id="{{ item.id }}" method="POST" action="{% url 'cart:update' item.id %}" style="display:inline;">
               {% csrf_token %}
               <div class="qty-control">
-                <button type="submit" name="action" value="decrease" class="qty-btn" {% if item.quantity <= 1 %}disabled{% endif %}>-</button>
-                <div class="qty-val">{{ item.quantity }}</div>
-                <button type="submit" name="action" value="increase" class="qty-btn" {% if item.variant and item.quantity >= item.variant.stock or item.quantity >= 5 %}disabled style="opacity:0.5; cursor:not-allowed;" title="Maximum limit or stock reached"{% endif %}>+</button>
+                <button type="submit" name="action" value="decrease" class="qty-btn" id="qty-btn-dec-{{ item.id }}" {% if item.quantity <= 1 %}disabled{% endif %}>-</button>
+                <div class="qty-val" id="qty-val-{{ item.id }}">{{ item.quantity }}</div>
+                <button type="submit" name="action" value="increase" class="qty-btn" id="qty-btn-inc-{{ item.id }}" {% if item.variant and item.quantity >= item.variant.stock or item.quantity >= 5 %}disabled style="opacity:0.5; cursor:not-allowed;" title="Maximum limit or stock reached"{% endif %}>+</button>
               </div>
             </form>
 
-            <form method="POST" action="{% url 'cart:remove' item.id %}" style="display:inline;">
+            <form class="cart-remove-form" data-item-id="{{ item.id }}" method="POST" action="{% url 'cart:remove' item.id %}" style="display:inline;">
               {% csrf_token %}
               <button type="submit" class="remove-btn">Remove</button>
             </form>
             
           </div>
         </div>
-        <div class="cart-item-price">₹{{ item.total_price }}</div>
+        <div class="cart-item-price" id="item-price-{{ item.id }}">₹{{ item.total_price }}</div>
       </div>
       {% endfor %}
     </div>
@@ -347,7 +347,7 @@
       <div class="summary-title">Summary</div>
       <div class="summary-row">
         <span>Subtotal</span>
-        <span>₹{{ cart.total_price }}</span>
+        <span id="cart-subtotal">₹{{ cart.total_price }}</span>
       </div>
       <div class="summary-row">
         <span>Shipping</span>
@@ -355,7 +355,7 @@
       </div>
       <div class="summary-row summary-total">
         <span>Total</span>
-        <span>₹{{ cart.total_price }}</span>
+        <span id="cart-total">₹{{ cart.total_price }}</span>
       </div>
       <!-- Checkout -->
       {% if request.user.is_authenticated %}
@@ -406,6 +406,143 @@
   }
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeLoginGate();
+  });
+
+  // Handle Quantity Updates (AJAX)
+  document.querySelectorAll('.cart-update-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const button = e.submitter;
+      if (!button) return;
+      
+      const action = button.value;
+      const itemId = form.dataset.itemId;
+      const url = form.getAttribute('action');
+      
+      const formData = new FormData(form);
+      formData.append('action', action);
+      
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+        },
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Update quantity in DOM
+          const qtyVal = document.getElementById('qty-val-' + itemId);
+          if (qtyVal) qtyVal.textContent = data.quantity;
+          
+          // Update item total price in DOM
+          const itemPrice = document.getElementById('item-price-' + itemId);
+          if (itemPrice) itemPrice.textContent = '₹' + data.item_total_price.toFixed(2);
+          
+          // Update cart totals
+          const cartSubtotal = document.getElementById('cart-subtotal');
+          const cartTotal = document.getElementById('cart-total');
+          if (cartSubtotal) cartSubtotal.textContent = '₹' + data.cart_total_price.toFixed(2);
+          if (cartTotal) cartTotal.textContent = '₹' + data.cart_total_price.toFixed(2);
+          
+          // Enable/disable buttons based on new quantity
+          const decBtn = document.getElementById('qty-btn-dec-' + itemId);
+          const incBtn = document.getElementById('qty-btn-inc-' + itemId);
+          
+          if (decBtn) {
+            decBtn.disabled = data.quantity <= 1;
+          }
+          if (incBtn) {
+            incBtn.disabled = data.quantity >= 5;
+            if (data.quantity >= 5) {
+              incBtn.style.opacity = '0.5';
+              incBtn.style.cursor = 'not-allowed';
+            } else {
+              incBtn.style.opacity = '';
+              incBtn.style.cursor = '';
+            }
+          }
+        }
+        
+        // Show toasts
+        if (data.messages) {
+          data.messages.forEach(msg => {
+            showToast(msg.message, msg.tags);
+          });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        showToast('Failed to update cart.', 'error');
+      });
+    });
+  });
+
+  // Handle Item Removal (AJAX)
+  document.querySelectorAll('.cart-remove-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const itemId = form.dataset.itemId;
+      const url = form.getAttribute('action');
+      const formData = new FormData(form);
+      
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+        },
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          const cartItem = document.getElementById('cart-item-' + itemId);
+          if (cartItem) {
+            cartItem.style.transition = 'all 0.3s ease';
+            cartItem.style.opacity = '0';
+            cartItem.style.maxHeight = '0';
+            cartItem.style.padding = '0';
+            cartItem.style.margin = '0';
+            cartItem.style.border = 'none';
+            setTimeout(() => {
+              cartItem.remove();
+              
+              if (data.cart_is_empty) {
+                const container = document.querySelector('.cart-container');
+                container.innerHTML = `
+                  <h1 class="cart-header">Your Cart</h1>
+                  <div class="empty-cart">
+                    <h3>Your cart is empty.</h3>
+                    <p>Looks like you haven't added anything yet.</p>
+                    <a href="/products/men/" class="btn">Shop Now</a>
+                  </div>
+                `;
+              }
+            }, 300);
+          }
+          
+          const cartSubtotal = document.getElementById('cart-subtotal');
+          const cartTotal = document.getElementById('cart-total');
+          if (cartSubtotal) cartSubtotal.textContent = '₹' + data.cart_total_price.toFixed(2);
+          if (cartTotal) cartTotal.textContent = '₹' + data.cart_total_price.toFixed(2);
+        }
+        
+        if (data.messages) {
+          data.messages.forEach(msg => {
+            showToast(msg.message, msg.tags);
+          });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        showToast('Failed to remove item.', 'error');
+      });
+    });
   });
 </script>
 {% endblock %}

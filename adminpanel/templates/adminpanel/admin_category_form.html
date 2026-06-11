@@ -171,13 +171,7 @@
           <span class="pf-slug-hint">URL-friendly identifier (auto-filled from name)</span>
         </div>
       </div>
-      <div class="pf-field">
-        <label class="pf-label">Gender <span>*</span></label>
-        <select name="gender" required class="pf-select" style="max-width:240px;">
-          <option value="men"    {% if category.gender == 'men'    %}selected{% endif %}>Men</option>
-          <option value="women"  {% if category.gender == 'women'  %}selected{% endif %}>Women</option>
-        </select>
-      </div>
+
     </div>
 
     <!-- Category Image -->
@@ -242,7 +236,7 @@
       <div class="pf-card-title" style="color:#60a5fa; border-color:rgba(59,130,246,0.25);">💡 Tips</div>
       <ul style="margin:0; padding:0 0 0 16px; font-size:12px; color:var(--text-subtle); line-height:1.8;">
         <li>Slug is auto-filled from the name</li>
-        <li>Set <strong>Gender</strong> to control which shop page this appears under</li>
+
         <li>Inactive categories won't appear in product filters</li>
       </ul>
     </div>

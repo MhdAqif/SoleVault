@@ -89,8 +89,9 @@ def manage_address(request):
 def add_address(request):
     if request.method == 'POST':
         full_name = request.POST.get('full_name')
-        phone = request.POST.get('mobile_number')
+        phone = request.POST.get('mobile_number') or request.POST.get('phone')
         address = request.POST.get('address')
+        pincode = request.POST.get('pin_code') or request.POST.get('pincode')
         if not full_name or not phone or not address:
             messages.error(request, "Please fill all required fields")
             return redirect('user_profile:add_address')
@@ -111,15 +112,128 @@ def add_address(request):
             district=request.POST.get('district'),
             state=request.POST.get('state'),
             city=request.POST.get('city'),
-            pincode=request.POST.get('pin_code'),
+            pincode=pincode,
             landmark=request.POST.get('landmark'),
             is_default=is_default,
         )
 
         messages.success(request, "Address added successfully.")
+        next_url = request.POST.get('next') or request.GET.get('next')
+        if next_url:
+            return redirect(next_url)
         return redirect('user_profile:manage_address')
 
     return render(request, 'user_profile/add_address.html')
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
+@login_required
+@require_POST
+def add_address_ajax(request):
+    try:
+        full_name = request.POST.get('full_name')
+        phone = request.POST.get('phone') or request.POST.get('mobile_number')
+        address = request.POST.get('address')
+        city = request.POST.get('city')
+        district = request.POST.get('district')
+        state = request.POST.get('state')
+        pincode = request.POST.get('pincode') or request.POST.get('pin_code')
+        landmark = request.POST.get('landmark')
+        is_default = request.POST.get('is_default') == 'on' or request.POST.get('is_default') == 'true'
+
+        if not all([full_name, phone, address, city, district, state, pincode]):
+            return JsonResponse({'success': False, 'error': 'All required fields must be filled.'})
+
+        if not Address.objects.filter(user=request.user).exists():
+            is_default = True
+
+        if is_default:
+            Address.objects.filter(user=request.user).update(is_default=False)
+
+        new_addr = Address.objects.create(
+            user=request.user,
+            full_name=full_name,
+            phone=phone,
+            address=address,
+            district=district,
+            state=state,
+            city=city,
+            pincode=pincode,
+            landmark=landmark,
+            is_default=is_default
+        )
+
+        return JsonResponse({
+            'success': True,
+            'address': {
+                'id': new_addr.id,
+                'full_name': new_addr.full_name,
+                'phone': new_addr.phone,
+                'address': new_addr.address,
+                'city': new_addr.city,
+                'district': new_addr.district,
+                'state': new_addr.state,
+                'pincode': new_addr.pincode,
+                'landmark': new_addr.landmark or '',
+                'is_default': new_addr.is_default
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+@require_POST
+def edit_address_ajax(request, pk):
+    try:
+        address_obj = get_object_or_404(Address, id=pk, user=request.user)
+        full_name = request.POST.get('full_name')
+        phone = request.POST.get('phone') or request.POST.get('mobile_number')
+        address = request.POST.get('address')
+        city = request.POST.get('city')
+        district = request.POST.get('district')
+        state = request.POST.get('state')
+        pincode = request.POST.get('pincode') or request.POST.get('pin_code')
+        landmark = request.POST.get('landmark')
+        is_default = request.POST.get('is_default') == 'on' or request.POST.get('is_default') == 'true'
+
+        if not all([full_name, phone, address, city, district, state, pincode]):
+            return JsonResponse({'success': False, 'error': 'All required fields must be filled.'})
+
+        if not Address.objects.filter(user=request.user).exclude(id=pk).exists():
+            is_default = True
+
+        if is_default:
+            Address.objects.filter(user=request.user).update(is_default=False)
+
+        address_obj.full_name = full_name
+        address_obj.phone = phone
+        address_obj.address = address
+        address_obj.city = city
+        address_obj.district = district
+        address_obj.state = state
+        address_obj.pincode = pincode
+        address_obj.landmark = landmark
+        address_obj.is_default = is_default
+        address_obj.save()
+
+        return JsonResponse({
+            'success': True,
+            'address': {
+                'id': address_obj.id,
+                'full_name': address_obj.full_name,
+                'phone': address_obj.phone,
+                'address': address_obj.address,
+                'city': address_obj.city,
+                'district': address_obj.district,
+                'state': address_obj.state,
+                'pincode': address_obj.pincode,
+                'landmark': address_obj.landmark or '',
+                'is_default': address_obj.is_default
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 
 @login_required
 def edit_address(request, pk):
@@ -135,17 +249,20 @@ def edit_address(request, pk):
             Address.objects.filter(user=request.user).update(is_default=False)
 
         address.full_name = request.POST.get('full_name')
-        address.phone = request.POST.get('phone')
+        address.phone = request.POST.get('phone') or request.POST.get('mobile_number')
         address.address = request.POST.get('address')
         address.district = request.POST.get('district')
         address.state = request.POST.get('state')
         address.city = request.POST.get('city')
-        address.pincode = request.POST.get('pincode')
+        address.pincode = request.POST.get('pincode') or request.POST.get('pin_code')
         address.landmark = request.POST.get('landmark')
         address.is_default = is_default
         address.save()
 
         messages.success(request, "Address updated successfully.")
+        next_url = request.POST.get('next') or request.GET.get('next')
+        if next_url:
+            return redirect(next_url)
         return redirect('user_profile:manage_address')
 
     return render(request, 'user_profile/edit_address.html', {
@@ -301,7 +418,9 @@ def wallet_topup_init(request):
     
     # Amount in paisa
     amount_paisa = int(amount * 100)
-    
+    if settings.DEBUG and settings.RAZORPAY_KEY_ID.startswith('rzp_test_') and amount_paisa > 3000000:
+        amount_paisa = 3000000
+        
     try:
         razorpay_order = client.order.create({
             'amount': amount_paisa,

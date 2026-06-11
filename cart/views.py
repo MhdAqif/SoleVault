@@ -98,8 +98,11 @@ def cart_add(request, product_id):
         
     return redirect(request.META.get('HTTP_REFERER', 'cart:detail'))
 
+from django.http import JsonResponse
+
 @require_POST
 def cart_update(request, item_id):
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     try:
         cart = _get_or_create_cart(request)
         cart_item = get_object_or_404(CartItem, id=item_id, cart=cart)
@@ -107,12 +110,15 @@ def cart_update(request, item_id):
         action = request.POST.get('action') # 'increase' or 'decrease'
         variant = cart_item.variant
         max_limit = 5
+        success = True
         
         if action == 'increase':
             if variant and cart_item.quantity >= variant.stock:
                 messages.error(request, f"Cannot increase quantity. Only {variant.stock} units available in stock.")
+                success = False
             elif cart_item.quantity >= max_limit:
                 messages.error(request, f"Maximum limit of {max_limit} items reached for this product.")
+                success = False
             else:
                 cart_item.quantity += 1
                 cart_item.save()
@@ -121,22 +127,50 @@ def cart_update(request, item_id):
             cart_item.quantity -= 1
             cart_item.save()
             messages.success(request, "Cart quantity updated.")
-        elif cart_item == False:
-            cart_item.delete() 
+            
+        if is_ajax:
+            storage = messages.get_messages(request)
+            msg_list = [{'message': msg.message, 'tags': msg.tags} for msg in storage]
+            return JsonResponse({
+                'success': success,
+                'quantity': cart_item.quantity,
+                'item_total_price': float(cart_item.total_price),
+                'cart_total_price': float(cart.total_price),
+                'messages': msg_list
+            })
     except Exception as e:
         messages.error(request, f"Error updating cart: {str(e)}")
+        if is_ajax:
+            storage = messages.get_messages(request)
+            msg_list = [{'message': msg.message, 'tags': msg.tags} for msg in storage]
+            return JsonResponse({'success': False, 'messages': msg_list})
         
     return redirect('cart:detail')
 
 @require_POST
 def cart_remove(request, item_id):
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     try:
         cart = _get_or_create_cart(request)
         cart_item = get_object_or_404(CartItem, id=item_id, cart=cart)
         cart_item.delete()          
         messages.success(request, "Item removed from cart.")
+        
+        if is_ajax:
+            storage = messages.get_messages(request)
+            msg_list = [{'message': msg.message, 'tags': msg.tags} for msg in storage]
+            return JsonResponse({
+                'success': True,
+                'cart_total_price': float(cart.total_price),
+                'cart_is_empty': not cart.items.exists(),
+                'messages': msg_list
+            })
     except Exception as e:
         messages.error(request, f"Error removing item: {str(e)}")
+        if is_ajax:
+            storage = messages.get_messages(request)
+            msg_list = [{'message': msg.message, 'tags': msg.tags} for msg in storage]
+            return JsonResponse({'success': False, 'messages': msg_list})
         
     return redirect('cart:detail')
 

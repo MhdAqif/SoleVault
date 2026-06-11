@@ -86,6 +86,13 @@ class OrderItem(models.Model):
     
     is_cancelled = models.BooleanField(default=False)
     cancel_reason = models.TextField(blank=True, null=True)
+    return_status = models.CharField(max_length=20, choices=[
+        ('none', 'None'),
+        ('requested', 'Return Requested'),
+        ('approved', 'Returned/Approved'),
+        ('rejected', 'Return Rejected')
+    ], default='none')
+    return_reason = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.quantity} x {self.product_name} ({self.size}/{self.color}) in {self.order.order_id}"

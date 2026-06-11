@@ -49,7 +49,7 @@ def checkout_page(request):
             savings = (item.product.original_price - item.product.price) * item.quantity
             total_discount += float(savings)
 
-    # 🎟️ Coupon Management integration
+    #  Coupon Management integration
     coupon_code = request.session.get('coupon_code')
     coupon = None
     coupon_discount = 0.00
@@ -238,6 +238,8 @@ def payment_page(request, order_id):
     if not razorpay_order_id:
         try:
             amount_in_paise = int(order.final_price * 100)
+            if settings.DEBUG and settings.RAZORPAY_KEY_ID.startswith('rzp_test_') and amount_in_paise > 3000000:
+                amount_in_paise = 3000000
             razorpay_order = client.order.create({
                 "amount": amount_in_paise,
                 "currency": "INR",
@@ -250,11 +252,15 @@ def payment_page(request, order_id):
         except Exception as e:
             error_msg = f"Failed to initialize Razorpay checkout: {str(e)}"
 
+    amount_in_paise = int(order.final_price * 100)
+    if settings.DEBUG and settings.RAZORPAY_KEY_ID.startswith('rzp_test_') and amount_in_paise > 3000000:
+        amount_in_paise = 3000000
+
     context = {
         'order': order,
         'razorpay_order_id': razorpay_order_id,
         'razorpay_key_id': settings.RAZORPAY_KEY_ID,
-        'amount': int(order.final_price * 100),
+        'amount': amount_in_paise,
         'error_msg': error_msg,
     }
     return render(request, 'orders/payment.html', context)
@@ -359,7 +365,7 @@ def cancel_order_item(request, order_id, item_id):
 
             import decimal
             # Recalculate order totals based on remaining non-cancelled items
-            active_items = order.items.filter(is_cancelled=False)
+            active_items = order.items.filter(is_cancelled=False).exclude(return_status='approved')
             if active_items.exists():
                 new_subtotal = sum(i.item_total for i in active_items)
                 
@@ -440,6 +446,53 @@ def return_order(request, order_id):
             order.save()
 
             messages.success(request, "Return request submitted successfully. Awaiting administrator confirmation.")
+    except Exception as e:
+        messages.error(request, f"Could not submit return request: {str(e)}")
+
+    return redirect('orders:detail', order_id=order_id)
+
+@login_required(login_url='/login/')
+@require_POST
+def return_order_item(request, order_id, item_id):
+    order = get_object_or_404(Order, order_id=order_id, user=request.user)
+    item = get_object_or_404(OrderItem, id=item_id, order=order)
+
+    if order.status != 'delivered':
+        messages.error(request, "Only items from delivered orders can be returned.")
+        return redirect('orders:detail', order_id=order_id)
+
+    if item.is_cancelled:
+        messages.error(request, "Cannot return a cancelled item.")
+        return redirect('orders:detail', order_id=order_id)
+
+    if item.return_status != 'none':
+        messages.error(request, "A return request has already been initiated or processed for this item.")
+        return redirect('orders:detail', order_id=order_id)
+
+    reason = request.POST.get('return_reason', '').strip()
+    if not reason:
+        messages.error(request, "A reason is mandatory to initiate an item return.")
+        return redirect('orders:detail', order_id=order_id)
+
+    try:
+        with transaction.atomic():
+            item.return_status = 'requested'
+            item.return_reason = reason
+            item.save()
+
+            # If all active non-cancelled items are now requested/approved for return, update overall order status
+            active_items = order.items.filter(is_cancelled=False)
+            all_returned_or_requested = True
+            for active_item in active_items:
+                if active_item.return_status not in ['requested', 'approved']:
+                    all_returned_or_requested = False
+                    break
+            
+            if all_returned_or_requested:
+                order.status = 'return_requested'
+                order.save()
+
+            messages.success(request, f"Return request for {item.product_name} submitted successfully. Awaiting administrator confirmation.")
     except Exception as e:
         messages.error(request, f"Could not submit return request: {str(e)}")
 
@@ -543,9 +596,18 @@ def download_invoice(request, order_id):
     ]
     
     for item in order.items.all():
-        cancelled_label = " (CANCELLED)" if item.is_cancelled else ""
+        status_label = ""
+        if item.is_cancelled:
+            status_label = " (CANCELLED)"
+        elif item.return_status == 'approved':
+            status_label = " (RETURNED)"
+        elif item.return_status == 'requested':
+            status_label = " (RETURN REQUESTED)"
+        elif item.return_status == 'rejected':
+            status_label = " (RETURN REJECTED)"
+
         table_data.append([
-            Paragraph(f"<b>{item.product_name}</b>{cancelled_label}", body_style),
+            Paragraph(f"<b>{item.product_name}</b>{status_label}", body_style),
             item.size,
             item.color or "-",
             str(item.quantity),

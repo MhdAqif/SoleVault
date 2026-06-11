@@ -31,16 +31,24 @@ def send_otp(email, otp):
     )
 
 def resend_otp(request):
-    email = request.session.get('email')
-    otp = generate_otp()
-
-    request.session['otp'] = otp
-
-    send_otp(email, otp)
-    # logic to resend OTP
-    messages.success(request, "OTP has been resent.")
-
-    return redirect('verify-otp') 
+    if 'signup_data' in request.session:
+        email = request.session['signup_data']['email']
+        otp = generate_otp()
+        request.session['otp'] = otp
+        request.session['otp_time'] = time.time()
+        send_otp(email, otp)
+        messages.success(request, "Verification code has been resent to your email.")
+        return redirect('verify_otp')
+    elif 'reset_email' in request.session:
+        email = request.session['reset_email']
+        otp = generate_otp()
+        request.session['reset_otp'] = otp
+        send_otp(email, otp)
+        messages.success(request, "Password reset code has been resent to your email.")
+        return redirect('forget_otp')
+    else:
+        messages.error(request, "Session expired. Please start the process again.")
+        return redirect('signup') 
     
 def signup(request):
     if request.method == 'POST':

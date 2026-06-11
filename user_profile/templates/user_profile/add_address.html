@@ -16,6 +16,9 @@
 
   <form method="POST" action="{% url 'user_profile:add_address' %}">
     {% csrf_token %}
+    {% if request.GET.next %}
+      <input type="hidden" name="next" value="{{ request.GET.next }}">
+    {% endif %}
 
     <!-- Row 1: Full Name + Mobile Number -->
     <div class="addr-row">
@@ -79,7 +82,7 @@
 
     <!-- Buttons -->
     <div class="addr-btn-row">
-      <a href="{% url 'user_profile:manage_address' %}" class="btn-addr-cancel">Cancel</a>
+      <a href="{% if request.GET.next %}{{ request.GET.next }}{% else %}{% url 'user_profile:manage_address' %}{% endif %}" class="btn-addr-cancel">Cancel</a>
       <button type="submit" class="btn-addr-submit">Add Address</button>
     </div>
 
