@@ -132,7 +132,7 @@ def men_page(request):
         products = _apply_filters(products, request)
 
         # Category cards
-        men_categories = Category.objects.filter(is_active=True, products__gender__in=['men', 'unisex'], products__is_active=True).distinct().order_by('name')
+        men_categories = Category.objects.filter(is_active=True).order_by('name')
 
         # Pagination
         paginator   = Paginator(products, 9)
@@ -188,7 +188,7 @@ def women_page(request):
 
         products = _apply_filters(products, request)
 
-        women_categories = Category.objects.filter(is_active=True, products__gender__in=['women', 'unisex'], products__is_active=True).distinct().order_by('name')
+        women_categories = Category.objects.filter(is_active=True).order_by('name')
 
         paginator   = Paginator(products, 9)
         page_number = request.GET.get('page', 1)
