@@ -238,6 +238,7 @@ def search_view(request):
     context = {
         'page_obj'    : page_obj,
         'search_query': query,
+        **_get_filter_context()
     }
     return render(request, 'products/search_results.html', context)
 

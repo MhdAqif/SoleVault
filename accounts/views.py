@@ -52,27 +52,71 @@ def resend_otp(request):
     
 def signup(request):
     if request.method == 'POST':
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        email = request.POST.get('email')
-        phone = request.POST.get('phone')
-        password = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password')
-        referral = request.POST.get('referral')
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        password = request.POST.get('password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+        referral = request.POST.get('referral', '').strip()
 
-        # validations
-        if password != confirm_password:
-            messages.error(request, "Passwords do not match")
-            return redirect('signup')
+        errors = []
+        
+        # Name validation
+        if not first_name:
+            errors.append("First name is required.")
+        elif not first_name.isalpha():
+            errors.append("First name must contain only letters.")
+        elif len(first_name) < 2 or len(first_name) > 50:
+            errors.append("First name must be between 2 and 50 characters.")
 
-        pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$'
-        if not re.match(pattern, password):
-            messages.error(request, "Password must be strong")
-            return redirect('signup')
+        if not last_name:
+            errors.append("Last name is required.")
+        elif not last_name.isalpha():
+            errors.append("Last name must contain only letters.")
+        elif len(last_name) < 2 or len(last_name) > 50:
+            errors.append("Last name must be between 2 and 50 characters.")
 
-        if CustomUser.objects.filter(email=email).exists():
-            messages.error(request, "Email already exists")
-            return redirect('signup')
+        # Email validation
+        if not email:
+            errors.append("Email address is required.")
+        else:
+            email_pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+            if not re.match(email_pattern, email):
+                errors.append("Invalid email address format.")
+            elif CustomUser.objects.filter(email=email).exists():
+                errors.append("An account with this email address already exists.")
+
+        # Phone validation
+        if not phone:
+            errors.append("Phone number is required.")
+        else:
+            phone_pattern = r'^[6-9]\d{9}$'
+            if not re.match(phone_pattern, phone):
+                errors.append("Phone number must be a valid 10-digit number starting with 6-9.")
+
+        # Password validation
+        if not password:
+            errors.append("Password is required.")
+        else:
+            password_pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$'
+            if not re.match(password_pattern, password):
+                errors.append("Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character (@$!%*?&).")
+            elif password != confirm_password:
+                errors.append("Passwords do not match.")
+
+        # Referral validation
+        if referral:
+            if not CustomUser.objects.filter(referral_code=referral).exists():
+                errors.append("Invalid referral code.")
+
+        if errors:
+            for err in errors:
+                messages.error(request, err)
+            return render(request, 'accounts/signup.html', {
+                'form_data': request.POST,
+                'ref_code': referral
+            }, status=400)
 
         # STORE DATA (NOT SAVE USER)
         request.session['signup_data'] = {
@@ -106,14 +150,15 @@ def user_login(request):
 
         if user is not None:
             if user.is_blocked:
-                messages.error(request, "Your account is blocked")
-                return redirect('login')
+                messages.error(request, "Your account has been blocked.")
+                return render(request, 'accounts/login.html', status=403)
 
             login(request, user)
             return redirect('/')  # home page
 
         else:
             messages.error(request, "Invalid credentials")
+            return render(request, 'accounts/login.html', status=400)
 
     return render(request, 'accounts/login.html')
 
@@ -138,12 +183,15 @@ def verify_otp(request):
         otp_time = request.session.get('otp_time')
 
         # OTP expiry (5 min)
-        if time.time() - otp_time > 300:
-            messages.error(request, "OTP expired")
-            return redirect('signup')
+        if not otp_time or time.time() - otp_time > 300:
+            messages.error(request, "OTP has expired. Please click 'Resend OTP' to receive a new one.")
+            return render(request, 'accounts/verify_otp.html', status=400)
 
         if entered_otp == actual_otp:
             data = request.session.get('signup_data')
+            if not data:
+                messages.error(request, "Registration session data not found. Please sign up again.")
+                return redirect('signup')
 
             import uuid
             import decimal
@@ -155,8 +203,11 @@ def verify_otp(request):
                 while CustomUser.objects.filter(referral_code=new_user_ref).exists():
                     new_user_ref = f"SV-REF-{uuid.uuid4().hex[:6].upper()}"
 
+                from .adapters import generate_unique_username
+                unique_uname = generate_unique_username(data['email'], data['first_name'], data['last_name'])
+
                 new_user = CustomUser.objects.create(
-                    username=data['email'],
+                    username=unique_uname,
                     email=data['email'],
                     first_name=data['first_name'],
                     last_name=data['last_name'],
@@ -201,8 +252,8 @@ def verify_otp(request):
             return redirect('login')
 
         else:
-            messages.error(request, "Invalid OTP")
-            return redirect('verify_otp')
+            messages.error(request, "Invalid OTP. Please check the code and try again.")
+            return render(request, 'accounts/verify_otp.html', status=400)
 
     return render(request, 'accounts/verify_otp.html')
 

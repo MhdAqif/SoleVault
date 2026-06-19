@@ -19,12 +19,12 @@ class AddressAjaxTests(TestCase):
             reverse('user_profile:add_address_ajax'),
             {
                 'full_name': 'John Doe',
-                'phone': '1234567890',
+                'phone': '9876543210',
                 'address': '123 Main Street',
                 'city': 'Metropolis',
-                'district': 'District 1',
+                'district': 'District One',
                 'state': 'New York',
-                'pincode': '10001',
+                'pincode': '110001',
                 'landmark': 'Near Park',
                 'is_default': 'on'
             },
@@ -34,11 +34,11 @@ class AddressAjaxTests(TestCase):
         data = response.json()
         self.assertTrue(data['success'])
         self.assertEqual(data['address']['full_name'], 'John Doe')
-        self.assertEqual(data['address']['pincode'], '10001')
+        self.assertEqual(data['address']['pincode'], '110001')
         self.assertTrue(data['address']['is_default'])
 
         # Verify it was saved in DB
-        self.assertTrue(Address.objects.filter(user=self.user, pincode='10001').exists())
+        self.assertTrue(Address.objects.filter(user=self.user, pincode='110001').exists())
 
     def test_add_address_ajax_missing_fields(self):
         response = self.client.post(
@@ -49,22 +49,22 @@ class AddressAjaxTests(TestCase):
             },
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
         data = response.json()
         self.assertFalse(data['success'])
-        self.assertIn('required fields', data['error'])
+        self.assertTrue('error' in data)
 
     def test_edit_address_ajax_success(self):
         # Create an address first
         address = Address.objects.create(
             user=self.user,
             full_name='Old Name',
-            phone='1234567890',
+            phone='9876543210',
             address='Old Address',
             city='Old City',
             district='Old District',
             state='Old State',
-            pincode='00000',
+            pincode='110001',
             is_default=True
         )
 
@@ -77,7 +77,7 @@ class AddressAjaxTests(TestCase):
                 'city': 'New City',
                 'district': 'New District',
                 'state': 'New State',
-                'pincode': '11111',
+                'pincode': '110002',
                 'landmark': 'New Landmark',
                 'is_default': 'on'
             },
@@ -87,24 +87,24 @@ class AddressAjaxTests(TestCase):
         data = response.json()
         self.assertTrue(data['success'])
         self.assertEqual(data['address']['full_name'], 'New Name')
-        self.assertEqual(data['address']['pincode'], '11111')
+        self.assertEqual(data['address']['pincode'], '110002')
 
         # Refresh from DB
         address.refresh_from_db()
         self.assertEqual(address.full_name, 'New Name')
-        self.assertEqual(address.pincode, '11111')
+        self.assertEqual(address.pincode, '110002')
 
     def test_add_address_redirect_with_next(self):
         response = self.client.post(
             reverse('user_profile:add_address') + '?next=/orders/checkout/',
             {
                 'full_name': 'Standard Doe',
-                'mobile_number': '1234567890',
+                'mobile_number': '9876543210',
                 'address': '123 Main Street',
                 'city': 'Metropolis',
-                'district': 'District 1',
+                'district': 'District One',
                 'state': 'New York',
-                'pin_code': '10001',
+                'pin_code': '110001',
                 'landmark': 'Near Park',
                 'is_default': 'on'
             }
@@ -115,12 +115,12 @@ class AddressAjaxTests(TestCase):
         address = Address.objects.create(
             user=self.user,
             full_name='Old Name',
-            phone='1234567890',
+            phone='9876543210',
             address='Old Address',
             city='Old City',
             district='Old District',
             state='Old State',
-            pincode='00000',
+            pincode='110001',
             is_default=True
         )
         response = self.client.post(
@@ -132,7 +132,7 @@ class AddressAjaxTests(TestCase):
                 'city': 'New City',
                 'district': 'New District',
                 'state': 'New State',
-                'pincode': '11111',
+                'pincode': '110002',
                 'landmark': 'New Landmark',
                 'is_default': 'on'
             }

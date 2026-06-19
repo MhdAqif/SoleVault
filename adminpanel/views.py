@@ -262,6 +262,18 @@ def category_list_admin(request):
     })
 
 @admin_required
+def validate_image_file(image_file, max_size_mb=5):
+    if not image_file:
+        return None
+    import os
+    ext = os.path.splitext(image_file.name)[1].lower()
+    if ext not in ['.jpg', '.jpeg', '.png', '.webp']:
+        return f"Invalid file format for '{image_file.name}'. Only JPG, JPEG, PNG, and WEBP images are allowed."
+    if image_file.size > max_size_mb * 1024 * 1024:
+        return f"Image '{image_file.name}' size must be less than {max_size_mb}MB."
+    return None
+
+@admin_required
 def category_add_admin(request):
     if request.method == 'POST':
         try:
@@ -270,19 +282,45 @@ def category_add_admin(request):
             image = request.FILES.get('image')
             is_active = request.POST.get('is_active') == 'on'
             
-            if not name or not slug:
-                messages.error(request, "Name and Slug are required.")
-                return redirect('adminpanel:category_add')
-            
-            # Case insensitive check for duplicate name
-            if Category.objects.filter(name__iexact=name).exists():
-                messages.error(request, f"A category with name '{name}' already exists.")
-                return redirect('adminpanel:category_add')
-                
-            # Case insensitive check for duplicate slug
-            if Category.objects.filter(slug__iexact=slug).exists():
-                messages.error(request, f"A category with slug '{slug}' already exists.")
-                return redirect('adminpanel:category_add')
+            errors = []
+            if not name:
+                errors.append("Category Name is required.")
+            elif len(name) < 2 or len(name) > 50:
+                errors.append("Category Name must be between 2 and 50 characters.")
+
+            if not slug:
+                errors.append("Slug is required.")
+            else:
+                import re
+                if not re.match(r'^[a-z0-9]+(?:-[a-z0-9]+)*$', slug):
+                    errors.append("Slug must contain only lowercase letters, numbers, and hyphens.")
+
+            if image:
+                img_err = validate_image_file(image)
+                if img_err:
+                    errors.append(img_err)
+
+            if not errors:
+                # Case insensitive check for duplicate name
+                if Category.objects.filter(name__iexact=name).exists():
+                    errors.append(f"A category with name '{name}' already exists.")
+                    
+                # Case insensitive check for duplicate slug
+                if Category.objects.filter(slug__iexact=slug).exists():
+                    errors.append(f"A category with slug '{slug}' already exists.")
+
+            if errors:
+                for err in errors:
+                    messages.error(request, err)
+                dummy_category = {
+                    'name': name,
+                    'slug': slug,
+                    'is_active': is_active,
+                }
+                return render(request, 'adminpanel/admin_category_form.html', {
+                    'category': dummy_category,
+                    'action': 'Add'
+                }, status=400)
                 
             Category.objects.create(
                 name=name, slug=slug, image=image, is_active=is_active
@@ -304,27 +342,52 @@ def category_edit_admin(request, category_id):
             name = request.POST.get('name', '').strip()
             slug = request.POST.get('slug', '').strip()
             is_active = request.POST.get('is_active') == 'on'
+            image = request.FILES.get('image')
             
-            if not name or not slug:
-                messages.error(request, "Name and Slug are required.")
-                return redirect('adminpanel:category_edit', category_id=category.id)
-                
-            # Case insensitive check for duplicate name (excluding this category)
-            if Category.objects.filter(name__iexact=name).exclude(id=category_id).exists():
-                messages.error(request, f"A category with name '{name}' already exists.")
-                return redirect('adminpanel:category_edit', category_id=category.id)
-                
-            # Case insensitive check for duplicate slug (excluding this category)
-            if Category.objects.filter(slug__iexact=slug).exclude(id=category_id).exists():
-                messages.error(request, f"A category with slug '{slug}' already exists.")
-                return redirect('adminpanel:category_edit', category_id=category.id)
+            errors = []
+            if not name:
+                errors.append("Category Name is required.")
+            elif len(name) < 2 or len(name) > 50:
+                errors.append("Category Name must be between 2 and 50 characters.")
+
+            if not slug:
+                errors.append("Slug is required.")
+            else:
+                import re
+                if not re.match(r'^[a-z0-9]+(?:-[a-z0-9]+)*$', slug):
+                    errors.append("Slug must contain only lowercase letters, numbers, and hyphens.")
+
+            if image:
+                img_err = validate_image_file(image)
+                if img_err:
+                    errors.append(img_err)
+
+            if not errors:
+                # Case insensitive check for duplicate name (excluding this category)
+                if Category.objects.filter(name__iexact=name).exclude(id=category_id).exists():
+                    errors.append(f"A category with name '{name}' already exists.")
+                    
+                # Case insensitive check for duplicate slug (excluding this category)
+                if Category.objects.filter(slug__iexact=slug).exclude(id=category_id).exists():
+                    errors.append(f"A category with slug '{slug}' already exists.")
+
+            if errors:
+                for err in errors:
+                    messages.error(request, err)
+                category.name = name
+                category.slug = slug
+                category.is_active = is_active
+                return render(request, 'adminpanel/admin_category_form.html', {
+                    'category': category,
+                    'action': 'Edit'
+                }, status=400)
             
             category.name = name
             category.slug = slug
             category.is_active = is_active
             
-            if request.FILES.get('image'):
-                category.image = request.FILES.get('image')
+            if image:
+                category.image = image
                 
             category.save()
             messages.success(request, f"Category {category.name} updated successfully!")
@@ -399,30 +462,147 @@ def product_list_admin(request):
 
 @admin_required
 def product_add_admin(request):
-    try:
-        brands = Brand.objects.all()
-        categories = Category.objects.filter(is_active=True)
-        all_sizes = Size.objects.all()
-        
-        if request.method == 'POST':
-            name = request.POST.get('name')
-            slug = request.POST.get('slug')
-            price = request.POST.get('price')
-            cropped_images = request.FILES.getlist('cropped_images')
+    brands = Brand.objects.all()
+    categories = Category.objects.filter(is_active=True)
+    all_sizes = Size.objects.all()
+    
+    if request.method == 'POST':
+        try:
+            name = request.POST.get('name', '').strip()
+            slug = request.POST.get('slug', '').strip()
+            price_str = request.POST.get('price', '').strip()
+            orig_price_str = request.POST.get('original_price', '').strip()
             brand_id = request.POST.get('brand')
             category_id = request.POST.get('category')
+            occasion = request.POST.get('occasion', 'casual')
+            material = request.POST.get('material', 'mesh')
+            description = request.POST.get('description', '').strip()
+            is_new = request.POST.get('is_new') == 'on'
+            is_active = request.POST.get('is_active') == 'on'
+
+            cropped_images = request.FILES.getlist('cropped_images')
+
+            errors = []
             
-            # Simple validation
-            if not name or not slug or not price:
-                messages.error(request, "Name, Slug, and Price are required.")
-                return redirect('adminpanel:product_add')
-            
+            # Basic validation
+            if not name:
+                errors.append("Product Name is required.")
+            elif len(name) < 3 or len(name) > 100:
+                errors.append("Product Name must be between 3 and 100 characters.")
+
+            if not slug:
+                errors.append("Slug is required.")
+            else:
+                import re
+                if not re.match(r'^[a-z0-9]+(?:-[a-z0-9]+)*$', slug):
+                    errors.append("Slug must contain only lowercase letters, numbers, and hyphens.")
+                elif Product.objects.filter(slug__iexact=slug).exists():
+                    errors.append(f"A product with slug '{slug}' already exists.")
+
+            # Price validation
+            price = None
+            if not price_str:
+                errors.append("Price is required.")
+            else:
+                try:
+                    price = float(price_str)
+                    if price <= 0:
+                        errors.append("Price must be a positive number.")
+                except ValueError:
+                    errors.append("Price must be a valid number.")
+
+            original_price = None
+            if orig_price_str:
+                try:
+                    original_price = float(orig_price_str)
+                    if original_price <= 0:
+                        errors.append("Original price must be a positive number.")
+                    elif price and original_price < price:
+                        errors.append("Original price cannot be less than the selling price.")
+                except ValueError:
+                    errors.append("Original price must be a valid number.")
+
+            if not description:
+                errors.append("Description is required.")
+            elif len(description) < 10:
+                errors.append("Description must be at least 10 characters long.")
+
+            # Variants validation
+            v_sizes  = request.POST.getlist('v_size[]')
+            v_colors = request.POST.getlist('v_color[]')
+            v_stocks = request.POST.getlist('v_stock[]')
+
+            selected_variants = []
+            for i in range(len(v_sizes)):
+                size_val = v_sizes[i]
+                color_val = v_colors[i].strip() if i < len(v_colors) else ""
+                stock_val = v_stocks[i].strip() if i < len(v_stocks) else ""
+
+                selected_variants.append({
+                    'size_id': size_val,
+                    'color': color_val,
+                    'stock': stock_val
+                })
+
+            if not selected_variants:
+                errors.append("At least one product variant is required.")
+            else:
+                for idx, v in enumerate(selected_variants):
+                    if not v['color']:
+                        errors.append(f"Color is required for variant #{idx+1}.")
+                    elif not v['color'].isalpha():
+                        errors.append(f"Color for variant #{idx+1} must contain letters only.")
+                    
+                    if not v['stock']:
+                        errors.append(f"Stock quantity is required for variant #{idx+1}.")
+                    else:
+                        try:
+                            st = int(v['stock'])
+                            if st < 0:
+                                errors.append(f"Stock for variant #{idx+1} cannot be negative.")
+                        except ValueError:
+                            errors.append(f"Stock for variant #{idx+1} must be an integer.")
+
+            # Image count and validation
             if len(cropped_images) < 3:
-                messages.error(request, f"Minimum 3 images are required. You provided {len(cropped_images)}.")
-                return redirect('adminpanel:product_add')
+                errors.append(f"Minimum 3 images are required. You provided {len(cropped_images)}.")
+            else:
+                for img in cropped_images:
+                    img_err = validate_image_file(img)
+                    if img_err:
+                        errors.append(img_err)
+
+            if errors:
+                for err in errors:
+                    messages.error(request, err)
                 
+                # Reconstruct dummy product object for template
+                dummy_product = {
+                    'name': name,
+                    'slug': slug,
+                    'price': price_str,
+                    'original_price': orig_price_str,
+                    'brand_id': int(brand_id) if brand_id else None,
+                    'category_id': int(category_id) if category_id else None,
+                    'occasion': occasion,
+                    'material': material,
+                    'description': description,
+                    'is_new': is_new,
+                    'is_active': is_active,
+                }
+                return render(request, 'adminpanel/admin_product_form.html', {
+                    'product': dummy_product,
+                    'selected_variants': selected_variants,
+                    'brands': brands,
+                    'categories': categories,
+                    'all_sizes': all_sizes,
+                    'occasion_choices': Product.OCCASION_CHOICES,
+                    'material_choices': Product.MATERIAL_CHOICES,
+                    'action': 'Add'
+                }, status=400)
+
+            # Create product
             main_image = cropped_images.pop(0)
-                
             product = Product.objects.create(
                 name=name,
                 slug=slug,
@@ -430,37 +610,33 @@ def product_add_admin(request):
                 image=main_image,
                 brand_id=brand_id if brand_id else None,
                 category_id=category_id if category_id else None,
-                occasion=request.POST.get('occasion', 'casual'),
-                material=request.POST.get('material', 'mesh'),
-                description=request.POST.get('description', ''),
-                original_price=request.POST.get('original_price') or None,
-                is_new=request.POST.get('is_new') == 'on',
-                is_active=request.POST.get('is_active') == 'on',
+                occasion=occasion,
+                material=material,
+                description=description,
+                original_price=original_price,
+                is_new=is_new,
+                is_active=is_active,
             )
 
             # Save Variants
-            v_sizes  = request.POST.getlist('v_size[]')
-            v_colors = request.POST.getlist('v_color[]')
-            v_stocks = request.POST.getlist('v_stock[]')
-
-            for i in range(len(v_sizes)):
-                if i < len(v_colors) and i < len(v_stocks):
-                    ProductVariant.objects.create(
-                        product=product,
-                        size_id=v_sizes[i],
-                        color=v_colors[i],
-                        stock=v_stocks[i]
-                    )
+            for v in selected_variants:
+                ProductVariant.objects.create(
+                    product=product,
+                    size_id=v['size_id'],
+                    color=v['color'],
+                    stock=int(v['stock'])
+                )
             
             for img in cropped_images:
                 ProductImage.objects.create(product=product, image=img)
                 
             messages.success(request, f"Product {name} created!")
             return redirect('adminpanel:product_list')
-    except Exception as e:
-        messages.error(request, f"Error adding product: {str(e)}")
-        return redirect('adminpanel:product_list')
-        
+            
+        except Exception as e:
+            messages.error(request, f"Error adding product: {str(e)}")
+            return redirect('adminpanel:product_list')
+            
     return render(request, 'adminpanel/admin_product_form.html', {
         'brands': brands, 
         'categories': categories, 
@@ -472,66 +648,192 @@ def product_add_admin(request):
 
 @admin_required
 def product_edit_admin(request, product_id):
-    try:
-        product = get_object_or_404(Product, id=product_id)
-        brands = Brand.objects.all()
-        categories = Category.objects.filter(is_active=True)
-        all_sizes = Size.objects.all()
-        
-        if request.method == 'POST':
-            product.name = request.POST.get('name')
-            product.slug = request.POST.get('slug')
-            product.price = request.POST.get('price')
-            
-            cropped_images = request.FILES.getlist('cropped_images')
-            existing_img_count = product.images.count() + (1 if product.image else 0)
-            
-            if existing_img_count + len(cropped_images) < 3:
-                messages.error(request, f"Minimum 3 total images are required. You have {existing_img_count + len(cropped_images)}.")
-                return redirect('adminpanel:product_edit', product_id=product.id)
-                
-            # If product doesn't have a main image but we got new ones
-            if not product.image and cropped_images:
-                product.image = cropped_images.pop(0)
-                
+    product = get_object_or_404(Product, id=product_id)
+    brands = Brand.objects.all()
+    categories = Category.objects.filter(is_active=True)
+    all_sizes = Size.objects.all()
+    
+    if request.method == 'POST':
+        try:
+            name = request.POST.get('name', '').strip()
+            slug = request.POST.get('slug', '').strip()
+            price_str = request.POST.get('price', '').strip()
+            orig_price_str = request.POST.get('original_price', '').strip()
             brand_id = request.POST.get('brand')
             category_id = request.POST.get('category')
-            product.brand_id = brand_id if brand_id else None
-            product.category_id = category_id if category_id else None
-            
-            product.occasion = request.POST.get('occasion', 'casual')
-            product.material = request.POST.get('material', 'mesh')
-            product.description = request.POST.get('description', '')
-            product.original_price = request.POST.get('original_price') or None
-            product.is_new = request.POST.get('is_new') == 'on'
-            product.is_active = request.POST.get('is_active') == 'on'
-            
-            product.save()
+            occasion = request.POST.get('occasion', 'casual')
+            material = request.POST.get('material', 'mesh')
+            description = request.POST.get('description', '').strip()
+            is_new = request.POST.get('is_new') == 'on'
+            is_active = request.POST.get('is_active') == 'on'
 
-            # Update Variants (Simple approach: delete and recreate)
-            product.variants.all().delete()
+            remove_image_ids = request.POST.getlist('remove_image_ids[]')
+            cropped_images = request.FILES.getlist('cropped_images')
+
+            errors = []
+            
+            # Basic validation
+            if not name:
+                errors.append("Product Name is required.")
+            elif len(name) < 3 or len(name) > 100:
+                errors.append("Product Name must be between 3 and 100 characters.")
+
+            if not slug:
+                errors.append("Slug is required.")
+            else:
+                import re
+                if not re.match(r'^[a-z0-9]+(?:-[a-z0-9]+)*$', slug):
+                    errors.append("Slug must contain only lowercase letters, numbers, and hyphens.")
+                elif Product.objects.filter(slug__iexact=slug).exclude(id=product.id).exists():
+                    errors.append(f"A product with slug '{slug}' already exists.")
+
+            # Price validation
+            price = None
+            if not price_str:
+                errors.append("Price is required.")
+            else:
+                try:
+                    price = float(price_str)
+                    if price <= 0:
+                        errors.append("Price must be a positive number.")
+                except ValueError:
+                    errors.append("Price must be a valid number.")
+
+            original_price = None
+            if orig_price_str:
+                try:
+                    original_price = float(orig_price_str)
+                    if original_price <= 0:
+                        errors.append("Original price must be a positive number.")
+                    elif price and original_price < price:
+                        errors.append("Original price cannot be less than the selling price.")
+                except ValueError:
+                    errors.append("Original price must be a valid number.")
+
+            if not description:
+                errors.append("Description is required.")
+            elif len(description) < 10:
+                errors.append("Description must be at least 10 characters long.")
+
+            # Variants validation
             v_sizes  = request.POST.getlist('v_size[]')
             v_colors = request.POST.getlist('v_color[]')
             v_stocks = request.POST.getlist('v_stock[]')
 
+            selected_variants = []
             for i in range(len(v_sizes)):
-                if i < len(v_colors) and i < len(v_stocks):
-                    ProductVariant.objects.create(
-                        product=product,
-                        size_id=v_sizes[i],
-                        color=v_colors[i],
-                        stock=v_stocks[i]
-                    )
-            
+                size_val = v_sizes[i]
+                color_val = v_colors[i].strip() if i < len(v_colors) else ""
+                stock_val = v_stocks[i].strip() if i < len(v_stocks) else ""
+
+                selected_variants.append({
+                    'size_id': size_val,
+                    'color': color_val,
+                    'stock': stock_val
+                })
+
+            if not selected_variants:
+                errors.append("At least one product variant is required.")
+            else:
+                for idx, v in enumerate(selected_variants):
+                    if not v['color']:
+                        errors.append(f"Color is required for variant #{idx+1}.")
+                    elif not v['color'].isalpha():
+                        errors.append(f"Color for variant #{idx+1} must contain letters only.")
+                    
+                    if not v['stock']:
+                        errors.append(f"Stock quantity is required for variant #{idx+1}.")
+                    else:
+                        try:
+                            st = int(v['stock'])
+                            if st < 0:
+                                errors.append(f"Stock for variant #{idx+1} cannot be negative.")
+                        except ValueError:
+                            errors.append(f"Stock for variant #{idx+1} must be an integer.")
+
+            # Image count check
+            remaining_existing_count = product.images.exclude(id__in=remove_image_ids).count() + (1 if product.image else 0)
+            if remaining_existing_count + len(cropped_images) < 3:
+                errors.append(f"Minimum 3 total images are required. You have {remaining_existing_count + len(cropped_images)} remaining/new images.")
+
+            # Image file validation
+            for img in cropped_images:
+                img_err = validate_image_file(img)
+                if img_err:
+                    errors.append(img_err)
+
+            if errors:
+                for err in errors:
+                    messages.error(request, err)
+                
+                # Update product model attributes in memory to render them
+                product.name = name
+                product.slug = slug
+                product.price = price_str
+                product.original_price = orig_price_str
+                product.brand_id = int(brand_id) if brand_id else None
+                product.category_id = int(category_id) if category_id else None
+                product.occasion = occasion
+                product.material = material
+                product.description = description
+                product.is_new = is_new
+                product.is_active = is_active
+
+                return render(request, 'adminpanel/admin_product_form.html', {
+                    'product': product,
+                    'selected_variants': selected_variants,
+                    'brands': brands,
+                    'categories': categories,
+                    'all_sizes': all_sizes,
+                    'occasion_choices': Product.OCCASION_CHOICES,
+                    'material_choices': Product.MATERIAL_CHOICES,
+                    'action': 'Edit'
+                }, status=400)
+
+            # Perform Image Deletions
+            if remove_image_ids:
+                ProductImage.objects.filter(id__in=remove_image_ids, product=product).delete()
+
+            # Save Product
+            product.name = name
+            product.slug = slug
+            product.price = price
+            product.brand_id = brand_id if brand_id else None
+            product.category_id = category_id if category_id else None
+            product.occasion = occasion
+            product.material = material
+            product.description = description
+            product.original_price = original_price
+            product.is_new = is_new
+            product.is_active = is_active
+
+            # Handle new images
+            if not product.image and cropped_images:
+                product.image = cropped_images.pop(0)
+
+            product.save()
+
+            # Recreate variants
+            product.variants.all().delete()
+            for v in selected_variants:
+                ProductVariant.objects.create(
+                    product=product,
+                    size_id=v['size_id'],
+                    color=v['color'],
+                    stock=int(v['stock'])
+                )
+
+            # Add new sub-images
             for img in cropped_images:
                 ProductImage.objects.create(product=product, image=img)
-                
+
             messages.success(request, f"Product {product.name} updated!")
             return redirect('adminpanel:product_list')
-    except Exception as e:
-        messages.error(request, f"Error editing product: {str(e)}")
-        return redirect('adminpanel:product_list')
-        
+
+        except Exception as e:
+            messages.error(request, f"Error editing product: {str(e)}")
+            return redirect('adminpanel:product_list')
+
     return render(request, 'adminpanel/admin_product_form.html', {
         'product': product, 
         'brands': brands, 

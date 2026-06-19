@@ -15,22 +15,22 @@
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 18px;">
         <div style="text-align: left;">
           <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); display: block; margin-bottom: 6px;">First Name</label>
-          <input type="text" name="first_name" required style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; background: var(--surface); color: var(--text); outline: none; transition: border-color 0.2s, background-color 0.2s;" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+          <input type="text" name="first_name" value="{{ form_data.first_name|default:'' }}" required style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; background: var(--surface); color: var(--text); outline: none; transition: border-color 0.2s, background-color 0.2s;" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
         </div>
         <div style="text-align: left;">
           <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); display: block; margin-bottom: 6px;">Last Name</label>
-          <input type="text" name="last_name" required style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; background: var(--surface); color: var(--text); outline: none; transition: border-color 0.2s, background-color 0.2s;" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+          <input type="text" name="last_name" value="{{ form_data.last_name|default:'' }}" required style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; background: var(--surface); color: var(--text); outline: none; transition: border-color 0.2s, background-color 0.2s;" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
         </div>
       </div>
 
       <div style="text-align: left; margin-bottom: 18px;">
         <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); display: block; margin-bottom: 6px;">Email Address</label>
-        <input type="email" name="email" required style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; background: var(--surface); color: var(--text); outline: none; transition: border-color 0.2s, background-color 0.2s;" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+        <input type="email" name="email" value="{{ form_data.email|default:'' }}" required style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; background: var(--surface); color: var(--text); outline: none; transition: border-color 0.2s, background-color 0.2s;" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
       </div>
 
       <div style="text-align: left; margin-bottom: 18px;">
         <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); display: block; margin-bottom: 6px;">Mobile Number</label>
-        <input type="tel" name="phone" required style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; background: var(--surface); color: var(--text); outline: none; transition: border-color 0.2s, background-color 0.2s;" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+        <input type="tel" name="phone" value="{{ form_data.phone|default:'' }}" required style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; background: var(--surface); color: var(--text); outline: none; transition: border-color 0.2s, background-color 0.2s;" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
       </div>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 18px;">

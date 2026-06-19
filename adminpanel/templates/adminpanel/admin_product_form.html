@@ -303,14 +303,17 @@
       <input type="file" id="hiddenImagesInput" name="cropped_images" multiple style="display:none;">
 
       <div class="pf-preview-grid" id="previewGrid">
-        {% if product.image %}
-        <div class="pf-preview-item">
-          <img src="{{ product.image.url }}" alt="Main">
+        {% if product.image and not product.image.name == "" %}
+        <div class="pf-preview-item" style="position: relative; display: inline-block;">
+          <img src="{{ product.image.url }}" alt="Main" style="width: 100px; height: 100px; object-fit: cover;">
+          <span style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: white; font-size: 10px; text-align: center; padding: 2px 0;">Main</span>
         </div>
         {% endif %}
         {% for img in product.images.all %}
-        <div class="pf-preview-item">
-          <img src="{{ img.image.url }}" alt="">
+        <div class="pf-preview-item" id="existing-img-{{ img.id }}" style="position: relative; display: inline-block;">
+          <img src="{{ img.image.url }}" alt="" style="width: 100px; height: 100px; object-fit: cover;">
+          <button type="button" onclick="removeExistingImage('{{ img.id }}')" style="position: absolute; top: 4px; right: 4px; background: rgba(232,34,26,0.85); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; line-height: 1;">&times;</button>
+          <input type="checkbox" name="remove_image_ids[]" id="remove-input-{{ img.id }}" value="{{ img.id }}" style="display: none;">
         </div>
         {% endfor %}
       </div>
@@ -333,7 +336,20 @@
       </div>
 
       <div id="variantsContainer" style="display:flex; flex-direction:column; gap:8px;">
-        {% if product.variants.all %}
+        {% if selected_variants %}
+          {% for variant in selected_variants %}
+          <div class="variant-row">
+            <select name="v_size[]" class="pf-select">
+              {% for s in all_sizes %}
+              <option value="{{ s.id }}" {% if variant.size_id|stringformat:"s" == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+              {% endfor %}
+            </select>
+            <input type="text" name="v_color[]" value="{{ variant.color }}" placeholder="e.g. Red" class="pf-input">
+            <input type="number" name="v_stock[]" value="{{ variant.stock }}" min="0" class="pf-input">
+            <button type="button" onclick="this.closest('.variant-row').remove()" class="variant-remove-btn">×</button>
+          </div>
+          {% endfor %}
+        {% elif product.variants.all %}
           {% for variant in product.variants.all %}
           <div class="variant-row">
             <select name="v_size[]" class="pf-select">
@@ -457,9 +473,20 @@
   // ── Cropper ──
   let cropper;
   let dt = new DataTransfer();
+  let removedExistingImagesCount = 0;
   const existingImagesCount =
     parseInt("{{ product.images.count|default:0 }}") +
-    ("{% if product.image %}1{% else %}0{% endif %}" === "1" ? 1 : 0);
+    ("{% if product.image and not product.image.name == '' %}1{% else %}0{% endif %}" === "1" ? 1 : 0);
+
+  function removeExistingImage(imageId) {
+    const container = document.getElementById('existing-img-' + imageId);
+    const input = document.getElementById('remove-input-' + imageId);
+    if (container && input) {
+      input.checked = true;
+      container.style.display = 'none';
+      removedExistingImagesCount++;
+    }
+  }
 
   const imageInput      = document.getElementById('imageInput');
   const cropModal       = document.getElementById('cropModal');
@@ -533,7 +560,7 @@
 
   // ── Validate minimum 3 images on submit ──
   document.getElementById('productForm').addEventListener('submit', (e) => {
-    const total = existingImagesCount + dt.files.length;
+    const total = (existingImagesCount - removedExistingImagesCount) + dt.files.length;
     if (total < 3) {
       e.preventDefault();
       const msg = document.createElement('div');

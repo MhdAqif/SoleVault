@@ -158,10 +158,10 @@
       margin-bottom: 8px !important;
     }
     .sidebar-nav {
-      flex-direction: row !important;
-      flex-wrap: wrap !important;
-      gap: 6px !important;
-      padding: 0 10px !important;
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 8px !important;
+      padding: 0 16px !important;
     }
     .sidebar-section-label,
     .sidebar-divider {
@@ -169,8 +169,14 @@
     }
     .sidebar-link {
       padding: 8px 12px !important;
-      flex-grow: 1 !important;
-      justify-content: center !important;
+      justify-content: flex-start !important;
+      border: 1px solid var(--border, #f0f0f0) !important;
+      border-radius: 8px !important;
+      background: var(--surface, #fff) !important;
+    }
+    .sidebar-link.active {
+      background: rgba(13,89,242,0.08) !important;
+      border-color: var(--blue, #0d59f2) !important;
     }
     .sidebar-link.disabled {
       display: none !important;

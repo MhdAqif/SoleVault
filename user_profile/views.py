@@ -7,18 +7,112 @@ from .models import Address
 import time
 from accounts.views import generate_otp, send_otp
 
+def validate_address_fields(full_name, phone, address, pincode, state, city, district):
+    errors = []
+    
+    if not full_name:
+        errors.append("Full name is required.")
+    else:
+        name_parts = full_name.split()
+        if len(name_parts) < 1:
+            errors.append("Full name cannot be empty.")
+        elif not all(part.replace('-', '').isalpha() for part in name_parts):
+            errors.append("Full name must contain only letters.")
+        elif len(full_name) < 3 or len(full_name) > 100:
+            errors.append("Full name must be between 3 and 100 characters.")
+            
+    if not phone:
+        errors.append("Phone number is required.")
+    else:
+        import re
+        if not re.match(r'^[6-9]\d{9}$', phone):
+            errors.append("Phone number must be a valid 10-digit number starting with 6-9.")
+            
+    if not address:
+        errors.append("Address is required.")
+    elif len(address) < 10 or len(address) > 300:
+        errors.append("Address must be between 10 and 300 characters.")
+        
+    if not pincode:
+        errors.append("Pincode is required.")
+    else:
+        import re
+        if not re.match(r'^\d{6}$', pincode):
+            errors.append("Pincode must be a valid 6-digit number.")
+            
+    if not city:
+        errors.append("City is required.")
+    elif not all(x.isalpha() or x.isspace() for x in city):
+        errors.append("City must contain only letters and spaces.")
+        
+    if not district:
+        errors.append("District is required.")
+    elif not all(x.isalpha() or x.isspace() for x in district):
+        errors.append("District must contain only letters and spaces.")
+        
+    if not state:
+        errors.append("State is required.")
+    elif not all(x.isalpha() or x.isspace() for x in state):
+        errors.append("State must contain only letters and spaces.")
+        
+    return errors
+
 @login_required
 def user_profile(request):
     user = request.user
 
     if request.method == "POST":
-        full_name = request.POST.get("full_name")
+        full_name = request.POST.get("full_name", "").strip()
         email = request.POST.get("email", "").strip()
-        phone = request.POST.get("phone")
+        phone = request.POST.get("phone", "").strip()
         photo = request.FILES.get("photo")
         remove_photo = request.POST.get("remove_photo")
 
-        # Save standard fields first immediately
+        errors = []
+        if not full_name:
+            errors.append("Full name is required.")
+        else:
+            name_parts = full_name.split()
+            if len(name_parts) < 1:
+                errors.append("Full name cannot be empty.")
+            elif not all(part.replace('-', '').isalpha() for part in name_parts):
+                errors.append("Full name must contain only letters.")
+            elif len(full_name) < 3 or len(full_name) > 100:
+                errors.append("Full name must be between 3 and 100 characters.")
+
+        if not phone:
+            errors.append("Phone number is required.")
+        else:
+            import re
+            if not re.match(r'^[6-9]\d{9}$', phone):
+                errors.append("Phone number must be a valid 10-digit number starting with 6-9.")
+
+        if photo:
+            if photo.size > 5 * 1024 * 1024:
+                errors.append("Avatar image file size must be less than 5MB.")
+            import os
+            ext = os.path.splitext(photo.name)[1].lower()
+            if ext not in ['.jpg', '.jpeg', '.png', '.webp']:
+                errors.append("Avatar must be a valid image file (.jpg, .jpeg, .png, .webp).")
+
+        # Check if email is changing
+        if email and email != user.email:
+            from accounts.models import CustomUser
+            if CustomUser.objects.exclude(id=user.id).filter(email=email).exists():
+                errors.append("This email is already in use by another account.")
+
+        if errors:
+            for err in errors:
+                messages.error(request, err)
+            # Temporarily update fields in memory for rendering context
+            if full_name:
+                name_parts = full_name.split()
+                user.first_name = name_parts[0]
+                user.last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else ""
+            user.phone_number = phone
+            return render(request, 'user_profile/profile.html', status=400)
+
+        # Save standard fields
         if full_name:
             name_parts = full_name.split()
             user.first_name = name_parts[0]
@@ -35,11 +129,6 @@ def user_profile(request):
 
         # Check if email is changing
         if email and email != user.email:
-            from accounts.models import CustomUser
-            if CustomUser.objects.exclude(id=user.id).filter(email=email).exists():
-                messages.error(request, "This email is already in use by another account.")
-                return render(request, 'user_profile/profile.html')
-
             # Generate OTP & Store in Session
             otp = generate_otp()
             request.session['new_email_pending'] = email
@@ -48,6 +137,7 @@ def user_profile(request):
 
             # Send OTP to new email address
             send_otp(email, otp)
+
             messages.success(request, f"Verification code sent to {email}. Please enter the OTP to confirm your email change.")
             return redirect('user_profile:verify_email_otp')
 
@@ -88,15 +178,40 @@ def manage_address(request):
 @login_required
 def add_address(request):
     if request.method == 'POST':
-        full_name = request.POST.get('full_name')
-        phone = request.POST.get('mobile_number') or request.POST.get('phone')
-        address = request.POST.get('address')
-        pincode = request.POST.get('pin_code') or request.POST.get('pincode')
-        if not full_name or not phone or not address:
-            messages.error(request, "Please fill all required fields")
-            return redirect('user_profile:add_address')
-
+        full_name = request.POST.get('full_name', '').strip()
+        phone = (request.POST.get('mobile_number') or request.POST.get('phone', '')).strip()
+        address_str = request.POST.get('address', '').strip()
+        pincode = (request.POST.get('pin_code') or request.POST.get('pincode', '')).strip()
+        district = request.POST.get('district', '').strip()
+        state = request.POST.get('state', '').strip()
+        city = request.POST.get('city', '').strip()
+        landmark = request.POST.get('landmark', '').strip()
         is_default = request.POST.get('is_default') == 'on'
+
+        errors = validate_address_fields(
+            full_name=full_name, phone=phone, address=address_str, 
+            pincode=pincode, state=state, city=city, district=district
+        )
+
+        if errors:
+            for err in errors:
+                messages.error(request, err)
+            # Reconstruct form dict to match what template expects: form.<field_name>.value
+            form_dict = {
+                'full_name': {'value': full_name},
+                'mobile_number': {'value': phone},
+                'address': {'value': address_str},
+                'district': {'value': district},
+                'state': {'value': state},
+                'city': {'value': city},
+                'pin_code': {'value': pincode},
+                'landmark': {'value': landmark},
+            }
+            return render(request, 'user_profile/add_address.html', {
+                'form': form_dict,
+                'next': request.POST.get('next') or request.GET.get('next')
+            }, status=400)
+
         # If this is the user's first address, force it to be default
         if not Address.objects.filter(user=request.user).exists():
             is_default = True
@@ -108,12 +223,12 @@ def add_address(request):
             user=request.user,
             full_name=full_name,
             phone=phone,
-            address=address,
-            district=request.POST.get('district'),
-            state=request.POST.get('state'),
-            city=request.POST.get('city'),
+            address=address_str,
+            district=district,
+            state=state,
+            city=city,
             pincode=pincode,
-            landmark=request.POST.get('landmark'),
+            landmark=landmark,
             is_default=is_default,
         )
 
@@ -132,18 +247,22 @@ from django.views.decorators.http import require_POST
 @require_POST
 def add_address_ajax(request):
     try:
-        full_name = request.POST.get('full_name')
-        phone = request.POST.get('phone') or request.POST.get('mobile_number')
-        address = request.POST.get('address')
-        city = request.POST.get('city')
-        district = request.POST.get('district')
-        state = request.POST.get('state')
-        pincode = request.POST.get('pincode') or request.POST.get('pin_code')
-        landmark = request.POST.get('landmark')
+        full_name = request.POST.get('full_name', '').strip()
+        phone = (request.POST.get('phone') or request.POST.get('mobile_number', '')).strip()
+        address = request.POST.get('address', '').strip()
+        city = request.POST.get('city', '').strip()
+        district = request.POST.get('district', '').strip()
+        state = request.POST.get('state', '').strip()
+        pincode = (request.POST.get('pincode') or request.POST.get('pin_code', '')).strip()
+        landmark = request.POST.get('landmark', '').strip()
         is_default = request.POST.get('is_default') == 'on' or request.POST.get('is_default') == 'true'
 
-        if not all([full_name, phone, address, city, district, state, pincode]):
-            return JsonResponse({'success': False, 'error': 'All required fields must be filled.'})
+        errors = validate_address_fields(
+            full_name=full_name, phone=phone, address=address, 
+            pincode=pincode, state=state, city=city, district=district
+        )
+        if errors:
+            return JsonResponse({'success': False, 'error': " | ".join(errors)}, status=400)
 
         if not Address.objects.filter(user=request.user).exists():
             is_default = True
@@ -180,25 +299,29 @@ def add_address_ajax(request):
             }
         })
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
 @login_required
 @require_POST
 def edit_address_ajax(request, pk):
     try:
         address_obj = get_object_or_404(Address, id=pk, user=request.user)
-        full_name = request.POST.get('full_name')
-        phone = request.POST.get('phone') or request.POST.get('mobile_number')
-        address = request.POST.get('address')
-        city = request.POST.get('city')
-        district = request.POST.get('district')
-        state = request.POST.get('state')
-        pincode = request.POST.get('pincode') or request.POST.get('pin_code')
-        landmark = request.POST.get('landmark')
+        full_name = request.POST.get('full_name', '').strip()
+        phone = (request.POST.get('phone') or request.POST.get('mobile_number', '')).strip()
+        address = request.POST.get('address', '').strip()
+        city = request.POST.get('city', '').strip()
+        district = request.POST.get('district', '').strip()
+        state = request.POST.get('state', '').strip()
+        pincode = (request.POST.get('pincode') or request.POST.get('pin_code', '')).strip()
+        landmark = request.POST.get('landmark', '').strip()
         is_default = request.POST.get('is_default') == 'on' or request.POST.get('is_default') == 'true'
 
-        if not all([full_name, phone, address, city, district, state, pincode]):
-            return JsonResponse({'success': False, 'error': 'All required fields must be filled.'})
+        errors = validate_address_fields(
+            full_name=full_name, phone=phone, address=address, 
+            pincode=pincode, state=state, city=city, district=district
+        )
+        if errors:
+            return JsonResponse({'success': False, 'error': " | ".join(errors)}, status=400)
 
         if not Address.objects.filter(user=request.user).exclude(id=pk).exists():
             is_default = True
@@ -233,14 +356,46 @@ def edit_address_ajax(request, pk):
             }
         })
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
 @login_required
 def edit_address(request, pk):
     address = get_object_or_404(Address, id=pk, user=request.user)
 
     if request.method == 'POST':
+        full_name = request.POST.get('full_name', '').strip()
+        phone = (request.POST.get('phone') or request.POST.get('mobile_number', '')).strip()
+        address_str = request.POST.get('address', '').strip()
+        district = request.POST.get('district', '').strip()
+        state = request.POST.get('state', '').strip()
+        city = request.POST.get('city', '').strip()
+        pincode = (request.POST.get('pincode') or request.POST.get('pin_code', '')).strip()
+        landmark = request.POST.get('landmark', '').strip()
         is_default = request.POST.get('is_default') == 'on'
+
+        errors = validate_address_fields(
+            full_name=full_name, phone=phone, address=address_str, 
+            pincode=pincode, state=state, city=city, district=district
+        )
+
+        if errors:
+            for err in errors:
+                messages.error(request, err)
+            # Reconstruct address in memory without saving to database
+            address.full_name = full_name
+            address.phone = phone
+            address.address = address_str
+            address.district = district
+            address.state = state
+            address.city = city
+            address.pincode = pincode
+            address.landmark = landmark
+            address.is_default = is_default
+            return render(request, 'user_profile/edit_address.html', {
+                'address': address,
+                'next': request.POST.get('next') or request.GET.get('next')
+            }, status=400)
+
         # If it is the only address, force it to remain default
         if not Address.objects.filter(user=request.user).exclude(id=pk).exists():
             is_default = True
@@ -248,14 +403,14 @@ def edit_address(request, pk):
         if is_default:
             Address.objects.filter(user=request.user).update(is_default=False)
 
-        address.full_name = request.POST.get('full_name')
-        address.phone = request.POST.get('phone') or request.POST.get('mobile_number')
-        address.address = request.POST.get('address')
-        address.district = request.POST.get('district')
-        address.state = request.POST.get('state')
-        address.city = request.POST.get('city')
-        address.pincode = request.POST.get('pincode') or request.POST.get('pin_code')
-        address.landmark = request.POST.get('landmark')
+        address.full_name = full_name
+        address.phone = phone
+        address.address = address_str
+        address.district = district
+        address.state = state
+        address.city = city
+        address.pincode = pincode
+        address.landmark = landmark
         address.is_default = is_default
         address.save()
 
@@ -265,9 +420,7 @@ def edit_address(request, pk):
             return redirect(next_url)
         return redirect('user_profile:manage_address')
 
-    return render(request, 'user_profile/edit_address.html', {
-        'address': address
-    })
+    return render(request, 'user_profile/edit_address.html', {'address': address})
 
 @login_required
 def delete_address(request, pk):

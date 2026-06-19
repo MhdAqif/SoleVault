@@ -221,7 +221,13 @@
       document.getElementById('globalConfirmMessage').textContent = message;
       const submitBtn = document.getElementById('globalConfirmSubmitBtn');
       submitBtn.textContent = actionText;
-      if (buttonColor) submitBtn.style.backgroundColor = buttonColor;
+      if (buttonColor) {
+        submitBtn.style.backgroundColor = buttonColor;
+        submitBtn.style.color = '#ffffff';
+      } else {
+        submitBtn.style.backgroundColor = '';
+        submitBtn.style.color = '';
+      }
       document.getElementById('globalConfirmModal').classList.add('show');
     }
     document.getElementById('globalConfirmCancelBtn').addEventListener('click', () => {

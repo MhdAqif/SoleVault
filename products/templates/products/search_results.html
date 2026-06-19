@@ -7,12 +7,15 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'products/css/shop.css' %}">
 <style>
+    .search-page {
+        padding: 20px;
+    }
     .search-header {
-        margin: 40px 0 20px;
-        padding: 0 40px;
+        margin: 20px 0 30px;
+        padding: 0 16px;
     }
     .search-title {
-        font-size: 24px;
+        font-size: 28px;
         font-weight: 800;
         color: var(--black);
     }
@@ -23,8 +26,16 @@
 {% endblock %}
 
 {% block content %}
+<div class="search-page">
 
-<div class="search-header">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb" style="margin-left: 16px;">
+    <a href="{% url 'core:home' %}">Home</a>
+    <span class="sep">›</span>
+    <span>Search</span>
+  </div>
+
+  <div class="search-header">
     <h1 class="search-title">
         {% if search_query %}
             Results for <span class="search-query">"{{ search_query }}"</span>
@@ -32,89 +43,202 @@
             Search Our Collection
         {% endif %}
     </h1>
-    <p style="color: var(--gray-600); margin-top: 8px;">
+    <p style="color: var(--gray-600); margin-top: 8px; font-size: 14px;">
         Showing {{ page_obj.paginator.count }} products
     </p>
-</div>
+  </div>
 
-<div class="search-results-wrap" style="padding: 0 40px 60px;">
-    <div class="products-area" style="width: 100%; border: none; margin-top: 20px;">
-        <div class="product-grid" style="grid-template-columns: repeat(4, 1fr);">
-            {% for product in page_obj %}
-            <div class="product-card">
-                {% if product.is_new %}<span class="badge badge-new">New</span>{% endif %}
-                {% if product.discount %}<span class="badge badge-sale">-{{ product.discount }}%</span>{% endif %}
-                
-                <form method="POST" action="{% url 'cart:wishlist_toggle' product.id %}" style="position: absolute; top: 9px; right: 9px; z-index: 3;">
-                    {% csrf_token %}
-                    {% if product|is_wishlisted_by:request.user %}
-                        <button type="submit" class="card-wish-btn active" style="color: var(--red); font-size: 15px;" title="Remove from Wishlist">♥</button>
-                    {% else %}
-                        <button type="submit" class="card-wish-btn" title="Add to Wishlist">&#9825;</button>
-                    {% endif %}
-                </form>
-                
-                <a href="{% url 'products:detail' product.slug %}">
-                    <div class="product-img-wrap">
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
-                    </div>
-                    <div class="product-info">
-                        <div class="product-name">{{ product.name }}</div>
-                        
-                        <!-- Variants Display -->
-                        <div class="product-variants-preview">
-                            {% regroup product.variants.all by color as color_list %}
-                            <div class="variant-colors">
-                                {% for color_group in color_list %}
-                                    <span class="variant-dot" title="{{ color_group.grouper }}" style="background: {{ color_group.grouper|color_hex }};"></span>
-                                {% endfor %}
-                            </div>
-                            <div class="variant-sizes">
-                                {% for v in product.variants.all|slice:":4" %}
-                                    <span class="variant-size">{{ v.size.name }}</span>
-                                {% endfor %}
-                                {% if product.variants.count > 4 %}<span class="variant-size">+</span>{% endif %}
-                            </div>
-                        </div>
+  <!-- Shop Layout -->
+  <div class="shop-layout" id="products">
 
-                        <div class="product-price-row">
-                            <span class="product-price">₹{{ product.price }}</span>
-                            {% if product.original_price %}
-                            <span class="product-price-old">₹{{ product.original_price }}</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                </a>
-            </div>
-            {% empty %}
-            <div style="grid-column: 1 / -1; text-align: center; padding: 100px 20px; background: #fff; border-radius: 12px; border: 1px solid var(--border);">
-                <div style="font-size: 48px; margin-bottom: 15px;">🔍</div>
-                <h3 style="margin-bottom: 10px; color: var(--gray-800);">No results found</h3>
-                <p style="color: var(--gray-500); max-width: 400px; margin: 0 auto 20px;">We couldn't find anything matching your search for "{{ search_query }}". Try checking your spelling or using more general terms.</p>
-                <a href="{% url 'products:men' %}" style="display: inline-block; background: var(--blue); color: white; padding: 10px 25px; border-radius: 6px; font-weight: 600; text-decoration: none;">Browse Collections</a>
-            </div>
-            {% endfor %}
+    <!-- Header -->
+    <div class="products-header">
+      <h3>Filtered Results</h3>
+      <select class="sort-select" onchange="window.location.href=this.value">
+        <option value="?{% query_transform sort=None %}">Sort: Featured</option>
+        <option value="?{% query_transform sort='price_asc' %}"  {% if request.GET.sort == 'price_asc'  %}selected{% endif %}>Price: Low to High</option>
+        <option value="?{% query_transform sort='price_desc' %}" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+        <option value="?{% query_transform sort='a_z' %}"        {% if request.GET.sort == 'a_z' %}selected{% endif %}>A-Z</option>
+        <option value="?{% query_transform sort='z_a' %}"        {% if request.GET.sort == 'z_a' %}selected{% endif %}>Z-A</option>
+        <option value="?{% query_transform sort='newest' %}"     {% if request.GET.sort == 'newest'     %}selected{% endif %}>Newest First</option>
+      </select>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+        <h3 style="margin:0; font-size:16px;">Filters</h3>
+        <a href="?q={{ search_query }}" style="font-size:11px; color:var(--red); font-weight:700; text-decoration:none; text-transform:uppercase;">Clear All &times;</a>
+      </div>
+
+      <div class="filter-group" style="padding-top:4px;">
+        <h4>Category</h4>
+        <div class="brand-list">
+          {% for cat in categories %}
+          <a href="?{% query_transform category=cat.slug page=1 %}"
+             class="{% if request.GET.category == cat.slug %}active{% endif %}">{{ cat.name }}</a>
+          {% endfor %}
         </div>
-
-        {% if page_obj.has_other_pages %}
-        <div class="pagination" style="margin-top: 40px;">
-            {% if page_obj.has_previous %}
-            <a href="?{% query_transform page=page_obj.previous_page_number %}" class="page-btn">&#8249;</a>
-            {% endif %}
-
-            {% for num in page_obj.paginator.page_range %}
-                {% if num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
-                <a href="?{% query_transform page=num %}"
-                   class="page-btn {% if num == page_obj.number %}active{% endif %}">{{ num }}</a>
-                {% endif %}
-            {% endfor %}
-
-            {% if page_obj.has_next %}
-            <a href="?{% query_transform page=page_obj.next_page_number %}" class="page-btn">&#8250;</a>
-            {% endif %}
+        {% if request.GET.category %}
+        <div style="margin-top:6px; text-align:right;">
+          <a href="?{% query_transform category=None page=1 %}" style="font-size:11px; color:var(--red); font-weight:600; text-decoration:none;">Clear Category &times;</a>
         </div>
         {% endif %}
-    </div>
-</div>
+      </div>
 
+      <div class="filter-group">
+        <h4>Price Range</h4>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; gap:10px;">
+            <input type="number" id="minPriceInput" value="{{ request.GET.min_price }}" placeholder="Min" style="width:100%; border:1px solid var(--border); border-radius:4px; font-size:12px; padding:6px; outline:none;">
+            <input type="number" id="maxPriceInput" value="{{ request.GET.max_price }}" placeholder="Max" style="width:100%; border:1px solid var(--border); border-radius:4px; font-size:12px; padding:6px; outline:none;">
+          </div>
+          <button type="button" onclick="applyPriceFilter()" style="background:var(--blue); color:white; border:none; border-radius:4px; padding:8px; font-size:11px; cursor:pointer; font-weight:700;">Apply Price</button>
+        </div>
+        {% if request.GET.min_price or request.GET.max_price %}
+        <div style="margin-top:6px; text-align:right;">
+          <a href="?{% query_transform min_price=None max_price=None page=1 %}" style="font-size:11px; color:var(--red); font-weight:600; text-decoration:none;">Clear Price &times;</a>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="filter-group">
+        <h4>Brand</h4>
+        <div class="brand-list">
+          {% for brand in brands %}
+          <a href="?{% query_transform brand=brand.slug page=1 %}"
+             class="{% if request.GET.brand == brand.slug %}active{% endif %}">{{ brand.name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <h4>Size</h4>
+        <div class="size-grid">
+          {% for size in sizes %}
+          <a href="?{% query_transform size=size.name page=1 %}"
+             class="size-chip {% if request.GET.size == size.name %}active{% endif %}">{{ size.name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <h4>Colors</h4>
+        <div class="color-list">
+          {% for color in colors %}
+          <a href="?{% query_transform color=color.slug page=1 %}" 
+             class="color-item {% if request.GET.color == color.slug %}active{% endif %}">
+            <span class="color-dot" style="background:{{ color.hex }};"></span>
+            {{ color.name }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Products Area -->
+    <div class="products-area">
+      <div class="product-grid">
+
+        {% for product in page_obj %}
+        <div class="product-card">
+          {% if product.is_new %}<span class="badge badge-new">New</span>{% endif %}
+          {% if product.discount %}<span class="badge badge-sale">-{{ product.discount }}%</span>{% endif %}
+          
+          <form method="POST" action="{% url 'cart:wishlist_toggle' product.id %}" style="position: absolute; top: 9px; right: 9px; z-index: 3;">
+            {% csrf_token %}
+            {% if product|is_wishlisted_by:request.user %}
+              <button type="submit" class="card-wish-btn active" style="color: var(--red); font-size: 15px;" title="Remove from Wishlist">♥</button>
+            {% else %}
+              <button type="submit" class="card-wish-btn" title="Add to Wishlist">&#9825;</button>
+            {% endif %}
+          </form>
+
+          <a href="{% url 'products:detail' product.slug %}">
+            <div class="product-img-wrap">
+              <img src="{{ product.image.url }}" alt="{{ product.name }}">
+            </div>
+            <div class="product-info">
+              <div class="product-name">{{ product.name }}</div>
+              
+              <!-- Variants Display -->
+              <div class="product-variants-preview">
+                  {% regroup product.variants.all by color as color_list %}
+                  <div class="variant-colors">
+                      {% for color_group in color_list %}
+                          <span class="variant-dot" title="{{ color_group.grouper }}" style="background: {{ color_group.grouper|color_hex }};"></span>
+                      {% endfor %}
+                  </div>
+                  <div class="variant-sizes">
+                      {% for v in product.variants.all|slice:":4" %}
+                          <span class="variant-size">{{ v.size.name }}</span>
+                      {% endfor %}
+                      {% if product.variants.count > 4 %}<span class="variant-size">+</span>{% endif %}
+                  </div>
+              </div>
+
+              <div class="product-price-row">
+                <span class="product-price">₹{{ product.price }}</span>
+                {% if product.original_price %}
+                <span class="product-price-old">₹{{ product.original_price }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </a>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 100px 20px; background: #fff; border-radius: 12px; border: 1px solid var(--border);">
+            <div style="font-size: 48px; margin-bottom: 15px;">🔍</div>
+            <h3 style="margin-bottom: 10px; color: var(--gray-800);">No results found</h3>
+            <p style="color: var(--gray-500); max-width: 400px; margin: 0 auto 20px;">We couldn't find anything matching your search for "{{ search_query }}". Try checking your spelling or using more general terms.</p>
+            <a href="{% url 'products:men' %}" style="display: inline-block; background: var(--blue); color: white; padding: 10px 25px; border-radius: 6px; font-weight: 600; text-decoration: none;">Browse Collections</a>
+        </div>
+        {% endfor %}
+
+      </div>
+
+      <!-- Pagination -->
+      {% if page_obj.has_other_pages %}
+      <div class="pagination" style="margin-top: 40px;">
+        {% if page_obj.has_previous %}
+        <a href="?{% query_transform page=page_obj.previous_page_number %}" class="page-btn">&#8249;</a>
+        {% else %}
+        <span class="page-btn" style="opacity:0.35;pointer-events:none;">&#8249;</span>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+          {% if num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+          <a href="?{% query_transform page=num %}"
+             class="page-btn {% if num == page_obj.number %}active{% endif %}">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a href="?{% query_transform page=page_obj.next_page_number %}" class="page-btn">&#8250;</a>
+        {% else %}
+        <span class="page-btn" style="opacity:0.35;pointer-events:none;">&#8250;</span>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function applyPriceFilter() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const minPrice = document.getElementById('minPriceInput').value;
+  const maxPrice = document.getElementById('maxPriceInput').value;
+  if(minPrice) urlParams.set('min_price', minPrice); else urlParams.delete('min_price');
+  if(maxPrice) urlParams.set('max_price', maxPrice); else urlParams.delete('max_price');
+  urlParams.delete('page');
+  window.location.search = urlParams.toString();
+}
+</script>
 {% endblock %}

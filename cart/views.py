@@ -37,13 +37,23 @@ def cart_add(request, product_id):
         quantity = int(request.POST.get('quantity', 1))
         size_name = request.POST.get('size', '').strip()
         color_name = request.POST.get('color', '').strip()
-
+        
         # Try to find variant if size and color are matching
         variant = None
         if size_name and color_name:
             variant = product.variants.filter(size__name=size_name, color__iexact=color_name).first()
         if not variant and size_name:
             variant = product.variants.filter(size__name=size_name).first()
+
+        # Fallback if no variant found but product has variants (e.g. from wishlist or default action)
+        if not variant and product.variants.exists():
+            variant = product.variants.filter(stock__gt=0).first()
+            if not variant:
+                variant = product.variants.first()
+
+        # Ensure size_name is populated from the variant if empty
+        if variant and not size_name:
+            size_name = variant.size.name if variant.size else ""
 
         max_limit = 5
         
