@@ -41,6 +41,7 @@
       <input type="hidden" name="remove_photo" id="removePhotoInput" value="0">
 
       <h4 style="font-size: 20px; font-weight: 700; margin: 12px 0 0 0; color: var(--text);">{{ user.get_full_name }}</h4>
+      <a href="{% url 'user_profile:profile_edit' %}" style="color: var(--blue); font-size: 13px; font-weight: 600; text-decoration: none; margin-top: 6px; display: inline-block;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Edit Profile</a>
       
       <!-- Small Remove Photo Option if User currently has one -->
       {% if user.profile_image %}

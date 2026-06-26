@@ -40,6 +40,7 @@ urlpatterns = [
     # Coupons
     path('coupons/', views.coupon_list_admin, name='coupon_list'),
     path('coupons/add/', views.coupon_add_admin, name='coupon_add'),
+    path('coupons/<int:coupon_id>/edit/', views.coupon_edit_admin, name='coupon_edit'),
     path('coupons/<int:coupon_id>/delete/', views.coupon_delete_admin, name='coupon_delete'),
 
     # Offers

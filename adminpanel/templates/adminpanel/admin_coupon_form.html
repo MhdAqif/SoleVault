@@ -1,15 +1,15 @@
 {% extends 'adminpanel/admin_base.html' %}
 {% load static %}
 
-{% block title %}Create Coupon – SoleVault Admin{% endblock %}
+{% block title %}{% if coupon %}Edit Coupon – {{ coupon.code }}{% else %}Create Coupon{% endif %} – SoleVault Admin{% endblock %}
 {% block nav_coupons %}active{% endblock %}
-{% block topbar_title %}Create Coupon{% endblock %}
-{% block topbar_breadcrumb %}Marketing / Coupons / Create{% endblock %}
+{% block topbar_title %}{% if coupon %}Edit Coupon{% else %}Create Coupon{% endif %}{% endblock %}
+{% block topbar_breadcrumb %}Marketing / Coupons / {% if coupon %}Edit{% else %}Create{% endif %}{% endblock %}
 
 {% block content %}
 <div style="max-width: 600px; margin: 0 auto; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid var(--border); padding-bottom: 15px;">
-    <h3 style="font-size: 18px; font-weight: 700; color: var(--text); margin: 0;">New Promotional Coupon</h3>
+    <h3 style="font-size: 18px; font-weight: 700; color: var(--text); margin: 0;">{% if coupon %}Edit Coupon: {{ coupon.code }}{% else %}New Promotional Coupon{% endif %}</h3>
     <a href="{% url 'adminpanel:coupon_list' %}" style="font-size: 13.5px; color: var(--text-muted); text-decoration: none;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">← Back to List</a>
   </div>
 
@@ -18,54 +18,54 @@
 
     <div style="margin-bottom: 20px;">
       <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px;">Coupon Code</label>
-      <input type="text" name="code" required placeholder="e.g. SUMMER50" style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; outline: none; text-transform: uppercase;">
+      <input type="text" name="code" required value="{{ data.code }}" placeholder="e.g. SUMMER50" style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; outline: none; text-transform: uppercase;">
     </div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
       <div>
         <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px;">Discount Type</label>
         <select name="discount_type" style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; outline: none;">
-          <option value="percentage">Percentage (%)</option>
-          <option value="fixed">Fixed Amount (₹)</option>
+          <option value="percentage" {% if data.discount_type == 'percentage' %}selected{% endif %}>Percentage (%)</option>
+          <option value="fixed" {% if data.discount_type == 'fixed' %}selected{% endif %}>Fixed Amount (₹)</option>
         </select>
       </div>
       <div>
         <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px;">Discount Value</label>
-        <input type="number" step="0.01" name="discount_value" required min="0.01" placeholder="e.g. 15 or 500" style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; outline: none;">
+        <input type="number" step="0.01" name="discount_value" required min="0.01" value="{{ data.discount_value }}" placeholder="e.g. 15 or 500" style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; outline: none;">
       </div>
     </div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
       <div>
         <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px;">Minimum Spend (₹)</label>
-        <input type="number" step="0.01" name="min_spend" required value="0.00" style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; outline: none;">
+        <input type="number" step="0.01" name="min_spend" required value="{{ data.min_spend }}" style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; outline: none;">
       </div>
       <div>
         <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px;">Max Discount (₹ - Optional)</label>
-        <input type="number" step="0.01" name="max_discount" placeholder="e.g. 1000" style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; outline: none;">
+        <input type="number" step="0.01" name="max_discount" value="{{ data.max_discount }}" placeholder="e.g. 1000" style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; outline: none;">
       </div>
     </div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
       <div>
         <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px;">Valid From</label>
-        <input type="datetime-local" name="valid_from" required style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; outline: none;">
+        <input type="datetime-local" name="valid_from" required value="{{ data.valid_from }}" style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; outline: none;">
       </div>
       <div>
         <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px;">Valid To</label>
-        <input type="datetime-local" name="valid_to" required style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; outline: none;">
+        <input type="datetime-local" name="valid_to" required value="{{ data.valid_to }}" style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; outline: none;">
       </div>
     </div>
 
     <div style="margin-bottom: 30px;">
       <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px;">Active Status</label>
       <select name="active" style="width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; outline: none;">
-        <option value="true">Active & Applyable</option>
-        <option value="false">Disabled / Suspended</option>
+        <option value="true" {% if data.active == 'true' %}selected{% endif %}>Active & Applyable</option>
+        <option value="false" {% if data.active == 'false' %}selected{% endif %}>Disabled / Suspended</option>
       </select>
     </div>
 
-    <button type="submit" style="width: 100%; padding: 12.5px; background-color: var(--blue); color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 14.5px; cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--blue-dark)'" onmouseout="this.style.backgroundColor='var(--blue)'">Create Coupon</button>
+    <button type="submit" style="width: 100%; padding: 12.5px; background-color: var(--blue); color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 14.5px; cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--blue-dark)'" onmouseout="this.style.backgroundColor='var(--blue)'">{% if coupon %}Update Coupon{% else %}Create Coupon{% endif %}</button>
   </form>
 </div>
 {% endblock %}

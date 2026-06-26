@@ -138,3 +138,36 @@ class AddressAjaxTests(TestCase):
             }
         )
         self.assertRedirects(response, '/orders/checkout/', fetch_redirect_response=False)
+
+
+class ChangePasswordTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser@example.com',
+            email='testuser@example.com',
+            password='testpassword'
+        )
+        self.client.login(username='testuser@example.com', password='testpassword')
+
+    def test_registered_user_change_password_view(self):
+        response = self.client.get(reverse('user_profile:change_password'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Update Password')
+        self.assertNotContains(response, "You're signed in with Google")
+
+    def test_google_sso_user_change_password_view(self):
+        from allauth.socialaccount.models import SocialAccount
+        SocialAccount.objects.create(
+            user=self.user,
+            provider='google',
+            uid='123456789'
+        )
+        response = self.client.get(reverse('user_profile:change_password'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "You're signed in with Google")
+        self.assertNotContains(response, 'Update Password')
+
+        # Try to POST
+        response = self.client.post(reverse('user_profile:change_password'), {'password': 'newpassword'})
+        self.assertEqual(response.status_code, 302) # Redirects
+

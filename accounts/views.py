@@ -10,6 +10,9 @@ import time
 from django.template.loader import render_to_string
 
 
+# OTP Configuration Constants
+OTP_EXPIRY_SECONDS = 300
+
 def generate_otp():
     return str(random.randint(100000, 999999))
 
@@ -183,7 +186,7 @@ def verify_otp(request):
         otp_time = request.session.get('otp_time')
 
         # OTP expiry (5 min)
-        if not otp_time or time.time() - otp_time > 300:
+        if not otp_time or time.time() - otp_time > OTP_EXPIRY_SECONDS:
             messages.error(request, "OTP has expired. Please click 'Resend OTP' to receive a new one.")
             return render(request, 'accounts/verify_otp.html', status=400)
 

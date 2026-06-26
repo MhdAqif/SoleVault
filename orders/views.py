@@ -20,6 +20,133 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 import io
 
+def _calculate_checkout_totals(cart, cart_items, coupon_code):
+    subtotal = cart.total_price
+    
+    # Calculate product-level informational discounts if products have original prices
+    total_discount = 0.00
+    for item in cart_items:
+        if item.product.original_price and item.product.original_price > item.product.price:
+            savings = (item.product.original_price - item.product.price) * item.quantity
+            total_discount += float(savings)
+
+    coupon = None
+    coupon_discount = 0.00
+    if coupon_code:
+        try:
+            from orders.models import Coupon
+            coupon = Coupon.objects.get(code=coupon_code)
+            import decimal
+            decimal_subtotal = decimal.Decimal(str(subtotal))
+            valid, _ = coupon.is_valid(decimal_subtotal)
+            if valid:
+                coupon_discount = float(coupon.calculate_discount(decimal_subtotal, cart_items=cart_items))
+            else:
+                coupon_code = None
+                coupon = None
+        except Coupon.DoesNotExist:
+            coupon_code = None
+            coupon = None
+
+    # GST Included representation (18% GST on the discounted total)
+    discounted_subtotal = float(subtotal) - coupon_discount
+    tax = discounted_subtotal * 0.18 / 1.18
+
+    # Flat shipping fee: free above 3000, else 99
+    shipping_fee = 0.00 if discounted_subtotal >= 3000 else 99.00
+    final_price = discounted_subtotal + shipping_fee
+
+    return {
+        'subtotal': subtotal,
+        'total_discount': total_discount,
+        'coupon': coupon,
+        'coupon_code': coupon_code,
+        'coupon_discount': coupon_discount,
+        'tax': tax,
+        'shipping_fee': shipping_fee,
+        'final_price': final_price
+    }
+
+
+def _validate_stock(cart_items):
+    for item in cart_items:
+        if item.variant:
+            if item.quantity > item.variant.stock:
+                raise ValueError(f"Insufficient stock for {item.product.name} ({item.variant.size.name}/{item.variant.color}). Only {item.variant.stock} units available.")
+        else:
+            raise ValueError(f"Product variant not found for {item.product.name}.")
+
+
+def _create_order(user, address, totals, payment_method):
+    return Order.objects.create(
+        user=user,
+        full_name=address.full_name,
+        phone=address.phone,
+        address=address.address,
+        district=address.district,
+        state=address.state,
+        city=address.city,
+        pincode=address.pincode,
+        landmark=address.landmark,
+        payment_method=payment_method,
+        payment_status='pending',
+        status='pending',
+        subtotal=totals['subtotal'],
+        discount=totals['coupon_discount'],
+        tax=totals['tax'],
+        shipping_fee=totals['shipping_fee'],
+        final_price=totals['final_price']
+    )
+
+
+def _create_order_items_and_deduct_stock(order, cart_items):
+    for item in cart_items:
+        size_val = item.variant.size.name if item.variant and item.variant.size else item.size
+        color_val = item.variant.color if item.variant else ''
+        
+        OrderItem.objects.create(
+            order=order,
+            product=item.product,
+            variant=item.variant,
+            product_name=item.product.name,
+            size=size_val,
+            color=color_val,
+            quantity=item.quantity,
+            price=item.product.offer_price,
+            item_total=item.total_price
+        )
+
+        if item.variant:
+            item.variant.stock -= item.quantity
+            item.variant.save()
+
+
+def _process_wallet_payment(user, order, final_price):
+    from user_profile.models import Wallet, WalletTransaction
+    import decimal
+    wallet_obj, _ = Wallet.objects.get_or_create(user=user)
+    decimal_final = decimal.Decimal(str(final_price))
+    wallet_decimal = decimal.Decimal(str(wallet_obj.balance))
+    
+    if wallet_decimal < decimal_final:
+        raise ValueError(f"Insufficient wallet balance. You need ₹{decimal_final} but only have ₹{wallet_decimal}.")
+    
+    wallet_obj.balance = wallet_decimal - decimal_final
+    wallet_obj.save()
+    
+    WalletTransaction.objects.create(
+        wallet=wallet_obj,
+        transaction_type='debit',
+        amount=decimal_final,
+        description=f"Payment for Order {order.order_id}",
+        order=order
+    )
+    
+    order.payment_status = 'paid'
+    order.status = 'processing'
+    order.save()
+
+
 @login_required(login_url='/login/')
 @never_cache
 def checkout_page(request):
@@ -40,44 +167,11 @@ def checkout_page(request):
         default_address = addresses.first()
 
     # Checkout Math
-    subtotal = cart.total_price
-    
-    # Calculate product-level informational discounts if products have original prices
-    total_discount = 0.00
-    for item in cart_items:
-        if item.product.original_price and item.product.original_price > item.product.price:
-            savings = (item.product.original_price - item.product.price) * item.quantity
-            total_discount += float(savings)
-
-    #  Coupon Management integration
     coupon_code = request.session.get('coupon_code')
-    coupon = None
-    coupon_discount = 0.00
-    if coupon_code:
-        try:
-            coupon = Coupon.objects.get(code=coupon_code)
-            import decimal
-            decimal_subtotal = decimal.Decimal(str(subtotal))
-            valid, _ = coupon.is_valid(decimal_subtotal)
-            if valid:
-                coupon_discount = float(coupon.calculate_discount(decimal_subtotal, cart_items=cart_items))
-            else:
-                # Remove invalid coupon if conditions are no longer met
-                request.session.pop('coupon_code', None)
-                coupon_code = None
-                coupon = None
-        except Coupon.DoesNotExist:
-            request.session.pop('coupon_code', None)
-            coupon_code = None
-            coupon = None
-
-    # GST Included representation (18% GST on the discounted total)
-    discounted_subtotal = float(subtotal) - coupon_discount
-    tax = discounted_subtotal * 0.18 / 1.18
-
-    # Flat shipping fee: free above 3000, else 99
-    shipping_fee = 0.00 if discounted_subtotal >= 3000 else 99.00
-    final_price = discounted_subtotal + shipping_fee
+    totals = _calculate_checkout_totals(cart, cart_items, coupon_code)
+    
+    if totals['coupon_code'] is None and coupon_code is not None:
+        request.session.pop('coupon_code', None)
 
     from user_profile.models import Wallet
     wallet, _ = Wallet.objects.get_or_create(user=request.user)
@@ -95,97 +189,32 @@ def checkout_page(request):
 
         selected_address = get_object_or_404(Address, id=address_id, user=request.user)
 
-        # Transaction safety for stock checking and deduction
         try:
             with transaction.atomic():
                 # Re-fetch items inside atomic block for safety
                 items_to_check = cart.items.all()
-                for item in items_to_check:
-                    if item.variant:
-                        if item.quantity > item.variant.stock:
-                            raise ValueError(f"Insufficient stock for {item.product.name} ({item.variant.size.name}/{item.variant.color}). Only {item.variant.stock} units available.")
-                    else:
-                        raise ValueError(f"Product variant not found for {item.product.name}.")
+                _validate_stock(items_to_check)
 
-                # If stock check passes, create Order
-                order = Order.objects.create(
-                    user=request.user,
-                    full_name=selected_address.full_name,
-                    phone=selected_address.phone,
-                    address=selected_address.address,
-                    district=selected_address.district,
-                    state=selected_address.state,
-                    city=selected_address.city,
-                    pincode=selected_address.pincode,
-                    landmark=selected_address.landmark,
-                    payment_method=payment_method,
-                    payment_status='pending',
-                    status='pending',
-                    subtotal=subtotal,
-                    discount=coupon_discount,
-                    tax=tax,
-                    shipping_fee=shipping_fee,
-                    final_price=final_price
-                )
+                # Create Order
+                order = _create_order(request.user, selected_address, totals, payment_method)
 
                 # Create OrderItems and decrement stock
-                for item in items_to_check:
-                    # Snapshot size and color
-                    size_val = item.variant.size.name if item.variant and item.variant.size else item.size
-                    color_val = item.variant.color if item.variant else ''
-                    
-                    OrderItem.objects.create(
-                        order=order,
-                        product=item.product,
-                        variant=item.variant,
-                        product_name=item.product.name,
-                        size=size_val,
-                        color=color_val,
-                        quantity=item.quantity,
-                        price=item.product.offer_price,
-                        item_total=item.total_price
-                    )
-
-                    # Deduct stock
-                    if item.variant:
-                        item.variant.stock -= item.quantity
-                        item.variant.save()
+                _create_order_items_and_deduct_stock(order, items_to_check)
 
                 if payment_method == 'Wallet':
-                    from user_profile.models import Wallet, WalletTransaction
-                    import decimal
-                    wallet_obj, created = Wallet.objects.get_or_create(user=request.user)
-                    decimal_final = decimal.Decimal(str(final_price))
-                    wallet_decimal = decimal.Decimal(str(wallet_obj.balance))
-                    if wallet_decimal < decimal_final:
-                        raise ValueError(f"Insufficient wallet balance. You need ₹{decimal_final} but only have ₹{wallet_decimal}.")
-                    
-                    wallet_obj.balance = wallet_decimal - decimal_final
-                    wallet_obj.save()
-                    
-                    WalletTransaction.objects.create(
-                        wallet=wallet_obj,
-                        transaction_type='debit',
-                        amount=decimal_final,
-                        description=f"Payment for Order {order.order_id}",
-                        order=order
-                    )
-                    
-                    order.payment_status = 'paid'
-                    order.status = 'processing'
-                    order.save()
+                    _process_wallet_payment(request.user, order, totals['final_price'])
 
                 # Clear user's cart items
                 cart.items.all().delete()
                 
-                # Clear coupon code session since order is placed successfully
+                # Clear coupon code session
                 request.session.pop('coupon_code', None)
                 
                 if payment_method == 'Razorpay':
                     messages.success(request, "Order created! Proceeding to secure payment.")
                     return redirect('orders:payment_page', order_id=order.order_id)
                 elif payment_method == 'Wallet':
-                    messages.success(request, f"Successfully paid ₹{final_price} using your Wallet! Order placed successfully.")
+                    messages.success(request, f"Successfully paid ₹{totals['final_price']} using your Wallet! Order placed successfully.")
                     return redirect('orders:success', order_id=order.order_id)
                 else:
                     messages.success(request, "Order placed successfully!")
@@ -202,13 +231,13 @@ def checkout_page(request):
         'cart_items': cart_items,
         'addresses': addresses,
         'default_address': default_address,
-        'subtotal': subtotal,
-        'total_discount': total_discount,
-        'coupon': coupon,
-        'coupon_discount': coupon_discount,
-        'tax': tax,
-        'shipping_fee': shipping_fee,
-        'final_price': final_price,
+        'subtotal': totals['subtotal'],
+        'total_discount': totals['total_discount'],
+        'coupon': totals['coupon'],
+        'coupon_discount': totals['coupon_discount'],
+        'tax': totals['tax'],
+        'shipping_fee': totals['shipping_fee'],
+        'final_price': totals['final_price'],
         'wallet_balance': wallet_balance,
     }
     return render(request, 'orders/checkout.html', context)

@@ -148,24 +148,110 @@ def user_profile(request):
 
 @login_required
 def change_password(request):
-    if request.method == 'POST':
-        form = PasswordChangeForm(request.user, request.POST)
-        if form.is_valid():
-            user = form.save()
-            update_session_auth_hash(request, user)  # Important!
-            messages.success(request, 'Your password was successfully updated!')
+    is_google_user = request.user.socialaccount_set.filter(provider='google').exists()
+    if is_google_user:
+        if request.method == 'POST':
+            messages.error(request, "Google accounts cannot change password here.")
             return redirect('user_profile:profile')
-        else:
-            messages.error(request, 'Please correct the error below.')
+        form = None
     else:
-        form = PasswordChangeForm(request.user)
+        if request.method == 'POST':
+            form = PasswordChangeForm(request.user, request.POST)
+            if form.is_valid():
+                user = form.save()
+                update_session_auth_hash(request, user)  # Important!
+                messages.success(request, 'Your password was successfully updated!')
+                return redirect('user_profile:profile')
+            else:
+                messages.error(request, 'Please correct the error below.')
+        else:
+            form = PasswordChangeForm(request.user)
+            
     return render(request, 'user_profile/change_password.html', {
-        'form': form
+        'form': form,
+        'is_google_user': is_google_user
     })
 
 @login_required
 def profile_edit(request):
-    return redirect('user_profile:profile')
+    user = request.user
+
+    if request.method == "POST":
+        full_name = request.POST.get("full_name", "").strip()
+        email = request.POST.get("email", "").strip()
+        phone = request.POST.get("phone", "").strip()
+        photo = request.FILES.get("photo")
+        remove_photo = request.POST.get("remove_photo")
+
+        errors = []
+        if not full_name:
+            errors.append("Full name is required.")
+        else:
+            name_parts = full_name.split()
+            if len(name_parts) < 1:
+                errors.append("Full name cannot be empty.")
+            elif not all(part.replace('-', '').isalpha() for part in name_parts):
+                errors.append("Full name must contain only letters.")
+            elif len(full_name) < 3 or len(full_name) > 100:
+                errors.append("Full name must be between 3 and 100 characters.")
+
+        if not phone:
+            errors.append("Phone number is required.")
+        else:
+            import re
+            if not re.match(r'^[6-9]\d{9}$', phone):
+                errors.append("Phone number must be a valid 10-digit number starting with 6-9.")
+
+        if photo:
+            if photo.size > 5 * 1024 * 1024:
+                errors.append("Avatar image file size must be less than 5MB.")
+            import os
+            ext = os.path.splitext(photo.name)[1].lower()
+            if ext not in ['.jpg', '.jpeg', '.png', '.webp']:
+                errors.append("Avatar must be a valid image file (.jpg, .jpeg, .png, .webp).")
+
+        # Check if email is changing
+        if email and email != user.email:
+            from accounts.models import CustomUser
+            if CustomUser.objects.exclude(id=user.id).filter(email=email).exists():
+                errors.append("This email is already in use by another account.")
+
+        if errors:
+            for err in errors:
+                messages.error(request, err)
+            return render(request, 'user_profile/profile_edit.html', status=400)
+
+        # Save standard fields
+        if full_name:
+            name_parts = full_name.split()
+            user.first_name = name_parts[0]
+            user.last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else ""
+
+        user.phone_number = phone
+
+        if remove_photo == "1":
+            user.profile_image = None
+        if photo:
+            user.profile_image = photo
+
+        user.save()
+
+        # Check if email is changing
+        if email and email != user.email:
+            otp = generate_otp()
+            request.session['new_email_pending'] = email
+            request.session['email_change_otp'] = otp
+            request.session['email_change_otp_time'] = time.time()
+
+            send_otp(email, otp)
+
+            messages.success(request, f"Verification code sent to {email}. Please enter the OTP to confirm your email change.")
+            return redirect('user_profile:verify_email_otp')
+
+        messages.success(request, "Profile updated successfully.")
+        return redirect('user_profile:profile')
+
+    return render(request, 'user_profile/profile_edit.html')
 
 @login_required
 def manage_address(request):

@@ -17,7 +17,7 @@
   </a>
 </div>
 
-<div style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+<div class="table-card">
   <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px; color: var(--text);">
     <thead>
       <tr style="background: rgba(0, 0, 0, 0.02); border-bottom: 1px solid var(--border); font-weight: 600; color: var(--text-muted);">
@@ -32,8 +32,8 @@
       </tr>
     </thead>
     <tbody>
-      {% for coupon in coupons %}
-      <tr style="border-bottom: 1px solid var(--border); transition: background-color 0.15s;" onmouseover="this.style.backgroundColor='rgba(0,0,0,0.01)'" onmouseout="this.style.backgroundColor='transparent'">
+      {% for coupon in page_obj %}
+      <tr style="border-bottom: 1px solid var(--border-subtle); transition: background-color 0.15s;">
         <td style="padding: 16px 20px; font-weight: 700; color: var(--blue);">
           🎟️ {{ coupon.code }}
         </td>
@@ -54,12 +54,15 @@
         </td>
         <td style="padding: 16px 20px;">
           {% if coupon.active %}
-            <span style="display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 9999px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 11px; font-weight: 700;">Active</span>
+            <span class="badge badge-active">Active</span>
           {% else %}
-            <span style="display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 9999px; background: rgba(239, 68, 68, 0.15); color: #ef4444; font-size: 11px; font-weight: 700;">Disabled</span>
+            <span class="badge badge-blocked">Disabled</span>
           {% endif %}
         </td>
-        <td style="padding: 16px 20px; text-align: right;">
+        <td style="padding: 16px 20px; text-align: right; white-space: nowrap;">
+          <a href="{% url 'adminpanel:coupon_edit' coupon.id %}" style="color: var(--blue); font-weight: 600; text-decoration: none; margin-right: 15px; font-size: 13px;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+            Edit
+          </a>
           <form method="POST" action="{% url 'adminpanel:coupon_delete' coupon.id %}" style="display: inline;" onsubmit="event.preventDefault(); showCustomConfirm('Are you sure you want to permanently delete this coupon?', this, 'Delete', '#ef4444');">
             {% csrf_token %}
             <button type="submit" style="background: none; border: none; padding: 0; color: #ef4444; font-weight: 600; cursor: pointer; font-size: 13px;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
@@ -77,5 +80,28 @@
       {% endfor %}
     </tbody>
   </table>
+  
+  {% if page_obj.has_other_pages %}
+  <div class="pagination-row">
+    <div class="pagination-info">
+      Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} coupons
+    </div>
+    <div class="pagination-links">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="page-btn">Previous</a>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <span class="page-btn active">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <a href="?page={{ num }}" class="page-btn">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="page-btn">Next</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

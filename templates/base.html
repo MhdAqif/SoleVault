@@ -638,9 +638,9 @@
   <div class="toast-container" id="toastContainer" style="position: fixed; top: 100px; right: 20px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;">
     {% if messages %}
       {% for msg in messages %}
-      <div class="toast-msg {{ msg.tags }}" style="background: #ffffff; border-left: 4px solid {% if msg.tags == 'error' %}#e8221a{% elif msg.tags == 'success' %}#22c55e{% elif msg.tags == 'warning' %}#f59e0b{% else %}#0D59F2{% endif %}; padding: 14px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); font-weight: 600; font-size: 13px; color: var(--black); min-width: 280px; display: flex; justify-content: space-between; align-items: center; pointer-events: auto; animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+      <div class="toast-msg {{ msg.tags }}" style="background: {% if msg.tags == 'error' or msg.tags == 'danger' %}#fdf2f2{% elif msg.tags == 'success' %}#f0fdf4{% elif msg.tags == 'warning' %}#fffbeb{% else %}#f0f9ff{% endif %}; border-left: 4px solid {% if msg.tags == 'error' or msg.tags == 'danger' %}#ef4444{% elif msg.tags == 'success' %}#22c55e{% elif msg.tags == 'warning' %}#f59e0b{% else %}#0D59F2{% endif %}; padding: 14px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); font-weight: 600; font-size: 13.5px; color: {% if msg.tags == 'error' or msg.tags == 'danger' %}#9b1c1c{% elif msg.tags == 'success' %}#15803d{% elif msg.tags == 'warning' %}#92400e{% else %}#075985{% endif %}; min-width: 280px; display: flex; justify-content: space-between; align-items: center; pointer-events: auto; animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
         <span>{{ msg }}</span>
-        <button onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 18px; font-weight: 700; cursor: pointer; color: var(--gray-400); margin-left: 15px; display: flex; align-items: center; justify-content: center;">&times;</button>
+        <button onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 18px; font-weight: 700; cursor: pointer; color: inherit; opacity: 0.7; margin-left: 15px; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">&times;</button>
       </div>
       {% endfor %}
     {% endif %}
@@ -656,12 +656,13 @@
       document.querySelectorAll('.toast-msg').forEach(el => {
         if (!el.dataset.initialized) {
           el.dataset.initialized = "true";
+          const duration = (el.classList.contains('error') || el.classList.contains('danger')) ? 8000 : 5000;
           setTimeout(() => {
             el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
             el.style.opacity = '0';
             el.style.transform = 'translateX(40px)';
             setTimeout(() => el.remove(), 400);
-          }, 4000);
+          }, duration);
         }
       });
     }
@@ -675,18 +676,31 @@
       toast.className = `toast-msg ${tags}`;
       
       let borderColor = '#0D59F2';
-      if (tags === 'error' || tags === 'danger') borderColor = '#e8221a';
-      else if (tags === 'success') borderColor = '#22c55e';
-      else if (tags === 'warning') borderColor = '#f59e0b';
+      let bgColor = '#f0f9ff';
+      let textColor = '#075985';
       
-      toast.style.background = '#ffffff';
+      if (tags === 'error' || tags === 'danger') {
+        borderColor = '#ef4444';
+        bgColor = '#fdf2f2';
+        textColor = '#9b1c1c';
+      } else if (tags === 'success') {
+        borderColor = '#22c55e';
+        bgColor = '#f0fdf4';
+        textColor = '#15803d';
+      } else if (tags === 'warning') {
+        borderColor = '#f59e0b';
+        bgColor = '#fffbeb';
+        textColor = '#92400e';
+      }
+      
+      toast.style.background = bgColor;
       toast.style.borderLeft = `4px solid ${borderColor}`;
       toast.style.padding = '14px 20px';
       toast.style.borderRadius = '8px';
       toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.12)';
       toast.style.fontWeight = '600';
-      toast.style.fontSize = '13px';
-      toast.style.color = 'var(--black)';
+      toast.style.fontSize = '13.5px';
+      toast.style.color = textColor;
       toast.style.minWidth = '280px';
       toast.style.display = 'flex';
       toast.style.justifyContent = 'space-between';
@@ -696,17 +710,18 @@
       
       toast.innerHTML = `
         <span>${message}</span>
-        <button onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 18px; font-weight: 700; cursor: pointer; color: var(--gray-400); margin-left: 15px; display: flex; align-items: center; justify-content: center;">&times;</button>
+        <button onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 18px; font-weight: 700; cursor: pointer; color: inherit; opacity: 0.7; margin-left: 15px; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">&times;</button>
       `;
       
       container.appendChild(toast);
       
+      const duration = (tags === 'error' || tags === 'danger') ? 8000 : 5000;
       setTimeout(() => {
         toast.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
         toast.style.opacity = '0';
         toast.style.transform = 'translateX(40px)';
         setTimeout(() => toast.remove(), 400);
-      }, 4000);
+      }, duration);
     }
   </script>
 

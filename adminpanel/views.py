@@ -14,6 +14,7 @@ from orders.models import Order
 
 User = get_user_model()
  
+COUPON_PAGINATION_LIMIT = 5
  
 # ─────────────────────────────────────────
 #  DECORATOR — Admin only + no-cache
@@ -1060,8 +1061,13 @@ def inventory_update_stock_admin(request, variant_id):
 @admin_required
 def coupon_list_admin(request):
     from orders.models import Coupon
-    coupons = Coupon.objects.all().order_by('-valid_from')
-    return render(request, 'adminpanel/admin_coupon_list.html', {'coupons': coupons})
+    coupons_list = Coupon.objects.all().order_by('-valid_from')
+    
+    paginator = Paginator(coupons_list, COUPON_PAGINATION_LIMIT)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'adminpanel/admin_coupon_list.html', {'page_obj': page_obj})
 
 
 @admin_required
@@ -1069,6 +1075,18 @@ def coupon_add_admin(request):
     from orders.models import Coupon
     from django.utils import timezone
     import decimal
+    import re
+    
+    data = {
+        'code': '',
+        'discount_type': 'percentage',
+        'discount_value': '',
+        'min_spend': '0.00',
+        'max_discount': '',
+        'active': 'true',
+        'valid_from': '',
+        'valid_to': '',
+    }
     
     if request.method == 'POST':
         code = request.POST.get('code', '').strip().upper()
@@ -1080,10 +1098,22 @@ def coupon_add_admin(request):
         valid_from = request.POST.get('valid_from')
         valid_to = request.POST.get('valid_to')
         
-        # Validations
+        data = {
+            'code': code,
+            'discount_type': discount_type,
+            'discount_value': discount_value,
+            'min_spend': min_spend,
+            'max_discount': max_discount,
+            'active': 'true' if active else 'false',
+            'valid_from': valid_from,
+            'valid_to': valid_to,
+        }
+        
         errors = []
         if not code:
             errors.append("Coupon code is required.")
+        elif not re.match(r'^[A-Z0-9_-]+$', code):
+            errors.append("Coupon code must be alphanumeric (letters, numbers, hyphens, and underscores only).")
         elif Coupon.objects.filter(code=code).exists():
             errors.append("A coupon with this code already exists.")
             
@@ -1091,6 +1121,8 @@ def coupon_add_admin(request):
             val_discount = decimal.Decimal(discount_value)
             if val_discount <= 0:
                 errors.append("Discount value must be greater than zero.")
+            elif discount_type == 'percentage' and val_discount > 100:
+                errors.append("Percentage discount cannot exceed 100%.")
         except (ValueError, decimal.InvalidOperation):
             errors.append("Invalid discount value.")
             
@@ -1144,7 +1176,117 @@ def coupon_add_admin(request):
             messages.success(request, f"Coupon '{code}' created successfully!")
             return redirect('adminpanel:coupon_list')
             
-    return render(request, 'adminpanel/admin_coupon_form.html')
+    return render(request, 'adminpanel/admin_coupon_form.html', {'data': data})
+
+
+@admin_required
+def coupon_edit_admin(request, coupon_id):
+    from orders.models import Coupon
+    from django.utils import timezone
+    import decimal
+    import re
+    
+    coupon = get_object_or_404(Coupon, id=coupon_id)
+    
+    if request.method == 'POST':
+        code = request.POST.get('code', '').strip().upper()
+        discount_type = request.POST.get('discount_type', 'percentage')
+        discount_value = request.POST.get('discount_value', '0')
+        min_spend = request.POST.get('min_spend', '0')
+        max_discount = request.POST.get('max_discount', '')
+        active = request.POST.get('active') == 'true'
+        valid_from = request.POST.get('valid_from')
+        valid_to = request.POST.get('valid_to')
+        
+        data = {
+            'code': code,
+            'discount_type': discount_type,
+            'discount_value': discount_value,
+            'min_spend': min_spend,
+            'max_discount': max_discount,
+            'active': 'true' if active else 'false',
+            'valid_from': valid_from,
+            'valid_to': valid_to,
+        }
+        
+        errors = []
+        if not code:
+            errors.append("Coupon code is required.")
+        elif not re.match(r'^[A-Z0-9_-]+$', code):
+            errors.append("Coupon code must be alphanumeric (letters, numbers, hyphens, and underscores only).")
+        elif Coupon.objects.exclude(id=coupon.id).filter(code=code).exists():
+            errors.append("A coupon with this code already exists.")
+            
+        try:
+            val_discount = decimal.Decimal(discount_value)
+            if val_discount <= 0:
+                errors.append("Discount value must be greater than zero.")
+            elif discount_type == 'percentage' and val_discount > 100:
+                errors.append("Percentage discount cannot exceed 100%.")
+        except (ValueError, decimal.InvalidOperation):
+            errors.append("Invalid discount value.")
+            
+        try:
+            val_min = decimal.Decimal(min_spend)
+            if val_min < 0:
+                errors.append("Minimum spend cannot be negative.")
+        except (ValueError, decimal.InvalidOperation):
+            errors.append("Invalid minimum spend value.")
+            
+        val_max = None
+        if max_discount:
+            try:
+                val_max = decimal.Decimal(max_discount)
+                if val_max < 0:
+                    errors.append("Maximum discount cannot be negative.")
+            except (ValueError, decimal.InvalidOperation):
+                errors.append("Invalid maximum discount value.")
+                
+        if not valid_from or not valid_to:
+            errors.append("Validity dates are required.")
+        else:
+            try:
+                from django.utils.dateparse import parse_datetime
+                dt_from = parse_datetime(valid_from)
+                dt_to = parse_datetime(valid_to)
+                if not dt_from or not dt_to:
+                    from datetime import datetime
+                    dt_from = timezone.make_aware(datetime.strptime(valid_from, '%Y-%m-%d'))
+                    dt_to = timezone.make_aware(datetime.strptime(valid_to, '%Y-%m-%d'))
+                
+                if dt_from >= dt_to:
+                    errors.append("Valid from date must be strictly before valid to date.")
+            except Exception:
+                errors.append("Invalid date format.")
+                
+        if errors:
+            for err in errors:
+                messages.error(request, err)
+        else:
+            coupon.code = code
+            coupon.discount_type = discount_type
+            coupon.discount_value = val_discount
+            coupon.min_spend = val_min
+            coupon.max_discount = val_max
+            coupon.active = active
+            coupon.valid_from = dt_from
+            coupon.valid_to = dt_to
+            coupon.save()
+            messages.success(request, f"Coupon '{code}' updated successfully!")
+            return redirect('adminpanel:coupon_list')
+    else:
+        data = {
+            'code': coupon.code,
+            'discount_type': coupon.discount_type,
+            'discount_value': coupon.discount_value,
+            'min_spend': coupon.min_spend,
+            'max_discount': coupon.max_discount or '',
+            'active': 'true' if coupon.active else 'false',
+            'valid_from': coupon.valid_from.strftime('%Y-%m-%dT%H:%M') if coupon.valid_from else '',
+            'valid_to': coupon.valid_to.strftime('%Y-%m-%dT%H:%M') if coupon.valid_to else '',
+        }
+        
+    return render(request, 'adminpanel/admin_coupon_form.html', {'coupon': coupon, 'data': data})
 
 
 @admin_required

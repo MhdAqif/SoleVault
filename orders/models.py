@@ -127,23 +127,12 @@ class Coupon(models.Model):
         return True, ""
 
     def calculate_discount(self, subtotal, cart_items=None):
-        if self.discount_type == 'fixed':
-            return min(self.discount_value, subtotal)
-        elif self.discount_type == 'percentage':
-            import decimal
-            if cart_items is not None:
-                total_discount = decimal.Decimal('0.00')
-                for item in cart_items:
-                    unit_price = decimal.Decimal(str(item.product.offer_price))
-                    unit_discount = unit_price * (self.discount_value / decimal.Decimal('100.00'))
-                    if self.max_discount:
-                        unit_discount = min(unit_discount, self.max_discount)
-                    item_discount = unit_discount * item.quantity
-                    total_discount += item_discount
-                return total_discount
-            else:
-                discount = subtotal * (self.discount_value / decimal.Decimal('100.00'))
-                if self.max_discount:
-                    discount = min(discount, self.max_discount)
-                return discount
-        return decimal.Decimal('0.00')
+        import decimal
+        subtotal = decimal.Decimal(str(subtotal))
+        if self.discount_type == 'percentage':
+            discount = subtotal * (self.discount_value / decimal.Decimal('100.00'))
+            if self.max_discount and self.max_discount > 0:
+                discount = min(discount, self.max_discount)
+        else:
+            discount = self.discount_value
+        return min(discount, subtotal)

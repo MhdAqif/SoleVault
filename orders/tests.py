@@ -53,12 +53,12 @@ class CouponDiscountTest(TestCase):
         discount_fallback = coupon.calculate_discount(subtotal)
         self.assertEqual(discount_fallback, decimal.Decimal("2000.00"))
 
-        # 3. Test quantity 2: unit price 15,000. Each unit gets 20% = 3,000 (capped at 2000). Total discount = 4,000.
+        # 3. Test quantity 2: unit price 15,000. Subtotal = 30,000. 20% = 6,000, capped at 2,000.
         self.cart_item.quantity = 2
         self.cart_item.save()
         subtotal = decimal.Decimal("30000.00")
         discount_qty = coupon.calculate_discount(subtotal, cart_items=[self.cart_item])
-        self.assertEqual(discount_qty, decimal.Decimal("4000.00"))
+        self.assertEqual(discount_qty, decimal.Decimal("2000.00"))
 
     def test_fixed_coupon(self):
         coupon = Coupon.objects.create(
