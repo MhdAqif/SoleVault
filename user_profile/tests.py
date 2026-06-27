@@ -171,3 +171,60 @@ class ChangePasswordTests(TestCase):
         response = self.client.post(reverse('user_profile:change_password'), {'password': 'newpassword'})
         self.assertEqual(response.status_code, 302) # Redirects
 
+
+class ProfileUpdateTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser@example.com',
+            email='testuser@example.com',
+            password='testpassword',
+            first_name='Test',
+            last_name='User'
+        )
+        self.client.login(username='testuser@example.com', password='testpassword')
+
+    def test_profile_update_success(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x00\x00\x00\x21\xf9\x04'
+            b'\x01\x0a\x00\x01\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02'
+            b'\x02\x4c\x01\x00\x3b'
+        )
+        avatar = SimpleUploadedFile("avatar.jpg", small_gif, content_type="image/jpeg")
+
+        response = self.client.post(
+            reverse('user_profile:profile'),
+            {
+                'full_name': 'New User Name',
+                'phone': '9876543210',
+                'email': 'testuser@example.com',
+                'photo': avatar,
+                'remove_photo': '0'
+            }
+        )
+        self.assertEqual(response.status_code, 302)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, 'New')
+        self.assertEqual(self.user.last_name, 'User Name')
+        self.assertTrue(self.user.profile_image)
+        self.assertTrue(self.user.profile_image.name.startswith('profile_images/'))
+
+    def test_profile_remove_photo(self):
+        # Set a dummy profile image first
+        self.user.profile_image = 'profile_images/dummy.jpg'
+        self.user.save()
+
+        response = self.client.post(
+            reverse('user_profile:profile'),
+            {
+                'full_name': 'Test User',
+                'phone': '9876543210',
+                'email': 'testuser@example.com',
+                'remove_photo': '1'
+            }
+        )
+        self.assertEqual(response.status_code, 302)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.profile_image)
+
+

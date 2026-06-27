@@ -5,7 +5,6 @@ app_name = 'user_profile'
 
 urlpatterns = [
     path('', views.user_profile, name='profile'),
-    path('edit/',         views.profile_edit,   name='profile_edit'),
     path('address/',      views.manage_address,     name='manage_address'),
     path('address/add/',  views.add_address,    name='add_address'),
     path('address/add/ajax/', views.add_address_ajax, name='add_address_ajax'),
